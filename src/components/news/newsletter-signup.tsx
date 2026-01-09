@@ -52,12 +52,12 @@ export function NewsletterSignup() {
   }
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
+    <div className="bg-card border border-border rounded-xl p-6">
       <div className="flex items-center gap-2 mb-3">
         <Mail className="w-5 h-5 text-primary" />
-        <h3 className="font-semibold text-white">Newsletter</h3>
+        <h3 className="font-semibold text-foreground">Newsletter</h3>
       </div>
-      <p className="text-sm text-slate-400 mb-4">
+      <p className="text-sm text-muted-foreground mb-4">
         Get the latest Oromo news delivered to your inbox.
       </p>
       <form onSubmit={handleSubmit} className="space-y-3">
@@ -67,7 +67,6 @@ export function NewsletterSignup() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="bg-slate-900 border-slate-700"
         />
         {error && (
           <p className="text-sm text-red-400">{error}</p>

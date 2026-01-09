@@ -9,7 +9,7 @@ export const CourseGrid = ({ courses }: CourseGridProps) => {
   if (courses.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-slate-600">No courses found.</p>
+        <p className="text-muted-foreground">No courses found.</p>
       </div>
     )
   }

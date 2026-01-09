@@ -32,8 +32,8 @@ export const CourseCard = ({ course, className }: CourseCardProps) => {
   return (
     <Card className={cn(
       'group h-full flex flex-col overflow-hidden',
-      'bg-slate-800/50 border-slate-700 hover:border-slate-600',
-      'hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-300',
+      'bg-card border-border hover:border-primary/50',
+      'hover:shadow-xl hover:shadow-primary/10 transition-all duration-300',
       className
     )}>
       <Link href={`/academy/${course.slug}`}>
@@ -54,7 +54,7 @@ export const CourseCard = ({ course, className }: CourseCardProps) => {
             {hasStarted && !isLoading && (
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
+                  <div className="flex-1 h-2 bg-secondary rounded-full overflow-hidden">
                     <div
                       className="h-full bg-gradient-to-r from-emerald-500 to-amber-500 transition-all duration-300"
                       style={{ width: `${progressPercentage}%` }}
@@ -102,7 +102,7 @@ export const CourseCard = ({ course, className }: CourseCardProps) => {
             </Link>
           </Button>
         ) : (
-          <Button asChild variant="outline" className="w-full border-slate-600 hover:bg-slate-700 hover:border-slate-500" size="sm">
+          <Button asChild variant="outline" className="w-full border-border hover:bg-secondary hover:border-primary/50" size="sm">
             <Link href={`/academy/${course.slug}`}>
               Start Course
             </Link>

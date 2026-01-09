@@ -66,8 +66,8 @@ export function WikiQuizMode({ questions }: WikiQuizModeProps) {
     return (
       <div className="text-center py-16">
         <div className="text-6xl mb-4">📝</div>
-        <h3 className="text-xl font-semibold text-white mb-2">No quiz questions yet</h3>
-        <p className="text-slate-400">Quiz questions will be added soon for this article.</p>
+        <h3 className="text-xl font-semibold text-foreground mb-2">No quiz questions yet</h3>
+        <p className="text-muted-foreground">Quiz questions will be added soon for this article.</p>
       </div>
     )
   }
@@ -78,23 +78,23 @@ export function WikiQuizMode({ questions }: WikiQuizModeProps) {
       <div className="max-w-xl mx-auto text-center py-12">
         <div className="mb-6">
           {percentage >= 80 ? (
-            <div className="w-24 h-24 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto">
-              <Trophy className="h-12 w-12 text-emerald-400" />
+            <div className="w-24 h-24 bg-primary/20 rounded-full flex items-center justify-center mx-auto">
+              <Trophy className="h-12 w-12 text-primary" />
             </div>
           ) : percentage >= 50 ? (
             <div className="w-24 h-24 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto">
-              <CheckCircle className="h-12 w-12 text-amber-400" />
+              <CheckCircle className="h-12 w-12 text-amber-500" />
             </div>
           ) : (
-            <div className="w-24 h-24 bg-red-500/20 rounded-full flex items-center justify-center mx-auto">
-              <XCircle className="h-12 w-12 text-red-400" />
+            <div className="w-24 h-24 bg-destructive/20 rounded-full flex items-center justify-center mx-auto">
+              <XCircle className="h-12 w-12 text-destructive" />
             </div>
           )}
         </div>
 
-        <h2 className="text-3xl font-bold text-white mb-2">Quiz Complete!</h2>
-        <p className="text-xl text-slate-300 mb-6">
-          You scored <span className="text-emerald-400 font-bold">{score}</span> out of{' '}
+        <h2 className="text-3xl font-bold text-foreground mb-2">Quiz Complete!</h2>
+        <p className="text-xl text-muted-foreground mb-6">
+          You scored <span className="text-primary font-bold">{score}</span> out of{' '}
           <span className="font-bold">{questions.length}</span>
         </p>
 
@@ -102,17 +102,17 @@ export function WikiQuizMode({ questions }: WikiQuizModeProps) {
           <span
             className={
               percentage >= 80
-                ? 'text-emerald-400'
+                ? 'text-primary'
                 : percentage >= 50
-                ? 'text-amber-400'
-                : 'text-red-400'
+                ? 'text-amber-500'
+                : 'text-destructive'
             }
           >
             {percentage}%
           </span>
         </div>
 
-        <Button onClick={handleRestart} className="bg-emerald-500 hover:bg-emerald-600">
+        <Button onClick={handleRestart}>
           <RotateCcw className="h-4 w-4 mr-2" /> Try Again
         </Button>
       </div>
@@ -123,22 +123,22 @@ export function WikiQuizMode({ questions }: WikiQuizModeProps) {
     <div className="max-w-2xl mx-auto">
       {/* Progress */}
       <div className="flex items-center justify-between mb-6">
-        <span className="text-slate-400">
+        <span className="text-muted-foreground">
           Question {currentIndex + 1} of {questions.length}
         </span>
-        <span className="text-emerald-400 font-medium">Score: {score}</span>
+        <span className="text-primary font-medium">Score: {score}</span>
       </div>
 
-      <div className="h-2 bg-slate-700 rounded-full overflow-hidden mb-8">
+      <div className="h-2 bg-secondary rounded-full overflow-hidden mb-8">
         <div
-          className="h-full bg-emerald-500 transition-all"
+          className="h-full bg-primary transition-all"
           style={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }}
         />
       </div>
 
       {/* Question */}
-      <div className="bg-slate-800 rounded-xl p-8 mb-6 border border-slate-700">
-        <h3 className="text-xl font-semibold text-white mb-6">{currentQuestion.question}</h3>
+      <div className="bg-card rounded-xl p-8 mb-6 border border-border shadow-sm">
+        <h3 className="text-xl font-semibold text-foreground mb-6">{currentQuestion.question}</h3>
 
         <div className="space-y-3">
           {shuffledOptions.map((option, index) => {
@@ -149,16 +149,16 @@ export function WikiQuizMode({ questions }: WikiQuizModeProps) {
 
             if (showResult) {
               if (isCorrect) {
-                buttonClass += 'bg-emerald-500/20 border-emerald-500 text-white'
+                buttonClass += 'bg-primary/10 border-primary text-foreground'
               } else if (isSelected) {
-                buttonClass += 'bg-red-500/20 border-red-500 text-white'
+                buttonClass += 'bg-destructive/10 border-destructive text-foreground'
               } else {
-                buttonClass += 'bg-slate-700/50 border-slate-600 text-slate-400'
+                buttonClass += 'bg-secondary/50 border-border text-muted-foreground'
               }
             } else {
               buttonClass += isSelected
-                ? 'bg-slate-700 border-emerald-500 text-white'
-                : 'bg-slate-700 border-slate-600 text-slate-300 hover:border-slate-500 hover:bg-slate-600'
+                ? 'bg-secondary border-primary text-foreground'
+                : 'bg-secondary border-border text-foreground hover:border-primary/50 hover:bg-secondary/80'
             }
 
             return (
@@ -169,15 +169,15 @@ export function WikiQuizMode({ questions }: WikiQuizModeProps) {
                 className={buttonClass}
               >
                 <div className="flex items-center gap-3">
-                  <span className="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center text-sm font-medium flex-shrink-0">
+                  <span className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm font-medium text-muted-foreground flex-shrink-0">
                     {String.fromCharCode(65 + index)}
                   </span>
                   <span className="flex-1">{option}</span>
                   {showResult && isCorrect && (
-                    <CheckCircle className="h-5 w-5 text-emerald-400 flex-shrink-0" />
+                    <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
                   )}
                   {showResult && isSelected && !isCorrect && (
-                    <XCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
+                    <XCircle className="h-5 w-5 text-destructive flex-shrink-0" />
                   )}
                 </div>
               </button>
@@ -188,16 +188,16 @@ export function WikiQuizMode({ questions }: WikiQuizModeProps) {
 
       {/* Explanation */}
       {showResult && currentQuestion.explanation && (
-        <div className="bg-slate-800/50 rounded-xl p-6 mb-6 border border-slate-700">
-          <h4 className="font-semibold text-white mb-2">Explanation</h4>
-          <p className="text-slate-300">{currentQuestion.explanation}</p>
+        <div className="bg-secondary/50 rounded-xl p-6 mb-6 border border-border">
+          <h4 className="font-semibold text-foreground mb-2">Explanation</h4>
+          <p className="text-muted-foreground">{currentQuestion.explanation}</p>
         </div>
       )}
 
       {/* Next Button */}
       {showResult && (
         <div className="flex justify-end">
-          <Button onClick={handleNext} className="bg-emerald-500 hover:bg-emerald-600">
+          <Button onClick={handleNext}>
             {currentIndex < questions.length - 1 ? (
               <>
                 Next Question <ArrowRight className="h-4 w-4 ml-2" />

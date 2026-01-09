@@ -20,9 +20,9 @@ export function ArticleCard({ article }: ArticleCardProps) {
   return (
     <Link
       href={`/news/${article.slug}`}
-      className="block bg-slate-800 rounded-xl overflow-hidden border border-slate-700 transition-all duration-300 hover:ring-2 hover:ring-primary/50 hover:shadow-lg"
+      className="block bg-card rounded-xl overflow-hidden border border-border transition-all duration-300 hover:ring-2 hover:ring-primary/50 hover:shadow-lg"
     >
-      <div className="aspect-video relative bg-slate-700">
+      <div className="aspect-video relative bg-secondary">
         {article.image_url ? (
           <Image
             src={article.image_url}
@@ -39,15 +39,15 @@ export function ArticleCard({ article }: ArticleCardProps) {
       <div className="p-4">
         <div className="flex items-center gap-2 mb-2">
           <CategoryBadge category={article.category} />
-          <time className="text-xs text-slate-500">
+          <time className="text-xs text-muted-foreground">
             {formatDistanceToNow(new Date(article.published_at), { addSuffix: true })}
           </time>
         </div>
-        <h3 className="font-semibold text-white line-clamp-2 mb-2 group-hover:text-primary transition-colors">
+        <h3 className="font-semibold text-foreground line-clamp-2 mb-2 group-hover:text-primary transition-colors">
           {article.title}
         </h3>
         {article.summary && (
-          <p className="text-sm text-slate-400 line-clamp-2">
+          <p className="text-sm text-muted-foreground line-clamp-2">
             {article.summary}
           </p>
         )}

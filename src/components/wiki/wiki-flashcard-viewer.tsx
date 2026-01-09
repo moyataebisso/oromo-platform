@@ -78,8 +78,8 @@ export function WikiFlashcardViewer({ flashcards }: WikiFlashcardViewerProps) {
     return (
       <div className="text-center py-16">
         <div className="text-6xl mb-4">📚</div>
-        <h3 className="text-xl font-semibold text-white mb-2">No flashcards yet</h3>
-        <p className="text-slate-400">Flashcards will be added soon for this article.</p>
+        <h3 className="text-xl font-semibold text-foreground mb-2">No flashcards yet</h3>
+        <p className="text-muted-foreground">Flashcards will be added soon for this article.</p>
       </div>
     )
   }
@@ -88,14 +88,14 @@ export function WikiFlashcardViewer({ flashcards }: WikiFlashcardViewerProps) {
     <div className="max-w-2xl mx-auto">
       {/* Stats */}
       <div className="flex items-center justify-between mb-6">
-        <div className="text-slate-400">
-          <span className="text-white font-medium">{knownCards.size}</span> of {cards.length} mastered
+        <div className="text-muted-foreground">
+          <span className="text-foreground font-medium">{knownCards.size}</span> of {cards.length} mastered
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={handleShuffle} className="border-slate-600 text-slate-300 hover:text-white hover:bg-slate-700">
+          <Button variant="outline" size="sm" onClick={handleShuffle}>
             <Shuffle className="h-4 w-4 mr-2" /> Shuffle
           </Button>
-          <Button variant="outline" size="sm" onClick={handleRestart} className="border-slate-600 text-slate-300 hover:text-white hover:bg-slate-700">
+          <Button variant="outline" size="sm" onClick={handleRestart}>
             <RotateCcw className="h-4 w-4 mr-2" /> Restart
           </Button>
         </div>
@@ -118,51 +118,19 @@ export function WikiFlashcardViewer({ flashcards }: WikiFlashcardViewerProps) {
           }}
         >
           {/* Front */}
-          <div
-            style={{
-              position: 'absolute',
-              width: '100%',
-              height: '100%',
-              backfaceVisibility: 'hidden',
-              WebkitBackfaceVisibility: 'hidden',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '2rem',
-              borderRadius: '1rem',
-              backgroundColor: '#0f172a',
-              border: '2px solid #334155',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-            }}
-          >
-            <span className="text-emerald-400 text-sm mb-4 uppercase tracking-wider">Term</span>
-            <p className="text-3xl font-bold text-white text-center">{currentCard?.term}</p>
-            <p className="text-slate-500 text-sm mt-6">Click to reveal definition</p>
+          <div className="absolute w-full h-full backface-hidden flex flex-col items-center justify-center p-8 rounded-2xl bg-card border-2 border-border shadow-lg dark:bg-slate-900 dark:border-slate-700">
+            <span className="text-primary text-sm mb-4 uppercase tracking-wider font-medium">Term</span>
+            <p className="text-3xl font-bold text-foreground text-center">{currentCard?.term}</p>
+            <p className="text-muted-foreground text-sm mt-6">Click to reveal definition</p>
           </div>
 
           {/* Back */}
           <div
-            style={{
-              position: 'absolute',
-              width: '100%',
-              height: '100%',
-              backfaceVisibility: 'hidden',
-              WebkitBackfaceVisibility: 'hidden',
-              transform: 'rotateY(180deg)',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '2rem',
-              borderRadius: '1rem',
-              backgroundColor: '#1e293b',
-              border: '2px solid #10B981',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-            }}
+            className="absolute w-full h-full backface-hidden flex flex-col items-center justify-center p-8 rounded-2xl bg-primary/5 border-2 border-primary shadow-lg dark:bg-slate-800"
+            style={{ transform: 'rotateY(180deg)' }}
           >
-            <span className="text-amber-400 text-sm mb-4 uppercase tracking-wider">Definition</span>
-            <p className="text-xl text-slate-200 text-center leading-relaxed">{currentCard?.definition}</p>
+            <span className="text-amber-600 dark:text-amber-400 text-sm mb-4 uppercase tracking-wider font-medium">Definition</span>
+            <p className="text-xl text-foreground text-center leading-relaxed">{currentCard?.definition}</p>
           </div>
         </div>
       </div>
@@ -173,27 +141,25 @@ export function WikiFlashcardViewer({ flashcards }: WikiFlashcardViewerProps) {
           variant="ghost"
           onClick={handlePrev}
           disabled={currentIndex === 0}
-          className="text-slate-400 hover:text-white disabled:opacity-50"
         >
           <ChevronLeft className="h-5 w-5 mr-1" /> Previous
         </Button>
 
-        <span className="text-white font-medium">{currentIndex + 1} / {cards.length}</span>
+        <span className="text-foreground font-medium">{currentIndex + 1} / {cards.length}</span>
 
         <Button
           variant="ghost"
           onClick={handleNext}
           disabled={currentIndex === cards.length - 1}
-          className="text-slate-400 hover:text-white disabled:opacity-50"
         >
           Next <ChevronRight className="h-5 w-5 ml-1" />
         </Button>
       </div>
 
       {/* Progress */}
-      <div className="h-2 bg-slate-700 rounded-full overflow-hidden mb-6">
+      <div className="h-2 bg-secondary rounded-full overflow-hidden mb-6">
         <div
-          className="h-full bg-gradient-to-r from-emerald-500 to-amber-500 transition-all duration-300"
+          className="h-full bg-gradient-to-r from-primary to-amber-500 transition-all duration-300"
           style={{ width: `${progress}%` }}
         />
       </div>
@@ -206,7 +172,7 @@ export function WikiFlashcardViewer({ flashcards }: WikiFlashcardViewerProps) {
               e.stopPropagation()
               markAsKnown()
             }}
-            className="bg-emerald-500 hover:bg-emerald-600 text-white"
+            className="bg-primary hover:bg-primary/90"
           >
             <Check className="h-4 w-4 mr-2" /> I know this
           </Button>
@@ -214,13 +180,20 @@ export function WikiFlashcardViewer({ flashcards }: WikiFlashcardViewerProps) {
       )}
 
       {/* Keyboard hints */}
-      <div className="mt-8 text-center text-slate-500 text-sm">
+      <div className="mt-8 text-center text-muted-foreground text-sm">
         <p>
-          Press <kbd className="px-2 py-1 bg-slate-700 rounded text-slate-300">Space</kbd> to flip •{' '}
-          <kbd className="px-2 py-1 bg-slate-700 rounded text-slate-300">←</kbd>{' '}
-          <kbd className="px-2 py-1 bg-slate-700 rounded text-slate-300">→</kbd> to navigate
+          Press <kbd className="px-2 py-1 bg-secondary rounded text-foreground">Space</kbd> to flip •{' '}
+          <kbd className="px-2 py-1 bg-secondary rounded text-foreground">←</kbd>{' '}
+          <kbd className="px-2 py-1 bg-secondary rounded text-foreground">→</kbd> to navigate
         </p>
       </div>
+
+      <style jsx>{`
+        .backface-hidden {
+          backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
+        }
+      `}</style>
     </div>
   )
 }

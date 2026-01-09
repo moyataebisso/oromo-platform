@@ -63,19 +63,19 @@ export async function ArticleSidebar({ currentArticleId }: ArticleSidebarProps) 
   return (
     <div className="space-y-6">
       {/* Categories Section */}
-      <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
-        <h3 className="font-semibold text-white mb-4">Categories</h3>
+      <div className="bg-card border border-border rounded-xl p-6">
+        <h3 className="font-semibold text-foreground mb-4">Categories</h3>
         <div className="space-y-2">
           {categories?.map((category) => (
             <Link
               key={category.id}
               href={`/news/category/${category.slug}`}
-              className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-slate-700 transition-colors group"
+              className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-secondary transition-colors group"
             >
-              <span className="text-slate-300 group-hover:text-white transition-colors capitalize">
+              <span className="text-muted-foreground group-hover:text-foreground transition-colors capitalize">
                 {category.name}
               </span>
-              <span className="text-xs text-slate-500 bg-slate-700 px-2 py-1 rounded-full">
+              <span className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded-full">
                 {categoryCounts[category.slug] || 0}
               </span>
             </Link>
@@ -88,10 +88,10 @@ export async function ArticleSidebar({ currentArticleId }: ArticleSidebarProps) 
 
       {/* Popular Articles */}
       {popularArticles && popularArticles.length > 0 && (
-        <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
+        <div className="bg-card border border-border rounded-xl p-6">
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp className="w-5 h-5 text-primary" />
-            <h3 className="font-semibold text-white">Popular</h3>
+            <h3 className="font-semibold text-foreground">Popular</h3>
           </div>
           <div className="space-y-4">
             {popularArticles.map((article, index) => (
@@ -100,11 +100,11 @@ export async function ArticleSidebar({ currentArticleId }: ArticleSidebarProps) 
                 href={`/news/${article.slug}`}
                 className="flex gap-3 group"
               >
-                <span className="text-2xl font-bold text-slate-600 group-hover:text-primary transition-colors">
+                <span className="text-2xl font-bold text-muted-foreground group-hover:text-primary transition-colors">
                   {index + 1}
                 </span>
                 <div className="flex-1">
-                  <h4 className="text-sm font-medium text-slate-300 line-clamp-2 group-hover:text-white transition-colors">
+                  <h4 className="text-sm font-medium text-muted-foreground line-clamp-2 group-hover:text-foreground transition-colors">
                     {article.title}
                   </h4>
                   <CategoryBadge category={article.category} className="mt-1 text-[10px] px-2 py-0.5" />

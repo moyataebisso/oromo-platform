@@ -137,8 +137,8 @@ export function WikiMatchGame({ flashcards }: WikiMatchGameProps) {
     return (
       <div className="text-center py-16">
         <div className="text-6xl mb-4">🎯</div>
-        <h3 className="text-xl font-semibold text-white mb-2">No match game available</h3>
-        <p className="text-slate-400">Match game requires flashcards for this article.</p>
+        <h3 className="text-xl font-semibold text-foreground mb-2">No match game available</h3>
+        <p className="text-muted-foreground">Match game requires flashcards for this article.</p>
       </div>
     )
   }
@@ -147,29 +147,29 @@ export function WikiMatchGame({ flashcards }: WikiMatchGameProps) {
     const accuracy = attempts > 0 ? Math.round((maxCards / attempts) * 100) : 100
     return (
       <div className="max-w-xl mx-auto text-center py-12">
-        <div className="w-24 h-24 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-          <Trophy className="h-12 w-12 text-emerald-400" />
+        <div className="w-24 h-24 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-6">
+          <Trophy className="h-12 w-12 text-primary" />
         </div>
 
-        <h2 className="text-3xl font-bold text-white mb-2">Great Job!</h2>
-        <p className="text-xl text-slate-300 mb-6">You matched all {maxCards} pairs!</p>
+        <h2 className="text-3xl font-bold text-foreground mb-2">Great Job!</h2>
+        <p className="text-xl text-muted-foreground mb-6">You matched all {maxCards} pairs!</p>
 
         <div className="grid grid-cols-3 gap-4 mb-8">
-          <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
-            <p className="text-3xl font-bold text-emerald-400">{formatTime(timer)}</p>
-            <p className="text-slate-400 text-sm">Time</p>
+          <div className="bg-card rounded-xl p-4 border border-border shadow-sm">
+            <p className="text-3xl font-bold text-primary">{formatTime(timer)}</p>
+            <p className="text-muted-foreground text-sm">Time</p>
           </div>
-          <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
-            <p className="text-3xl font-bold text-amber-400">{attempts}</p>
-            <p className="text-slate-400 text-sm">Attempts</p>
+          <div className="bg-card rounded-xl p-4 border border-border shadow-sm">
+            <p className="text-3xl font-bold text-amber-500">{attempts}</p>
+            <p className="text-muted-foreground text-sm">Attempts</p>
           </div>
-          <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
-            <p className="text-3xl font-bold text-blue-400">{accuracy}%</p>
-            <p className="text-slate-400 text-sm">Accuracy</p>
+          <div className="bg-card rounded-xl p-4 border border-border shadow-sm">
+            <p className="text-3xl font-bold text-blue-500">{accuracy}%</p>
+            <p className="text-muted-foreground text-sm">Accuracy</p>
           </div>
         </div>
 
-        <Button onClick={initGame} className="bg-emerald-500 hover:bg-emerald-600">
+        <Button onClick={initGame}>
           <RotateCcw className="h-4 w-4 mr-2" /> Play Again
         </Button>
       </div>
@@ -181,30 +181,25 @@ export function WikiMatchGame({ flashcards }: WikiMatchGameProps) {
       {/* Stats */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
-          <span className="flex items-center gap-2 text-slate-400">
+          <span className="flex items-center gap-2 text-muted-foreground">
             <Clock className="h-4 w-4" /> {formatTime(timer)}
           </span>
-          <span className="text-slate-400">
-            Matches: <span className="text-emerald-400 font-medium">{matches}</span> / {maxCards}
+          <span className="text-muted-foreground">
+            Matches: <span className="text-primary font-medium">{matches}</span> / {maxCards}
           </span>
-          <span className="text-slate-400">
-            Attempts: <span className="text-amber-400 font-medium">{attempts}</span>
+          <span className="text-muted-foreground">
+            Attempts: <span className="text-amber-500 font-medium">{attempts}</span>
           </span>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={initGame}
-          className="border-slate-600 text-slate-300 hover:text-white hover:bg-slate-700"
-        >
+        <Button variant="outline" size="sm" onClick={initGame}>
           <RotateCcw className="h-4 w-4 mr-2" /> Restart
         </Button>
       </div>
 
       {/* Progress Bar */}
-      <div className="h-2 bg-slate-700 rounded-full overflow-hidden mb-6">
+      <div className="h-2 bg-secondary rounded-full overflow-hidden mb-6">
         <div
-          className="h-full bg-gradient-to-r from-emerald-500 to-amber-500 transition-all duration-300"
+          className="h-full bg-gradient-to-r from-primary to-amber-500 transition-all duration-300"
           style={{ width: `${(matches / maxCards) * 100}%` }}
         />
       </div>
@@ -218,21 +213,21 @@ export function WikiMatchGame({ flashcards }: WikiMatchGameProps) {
             disabled={card.isMatched || showError}
             className={`p-4 rounded-xl text-sm text-left transition-all min-h-[120px] border-2 ${
               card.isMatched
-                ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300 cursor-default'
+                ? 'bg-primary/10 border-primary text-primary cursor-default'
                 : card.isSelected
                 ? showError
-                  ? 'bg-red-500/20 border-red-500 text-white animate-shake'
-                  : 'bg-amber-500/20 border-amber-500 text-white'
-                : 'bg-slate-700 border-slate-600 text-slate-300 hover:border-slate-500 hover:bg-slate-600 cursor-pointer'
+                  ? 'bg-destructive/10 border-destructive text-foreground animate-shake'
+                  : 'bg-amber-500/10 border-amber-500 text-foreground'
+                : 'bg-card border-border text-foreground hover:border-primary/50 hover:bg-secondary/50 cursor-pointer'
             }`}
           >
             <span
               className={`text-xs uppercase tracking-wider mb-2 block font-medium ${
                 card.isMatched
-                  ? 'text-emerald-400'
+                  ? 'text-primary'
                   : card.type === 'term'
-                  ? 'text-emerald-400'
-                  : 'text-amber-400'
+                  ? 'text-primary'
+                  : 'text-amber-500'
               }`}
             >
               {card.type}
@@ -243,7 +238,7 @@ export function WikiMatchGame({ flashcards }: WikiMatchGameProps) {
       </div>
 
       {/* Instructions */}
-      <p className="text-center text-slate-500 text-sm mt-6">
+      <p className="text-center text-muted-foreground text-sm mt-6">
         Click on cards to match terms with their definitions
       </p>
 

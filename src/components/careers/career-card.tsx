@@ -34,15 +34,15 @@ function formatSalary(min?: number, max?: number): string {
 }
 
 export function CareerCard({ career }: CareerCardProps) {
-  const colorClass = categoryColors[career.category?.toLowerCase()] || 'bg-slate-500/20 text-slate-400 border-slate-500/30'
+  const colorClass = categoryColors[career.category?.toLowerCase()] || 'bg-secondary text-muted-foreground border-border'
 
   return (
     <Link
       href={`/careers/${career.slug}`}
-      className="block bg-slate-800 rounded-xl border border-slate-700 p-6 transition-all duration-300 hover:ring-2 hover:ring-primary/50 hover:shadow-lg group"
+      className="block bg-card rounded-xl border border-border p-6 transition-all duration-300 hover:ring-2 hover:ring-primary/50 hover:shadow-lg group"
     >
       <div className="flex items-start justify-between mb-3">
-        <h3 className="font-semibold text-white text-lg group-hover:text-primary transition-colors">
+        <h3 className="font-semibold text-foreground text-lg group-hover:text-primary transition-colors">
           {career.title}
         </h3>
         <Badge variant="outline" className={`capitalize text-xs ${colorClass}`}>
@@ -51,18 +51,18 @@ export function CareerCard({ career }: CareerCardProps) {
       </div>
 
       {career.description && (
-        <p className="text-slate-400 text-sm line-clamp-2 mb-4">
+        <p className="text-muted-foreground text-sm line-clamp-2 mb-4">
           {career.description}
         </p>
       )}
 
       <div className="flex items-center gap-4 text-sm">
-        <div className="flex items-center gap-1 text-slate-400">
+        <div className="flex items-center gap-1 text-muted-foreground">
           <DollarSign className="w-4 h-4" />
           <span>{formatSalary(career.salary_min, career.salary_max)}</span>
         </div>
         {career.job_outlook && (
-          <div className="flex items-center gap-1 text-green-400">
+          <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
             <TrendingUp className="w-4 h-4" />
             <span>{career.job_outlook}</span>
           </div>

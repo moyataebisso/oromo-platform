@@ -84,7 +84,7 @@ export default async function NewsPage({ searchParams }: NewsPageProps) {
   const otherFeatured = featuredArticles.slice(1) || []
 
   return (
-    <div className="min-h-screen bg-slate-900">
+    <div className="min-h-screen bg-background">
       {/* Hero Section */}
       {heroArticle && (
         <section className="relative">
@@ -97,21 +97,21 @@ export default async function NewsPage({ searchParams }: NewsPageProps) {
                   : 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
               }}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/80 to-slate-900/40" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/40" />
           </div>
           <div className="relative pt-32 pb-16 px-4 max-w-7xl mx-auto">
             <CategoryBadge category={heroArticle.category} className="mb-4" />
             <Link href={`/news/${heroArticle.slug}`}>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white max-w-4xl mb-4 hover:text-primary/90 transition-colors">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground max-w-4xl mb-4 hover:text-primary/90 transition-colors">
                 {heroArticle.title}
               </h1>
             </Link>
             {heroArticle.summary && (
-              <p className="text-xl text-slate-300 max-w-2xl mb-6">
+              <p className="text-xl text-muted-foreground max-w-2xl mb-6">
                 {heroArticle.summary}
               </p>
             )}
-            <div className="flex items-center gap-4 text-slate-400">
+            <div className="flex items-center gap-4 text-muted-foreground">
               {heroArticle.author && <span>By {heroArticle.author}</span>}
               <span>{new Date(heroArticle.published_at).toLocaleDateString()}</span>
             </div>
@@ -120,7 +120,7 @@ export default async function NewsPage({ searchParams }: NewsPageProps) {
       )}
 
       {/* Category Filters & Search */}
-      <section className="bg-slate-800/50 border-y border-slate-700 sticky top-16 z-30 backdrop-blur-lg">
+      <section className="bg-card/50 border-y border-border sticky top-16 z-30 backdrop-blur-lg">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex flex-col md:flex-row md:items-center gap-4">
             <div className="flex flex-wrap gap-2">
@@ -130,8 +130,8 @@ export default async function NewsPage({ searchParams }: NewsPageProps) {
                   href={cat.slug === 'all' ? '/news' : `/news?category=${cat.slug}`}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                     activeCategory === cat.slug
-                      ? 'bg-primary text-white'
-                      : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
                   }`}
                 >
                   {cat.name}
@@ -139,12 +139,12 @@ export default async function NewsPage({ searchParams }: NewsPageProps) {
               ))}
             </div>
             <form className="relative md:ml-auto md:w-64" action="/news" method="GET">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 name="q"
                 placeholder="Search news..."
                 defaultValue={searchQuery}
-                className="pl-10 bg-slate-700 border-slate-600"
+                className="pl-10"
               />
               {activeCategory !== 'all' && (
                 <input type="hidden" name="category" value={activeCategory} />
@@ -174,7 +174,7 @@ export default async function NewsPage({ searchParams }: NewsPageProps) {
 
             {/* Latest News Grid */}
             <div>
-              <h2 className="text-2xl font-bold text-white mb-6">Latest News</h2>
+              <h2 className="text-2xl font-bold text-foreground mb-6">Latest News</h2>
               {latestArticles && latestArticles.length > 0 ? (
                 <div className="grid md:grid-cols-2 gap-6">
                   {latestArticles.map((article) => (
@@ -183,7 +183,7 @@ export default async function NewsPage({ searchParams }: NewsPageProps) {
                 </div>
               ) : (
                 <div className="text-center py-12">
-                  <p className="text-slate-400">No articles found.</p>
+                  <p className="text-muted-foreground">No articles found.</p>
                 </div>
               )}
             </div>
@@ -191,7 +191,7 @@ export default async function NewsPage({ searchParams }: NewsPageProps) {
 
           {/* Sidebar */}
           <aside className="lg:col-span-1">
-            <Suspense fallback={<div className="animate-pulse bg-slate-800 rounded-xl h-96" />}>
+            <Suspense fallback={<div className="animate-pulse bg-card rounded-xl h-96" />}>
               <ArticleSidebar />
             </Suspense>
           </aside>

@@ -251,18 +251,18 @@ export const MatchGame = ({ flashcards, onComplete }: MatchGameProps) => {
             </p>
           </div>
 
-          <div className="grid grid-cols-3 gap-8 text-center bg-slate-800/50 rounded-2xl p-6 border border-slate-700">
+          <div className="grid grid-cols-3 gap-8 text-center bg-card rounded-2xl p-6 border border-border">
             <div>
-              <p className="text-4xl font-bold text-white">{formatTime(timer)}</p>
-              <p className="text-sm text-slate-400 mt-1">Time</p>
+              <p className="text-4xl font-bold text-foreground">{formatTime(timer)}</p>
+              <p className="text-sm text-muted-foreground mt-1">Time</p>
             </div>
             <div>
-              <p className="text-4xl font-bold text-white">{attempts}</p>
-              <p className="text-sm text-slate-400 mt-1">Moves</p>
+              <p className="text-4xl font-bold text-foreground">{attempts}</p>
+              <p className="text-sm text-muted-foreground mt-1">Moves</p>
             </div>
             <div>
-              <p className="text-4xl font-bold text-green-400">{accuracy}%</p>
-              <p className="text-sm text-slate-400 mt-1">Accuracy</p>
+              <p className="text-4xl font-bold text-green-600 dark:text-green-400">{accuracy}%</p>
+              <p className="text-sm text-muted-foreground mt-1">Accuracy</p>
             </div>
           </div>
 
@@ -278,23 +278,23 @@ export const MatchGame = ({ flashcards, onComplete }: MatchGameProps) => {
   return (
     <div className="flex flex-col items-center gap-6 py-8">
       {/* Stats bar */}
-      <div className="flex items-center justify-between w-full max-w-3xl bg-slate-800/50 rounded-xl p-4 border border-slate-700">
+      <div className="flex items-center justify-between w-full max-w-3xl bg-card rounded-xl p-4 border border-border">
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 text-slate-300">
-            <Clock className="w-5 h-5 text-indigo-400" />
+          <div className="flex items-center gap-2 text-foreground">
+            <Clock className="w-5 h-5 text-primary" />
             <span className="font-mono text-lg">{formatTime(timer)}</span>
           </div>
           {streak >= 2 && (
-            <div className="flex items-center gap-1 text-orange-400 animate-pulse">
+            <div className="flex items-center gap-1 text-orange-500 dark:text-orange-400 animate-pulse">
               <Zap className="w-4 h-4" />
               <span className="text-sm font-medium">{streak} streak!</span>
             </div>
           )}
         </div>
-        <div className="text-lg font-medium text-white">
+        <div className="text-lg font-medium text-foreground">
           {matches} / {totalPairs}
         </div>
-        <Button variant="ghost" size="sm" onClick={handleRestart} className="text-slate-400 hover:text-white">
+        <Button variant="ghost" size="sm" onClick={handleRestart} className="text-muted-foreground hover:text-foreground">
           <RotateCcw className="w-4 h-4 mr-1" />
           Restart
         </Button>
@@ -328,7 +328,7 @@ export const MatchGame = ({ flashcards, onComplete }: MatchGameProps) => {
                 "match-card-front absolute inset-0 flex items-center justify-center",
                 "bg-gradient-to-br from-indigo-600 to-purple-600 border-2 border-indigo-500",
                 "hover:from-indigo-500 hover:to-purple-500 hover:scale-105 transition-transform",
-                selectedCards.includes(card.id) && "ring-2 ring-white ring-offset-2 ring-offset-slate-900"
+                selectedCards.includes(card.id) && "ring-2 ring-primary ring-offset-2 ring-offset-background"
               )}>
                 <span className="text-4xl text-white/50 font-bold">?</span>
               </div>
@@ -336,20 +336,18 @@ export const MatchGame = ({ flashcards, onComplete }: MatchGameProps) => {
               {/* Card front (content) */}
               <div className={cn(
                 "match-card-back absolute inset-0 flex items-center justify-center p-3",
-                "border-2 transition-all",
+                "border-2 transition-all rounded-xl",
                 card.isMatched
-                  ? "bg-gradient-to-br from-green-600/20 to-emerald-600/20 border-green-500"
+                  ? "bg-green-500/20 border-green-500"
                   : card.type === 'term'
-                    ? "bg-gradient-to-br from-slate-700 to-slate-800 border-slate-600"
-                    : "bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700"
+                    ? "bg-card border-border"
+                    : "bg-secondary border-border"
               )}>
                 <span className={cn(
                   "text-sm font-medium leading-tight text-center",
                   card.isMatched
-                    ? "text-green-300"
-                    : card.type === 'term'
-                      ? "text-white"
-                      : "text-slate-300"
+                    ? "text-green-600 dark:text-green-400"
+                    : "text-foreground"
                 )}>
                   {card.content}
                 </span>
@@ -361,7 +359,7 @@ export const MatchGame = ({ flashcards, onComplete }: MatchGameProps) => {
 
       {/* Progress bar */}
       <div className="w-full max-w-3xl">
-        <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+        <div className="h-2 bg-secondary rounded-full overflow-hidden">
           <div
             className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500"
             style={{ width: `${(matches / totalPairs) * 100}%` }}
@@ -370,7 +368,7 @@ export const MatchGame = ({ flashcards, onComplete }: MatchGameProps) => {
       </div>
 
       {/* Instructions */}
-      <p className="text-sm text-slate-500 text-center max-w-md">
+      <p className="text-sm text-muted-foreground text-center max-w-md">
         Click two cards to find matching term-definition pairs
       </p>
     </div>

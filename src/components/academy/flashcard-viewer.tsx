@@ -59,7 +59,7 @@ export function FlashcardViewer({ flashcards }: { flashcards: Flashcard[] }) {
   }, [handleFlip, handleNext, handlePrev])
 
   if (!cards || cards.length === 0) {
-    return <div className="text-center py-12 text-slate-400">No flashcards available for this lesson.</div>
+    return <div className="text-center py-12 text-muted-foreground">No flashcards available for this lesson.</div>
   }
 
   const currentCard = cards[currentIndex]
@@ -80,49 +80,25 @@ export function FlashcardViewer({ flashcards }: { flashcards: Flashcard[] }) {
           transition: 'transform 0.6s',
           transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
         }}>
-          <div style={{
-            position: 'absolute',
-            width: '100%',
-            height: '100%',
-            backfaceVisibility: 'hidden',
-            WebkitBackfaceVisibility: 'hidden',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '2rem',
-            borderRadius: '1rem',
-            backgroundColor: '#1e293b',
-            border: '1px solid #334155',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
-          }}>
-            <p style={{ fontSize: '2.5rem', fontWeight: 'bold', textAlign: 'center', color: 'white' }}>
+          {/* Front - Term */}
+          <div className="absolute w-full h-full backface-hidden flex items-center justify-center p-8 rounded-2xl bg-card border-2 border-border shadow-xl">
+            <p className="text-4xl font-bold text-center text-foreground">
               {currentCard?.term}
             </p>
           </div>
-          <div style={{
-            position: 'absolute',
-            width: '100%',
-            height: '100%',
-            backfaceVisibility: 'hidden',
-            WebkitBackfaceVisibility: 'hidden',
-            transform: 'rotateY(180deg)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '2rem',
-            borderRadius: '1rem',
-            backgroundColor: '#334155',
-            border: '1px solid #475569',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
-          }}>
-            <p style={{ fontSize: '1.5rem', textAlign: 'center', color: '#e2e8f0' }}>
+          {/* Back - Definition */}
+          <div
+            className="absolute w-full h-full backface-hidden flex items-center justify-center p-8 rounded-2xl bg-primary/5 border-2 border-primary shadow-xl"
+            style={{ transform: 'rotateY(180deg)' }}
+          >
+            <p className="text-xl text-center text-foreground">
               {currentCard?.definition}
             </p>
           </div>
         </div>
       </div>
 
-      <p className="text-slate-500 text-sm mt-4">Click card or press Space to flip</p>
+      <p className="text-muted-foreground text-sm mt-4">Click card or press Space to flip</p>
 
       <div className="flex items-center gap-8 mt-6">
         <Button
@@ -134,7 +110,7 @@ export function FlashcardViewer({ flashcards }: { flashcards: Flashcard[] }) {
         >
           <ChevronLeft className="h-8 w-8" />
         </Button>
-        <span className="text-xl font-medium text-white">{currentIndex + 1} of {cards.length}</span>
+        <span className="text-xl font-medium text-foreground">{currentIndex + 1} of {cards.length}</span>
         <Button
           variant="ghost"
           size="lg"
@@ -146,7 +122,7 @@ export function FlashcardViewer({ flashcards }: { flashcards: Flashcard[] }) {
         </Button>
       </div>
 
-      <div className="w-full max-w-2xl h-2 bg-slate-700 rounded-full mt-6 overflow-hidden">
+      <div className="w-full max-w-2xl h-2 bg-secondary rounded-full mt-6 overflow-hidden">
         <div
           className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-300"
           style={{ width: `${progress}%` }}
@@ -161,6 +137,13 @@ export function FlashcardViewer({ flashcards }: { flashcards: Flashcard[] }) {
           <RotateCcw className="h-4 w-4 mr-2" /> Restart
         </Button>
       </div>
+
+      <style jsx>{`
+        .backface-hidden {
+          backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
+        }
+      `}</style>
     </div>
   )
 }

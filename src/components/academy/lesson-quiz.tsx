@@ -157,7 +157,7 @@ export const LessonQuiz = ({ flashcards, onComplete }: LessonQuizProps) => {
               fill="none"
               stroke="currentColor"
               strokeWidth="8"
-              className="text-slate-700"
+              className="text-secondary"
             />
             <circle
               cx="64"
@@ -224,7 +224,7 @@ export const LessonQuiz = ({ flashcards, onComplete }: LessonQuizProps) => {
       </div>
 
       {/* Progress bar */}
-      <div className="w-full max-w-2xl h-2 bg-slate-700 rounded-full overflow-hidden">
+      <div className="w-full max-w-2xl h-2 bg-secondary rounded-full overflow-hidden">
         <div
           className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-300"
           style={{ width: `${progress}%` }}
@@ -232,8 +232,8 @@ export const LessonQuiz = ({ flashcards, onComplete }: LessonQuizProps) => {
       </div>
 
       {/* Question card */}
-      <div className="w-full max-w-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-2xl p-8 shadow-2xl">
-        <h3 className="text-3xl font-bold text-center text-white mb-8">
+      <div className="w-full max-w-2xl bg-card border border-border rounded-2xl p-8 shadow-2xl">
+        <h3 className="text-3xl font-bold text-center text-foreground mb-8">
           {currentQuestion.term}
         </h3>
 
@@ -251,28 +251,28 @@ export const LessonQuiz = ({ flashcards, onComplete }: LessonQuizProps) => {
                 className={cn(
                   "quiz-option w-full p-4 rounded-xl border-2 text-left transition-all duration-200",
                   "flex items-center gap-4",
-                  !isAnswered && "hover:border-indigo-500/50 hover:bg-slate-700/50",
-                  !isAnswered && "border-slate-600 bg-slate-800/50",
+                  !isAnswered && "hover:border-primary/50 hover:bg-secondary/50",
+                  !isAnswered && "border-border bg-secondary/50",
                   isAnswered && isCorrectOption && "border-green-500 bg-green-500/20 correct",
                   isAnswered && isSelected && !isCorrectOption && "border-red-500 bg-red-500/20 incorrect",
-                  isAnswered && !isSelected && !isCorrectOption && "border-slate-700 bg-slate-800/30 opacity-50"
+                  isAnswered && !isSelected && !isCorrectOption && "border-border bg-secondary/30 opacity-50"
                 )}
               >
                 <span className={cn(
                   "w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold",
-                  !isAnswered && "bg-slate-700 text-slate-300",
+                  !isAnswered && "bg-secondary text-muted-foreground",
                   isAnswered && isCorrectOption && "bg-green-500 text-white",
                   isAnswered && isSelected && !isCorrectOption && "bg-red-500 text-white",
-                  isAnswered && !isSelected && !isCorrectOption && "bg-slate-700 text-slate-500"
+                  isAnswered && !isSelected && !isCorrectOption && "bg-secondary text-muted-foreground"
                 )}>
                   {optionLetter}
                 </span>
                 <span className={cn(
                   "flex-1 text-base",
-                  !isAnswered && "text-slate-200",
-                  isAnswered && isCorrectOption && "text-green-300 font-medium",
-                  isAnswered && isSelected && !isCorrectOption && "text-red-300",
-                  isAnswered && !isSelected && !isCorrectOption && "text-slate-500"
+                  !isAnswered && "text-foreground",
+                  isAnswered && isCorrectOption && "text-green-600 dark:text-green-400 font-medium",
+                  isAnswered && isSelected && !isCorrectOption && "text-red-600 dark:text-red-400",
+                  isAnswered && !isSelected && !isCorrectOption && "text-muted-foreground"
                 )}>
                   {option}
                 </span>

@@ -149,7 +149,7 @@ export const LessonContent = ({
             ? "fixed inset-y-0 left-0 z-40 bg-background p-4 shadow-xl lg:relative lg:p-0 lg:shadow-none"
             : "hidden"
         )}>
-          <Card className="sticky top-4 bg-slate-800/50 border-slate-700">
+          <Card className="sticky top-4 bg-card border-border">
             <CardContent className="p-4">
               <h3 className="font-semibold text-foreground mb-4">Course Content</h3>
               <div className="space-y-1 max-h-[60vh] overflow-y-auto">
@@ -166,7 +166,7 @@ export const LessonContent = ({
                         'flex items-center gap-3 p-2 rounded-md text-sm transition-colors',
                         isCurrent
                           ? 'bg-primary/10 text-primary'
-                          : 'text-muted-foreground hover:bg-slate-700/50'
+                          : 'text-muted-foreground hover:bg-secondary/50'
                       )}
                     >
                       <div className={cn(
@@ -175,7 +175,7 @@ export const LessonContent = ({
                           ? 'bg-primary text-primary-foreground'
                           : completed
                             ? 'bg-green-500 text-white'
-                            : 'bg-slate-700 text-slate-400'
+                            : 'bg-secondary text-muted-foreground'
                       )}>
                         {completed ? (
                           <Check className="w-3 h-3" />
@@ -205,10 +205,10 @@ export const LessonContent = ({
 
         {/* Main content */}
         <div className="flex-1 min-w-0">
-          <Card className="bg-slate-800/50 border-slate-700">
+          <Card className="bg-card border-border">
             <CardContent className="p-0">
               {/* Tabs */}
-              <div className="border-b border-slate-700">
+              <div className="border-b border-border">
                 <div className="flex overflow-x-auto">
                   {tabs.filter(tab => tab.enabled).map(tab => (
                     <button
@@ -241,7 +241,7 @@ export const LessonContent = ({
 
                     {/* Video embed if available */}
                     {lesson.video_url && (
-                      <div className="aspect-video bg-slate-900 rounded-xl mb-8 overflow-hidden">
+                      <div className="aspect-video bg-secondary rounded-xl mb-8 overflow-hidden">
                         <iframe
                           src={lesson.video_url}
                           className="w-full h-full"
@@ -263,7 +263,7 @@ export const LessonContent = ({
                               </div>
                             ),
                             th: ({ children, ...props }) => (
-                              <th className="bg-slate-700 text-white font-semibold" {...props}>{children}</th>
+                              <th className="bg-secondary text-foreground font-semibold" {...props}>{children}</th>
                             ),
                             td: ({ children, ...props }) => (
                               <td {...props}>{children}</td>
@@ -299,7 +299,7 @@ export const LessonContent = ({
                               const isInline = !className
                               if (isInline) {
                                 return (
-                                  <code className="bg-slate-700 px-1.5 py-0.5 rounded text-sm text-slate-200" {...props}>{children}</code>
+                                  <code className="bg-secondary px-1.5 py-0.5 rounded text-sm text-foreground" {...props}>{children}</code>
                                 )
                               }
                               return (
@@ -307,7 +307,7 @@ export const LessonContent = ({
                               )
                             },
                             pre: ({ children, ...props }) => (
-                              <pre className="bg-slate-900 p-4 rounded-lg overflow-x-auto mb-4" {...props}>{children}</pre>
+                              <pre className="bg-secondary p-4 rounded-lg overflow-x-auto mb-4" {...props}>{children}</pre>
                             ),
                           }}
                         >
@@ -317,9 +317,9 @@ export const LessonContent = ({
                     )}
 
                     {/* Navigation */}
-                    <div className="flex items-center justify-between flex-wrap gap-4 mt-8 pt-8 border-t border-slate-700">
+                    <div className="flex items-center justify-between flex-wrap gap-4 mt-8 pt-8 border-t border-border">
                       {prevLesson ? (
-                        <Button variant="outline" asChild className="border-slate-600 hover:bg-slate-700">
+                        <Button variant="outline" asChild className="border-border hover:bg-secondary">
                           <Link href={`/academy/${course.slug}/lesson/${prevLesson.id}`}>
                             <ArrowLeft className="w-4 h-4 mr-2" />
                             Previous

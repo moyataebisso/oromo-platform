@@ -44,14 +44,14 @@ export const JobCard = ({ job, className }: JobCardProps) => {
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center">
-              <Building2 className="w-6 h-6 text-slate-400" />
+            <div className="w-12 h-12 rounded-lg bg-secondary flex items-center justify-center">
+              <Building2 className="w-6 h-6 text-muted-foreground" />
             </div>
             <div>
-              <h3 className="font-semibold text-lg text-slate-900 hover:text-blue-600">
+              <h3 className="font-semibold text-lg text-foreground hover:text-primary">
                 <Link href={`/careers/${job.id}`}>{job.title}</Link>
               </h3>
-              <p className="text-sm text-slate-600">{job.company_name}</p>
+              <p className="text-sm text-muted-foreground">{job.company_name}</p>
             </div>
           </div>
           <Badge className={cn('shrink-0', jobTypeColors[job.job_type])}>
@@ -60,10 +60,10 @@ export const JobCard = ({ job, className }: JobCardProps) => {
         </div>
       </CardHeader>
       <CardContent className="pb-2">
-        <p className="text-slate-600 text-sm line-clamp-2 mb-4">
+        <p className="text-muted-foreground text-sm line-clamp-2 mb-4">
           {job.description}
         </p>
-        <div className="flex flex-wrap gap-4 text-sm text-slate-500">
+        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
           {job.location && (
             <div className="flex items-center gap-1">
               <MapPin className="w-4 h-4" />
