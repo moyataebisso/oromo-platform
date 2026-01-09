@@ -1,93 +1,157 @@
+import Link from 'next/link'
+import { Search, Briefcase, TrendingUp, GraduationCap } from 'lucide-react'
+import { createClient } from '@/lib/supabase/server'
+import { Input } from '@/components/ui/input'
+import { CareerCard } from '@/components/careers/career-card'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
-import { JobFilters } from '@/components/careers/job-filters'
-import { Job } from '@/types/careers'
 
-// Mock data - replace with Supabase fetch
-const mockJobs: Job[] = [
-  {
-    id: '1',
-    title: 'Software Engineer',
-    company_name: 'Oromo Tech Solutions',
-    location: 'Minneapolis, MN',
-    job_type: 'full-time',
-    salary_min: 80000,
-    salary_max: 120000,
-    description: 'We are looking for a talented software engineer to join our growing team. You will work on building scalable web applications using modern technologies.',
-    status: 'active',
-    created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: '2',
-    title: 'Community Outreach Coordinator',
-    company_name: 'Oromo Community Center',
-    location: 'Washington, DC',
-    job_type: 'full-time',
-    salary_min: 45000,
-    salary_max: 55000,
-    description: 'Join us in building stronger connections within the Oromo diaspora community. Coordinate events, programs, and community initiatives.',
-    status: 'active',
-    created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: '3',
-    title: 'Afaan Oromoo Language Instructor',
-    company_name: 'Cultural Heritage Foundation',
-    location: 'Remote',
-    job_type: 'part-time',
-    salary_min: 30,
-    salary_max: 50,
-    description: 'Teach Afaan Oromoo to students of all ages. Help preserve and spread our beautiful language to the next generation.',
-    status: 'active',
-    created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: '4',
-    title: 'Marketing Specialist',
-    company_name: 'Oromia Business Network',
-    location: 'Atlanta, GA',
-    job_type: 'full-time',
-    salary_min: 55000,
-    salary_max: 75000,
-    description: 'Drive marketing initiatives to promote Oromo-owned businesses. Create compelling content and manage social media campaigns.',
-    status: 'active',
-    created_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: '5',
-    title: 'Legal Intern',
-    company_name: 'Oromo Legal Aid',
-    location: 'New York, NY',
-    job_type: 'internship',
-    salary_min: null,
-    salary_max: null,
-    description: 'Gain valuable experience in immigration and civil rights law while helping community members navigate legal challenges.',
-    status: 'active',
-    created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: '6',
-    title: 'Healthcare Navigator',
-    company_name: 'Community Health Services',
-    location: 'Seattle, WA',
-    job_type: 'contract',
-    salary_min: 25,
-    salary_max: 35,
-    description: 'Help community members access healthcare services. Bilingual in Afaan Oromoo and English required.',
-    status: 'active',
-    created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-  },
+const categories = [
+  { slug: 'all', name: 'All' },
+  { slug: 'technology', name: 'Technology' },
+  { slug: 'healthcare', name: 'Healthcare' },
+  { slug: 'business', name: 'Business' },
+  { slug: 'education', name: 'Education' },
+  { slug: 'engineering', name: 'Engineering' },
+  { slug: 'creative', name: 'Creative' },
+  { slug: 'legal', name: 'Legal' },
 ]
 
-const locations = ['Remote', 'Minneapolis, MN', 'Washington, DC', 'Atlanta, GA', 'New York, NY', 'Seattle, WA']
+interface CareersPageProps {
+  searchParams: Promise<{ category?: string; q?: string }>
+}
 
-export default function CareersPage() {
+interface Career {
+  id: string
+  title: string
+  slug: string
+  category: string
+  description?: string
+  salary_min?: number
+  salary_max?: number
+  job_outlook?: string
+}
+
+export default async function CareersPage({ searchParams }: CareersPageProps) {
+  const params = await searchParams
+  const supabase = await createClient()
+  const activeCategory = params.category || 'all'
+  const searchQuery = params.q || ''
+
+  // Build query
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let query = (supabase as any)
+    .from('careers')
+    .select('*')
+    .order('title')
+
+  if (activeCategory !== 'all') {
+    query = query.eq('category', activeCategory)
+  }
+
+  if (searchQuery) {
+    query = query.ilike('title', `%${searchQuery}%`)
+  }
+
+  const { data: careersData } = await query
+  const careers = (careersData || []) as Career[]
+
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-slate-900">
       <Header />
+
       <main className="flex-1">
-        <JobFilters jobs={mockJobs} locations={locations} />
+        {/* Hero Section */}
+        <section className="bg-gradient-to-b from-slate-800 to-slate-900 pt-24 pb-16">
+          <div className="max-w-7xl mx-auto px-4 text-center">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
+              Explore Careers
+            </h1>
+            <p className="text-xl text-slate-300 max-w-2xl mx-auto mb-8">
+              Find your path to success. Discover careers that match your interests and skills.
+            </p>
+
+            {/* Quick Links */}
+            <div className="flex flex-wrap justify-center gap-4">
+              <Link
+                href="/careers/interview-prep"
+                className="flex items-center gap-2 px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-xl transition-colors"
+              >
+                <Briefcase className="w-5 h-5 text-primary" />
+                <span className="text-white font-medium">Interview Prep</span>
+              </Link>
+              <Link
+                href="/careers/majors"
+                className="flex items-center gap-2 px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-xl transition-colors"
+              >
+                <GraduationCap className="w-5 h-5 text-primary" />
+                <span className="text-white font-medium">College Majors</span>
+              </Link>
+              <Link
+                href="/teens/career-prep"
+                className="flex items-center gap-2 px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-xl transition-colors"
+              >
+                <TrendingUp className="w-5 h-5 text-primary" />
+                <span className="text-white font-medium">Teen Career Prep</span>
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Filters & Search */}
+        <section className="bg-slate-800/50 border-y border-slate-700 sticky top-16 z-30 backdrop-blur-lg">
+          <div className="max-w-7xl mx-auto px-4 py-4">
+            <div className="flex flex-col md:flex-row md:items-center gap-4">
+              <div className="flex flex-wrap gap-2">
+                {categories.map((cat) => (
+                  <Link
+                    key={cat.slug}
+                    href={cat.slug === 'all' ? '/careers' : `/careers?category=${cat.slug}`}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                      activeCategory === cat.slug
+                        ? 'bg-primary text-white'
+                        : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                    }`}
+                  >
+                    {cat.name}
+                  </Link>
+                ))}
+              </div>
+              <form className="relative md:ml-auto md:w-64" action="/careers" method="GET">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Input
+                  name="q"
+                  placeholder="Search careers..."
+                  defaultValue={searchQuery}
+                  className="pl-10 bg-slate-700 border-slate-600"
+                />
+                {activeCategory !== 'all' && (
+                  <input type="hidden" name="category" value={activeCategory} />
+                )}
+              </form>
+            </div>
+          </div>
+        </section>
+
+        {/* Careers Grid */}
+        <section className="max-w-7xl mx-auto px-4 py-12">
+          {careers && careers.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {careers.map((career) => (
+                <CareerCard key={career.id} career={career} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-slate-400 text-lg">No careers found.</p>
+              <Link href="/careers" className="text-primary hover:underline mt-2 inline-block">
+                View all careers
+              </Link>
+            </div>
+          )}
+        </section>
       </main>
+
       <Footer />
     </div>
   )

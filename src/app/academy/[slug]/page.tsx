@@ -1,45 +1,36 @@
 import Link from 'next/link'
-import { ArrowLeft, Clock, BookOpen, BarChart, PlayCircle } from 'lucide-react'
+import { notFound } from 'next/navigation'
+import { ArrowLeft, BookOpen, BarChart, PlayCircle, GraduationCap, CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
-import { CourseWithLessons } from '@/types/academy'
+import { createClient } from '@/lib/supabase/server'
 
-// Mock course data - replace with Supabase fetch
-const mockCourse: CourseWithLessons = {
-  id: '1',
-  title: 'Introduction to Afaan Oromoo',
-  slug: 'intro-afaan-oromoo',
-  description: 'Learn the basics of Afaan Oromoo, the Oromo language spoken by over 40 million people. This comprehensive beginner course covers essential vocabulary, grammar, pronunciation, and everyday conversations.',
-  thumbnail_url: null,
-  category_id: '1',
-  difficulty: 'beginner',
-  is_published: true,
-  created_at: new Date().toISOString(),
-  category: { id: '1', name: 'Language', slug: 'language', description: null },
-  lessons_count: 12,
-  lessons: [
-    { id: '1', course_id: '1', title: 'Welcome & Course Overview', content: null, video_url: null, order_index: 1, is_published: true, created_at: '', duration_minutes: 10 },
-    { id: '2', course_id: '1', title: 'The Oromo Alphabet (Qubee)', content: null, video_url: null, order_index: 2, is_published: true, created_at: '', duration_minutes: 25 },
-    { id: '3', course_id: '1', title: 'Basic Greetings & Introductions', content: null, video_url: null, order_index: 3, is_published: true, created_at: '', duration_minutes: 20 },
-    { id: '4', course_id: '1', title: 'Numbers and Counting', content: null, video_url: null, order_index: 4, is_published: true, created_at: '', duration_minutes: 15 },
-    { id: '5', course_id: '1', title: 'Common Nouns & Articles', content: null, video_url: null, order_index: 5, is_published: true, created_at: '', duration_minutes: 30 },
-    { id: '6', course_id: '1', title: 'Basic Verbs & Conjugation', content: null, video_url: null, order_index: 6, is_published: true, created_at: '', duration_minutes: 35 },
-    { id: '7', course_id: '1', title: 'Family & Relationships', content: null, video_url: null, order_index: 7, is_published: true, created_at: '', duration_minutes: 20 },
-    { id: '8', course_id: '1', title: 'Food & Dining', content: null, video_url: null, order_index: 8, is_published: true, created_at: '', duration_minutes: 25 },
-    { id: '9', course_id: '1', title: 'Directions & Places', content: null, video_url: null, order_index: 9, is_published: true, created_at: '', duration_minutes: 20 },
-    { id: '10', course_id: '1', title: 'Time & Dates', content: null, video_url: null, order_index: 10, is_published: true, created_at: '', duration_minutes: 15 },
-    { id: '11', course_id: '1', title: 'Common Phrases & Expressions', content: null, video_url: null, order_index: 11, is_published: true, created_at: '', duration_minutes: 25 },
-    { id: '12', course_id: '1', title: 'Course Review & Next Steps', content: null, video_url: null, order_index: 12, is_published: true, created_at: '', duration_minutes: 15 },
-  ],
+// Force dynamic rendering to avoid caching issues
+export const dynamic = 'force-dynamic'
+
+interface CourseData {
+  id: string
+  title: string
+  slug: string
+  description: string | null
+  thumbnail_url: string | null
+  difficulty: 'beginner' | 'intermediate' | 'advanced'
+  category_id: string | null
 }
 
-const difficultyColors = {
-  beginner: 'bg-green-100 text-green-700',
-  intermediate: 'bg-yellow-100 text-yellow-700',
-  advanced: 'bg-red-100 text-red-700',
+interface LessonData {
+  id: string
+  title: string
+  order_index: number
+}
+
+const difficultyColors: Record<string, string> = {
+  beginner: 'bg-green-500/10 text-green-400 border-green-500/20',
+  intermediate: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
+  advanced: 'bg-red-500/10 text-red-400 border-red-500/20',
 }
 
 interface CourseDetailPageProps {
@@ -48,26 +39,65 @@ interface CourseDetailPageProps {
 
 export default async function CourseDetailPage({ params }: CourseDetailPageProps) {
   const { slug } = await params
-  // In production, fetch course by slug from Supabase
-  // For now using mock data - slug would be used in: supabase.from('courses').eq('slug', slug)
-  void slug
-  const course = mockCourse
+  const supabase = await createClient()
 
-  const totalDuration = course.lessons.reduce((acc, lesson) => acc + (lesson.duration_minutes || 0), 0)
-  const hours = Math.floor(totalDuration / 60)
-  const minutes = totalDuration % 60
+  // Fetch course by slug (without category join - FK not set up in DB)
+  const { data: courseData, error: courseError } = await supabase
+    .from('courses')
+    .select('*')
+    .eq('slug', slug)
+    .eq('is_published', true)
+    .single()
+
+  if (courseError) {
+    console.error('Error fetching course:', courseError)
+  }
+
+  if (!courseData) {
+    return notFound()
+  }
+
+  const course = courseData as unknown as CourseData
+
+  // Fetch category separately if course has category_id
+  let categoryName: string | null = null
+  if (course.category_id) {
+    const { data: categoryData } = await supabase
+      .from('categories')
+      .select('name')
+      .eq('id', course.category_id)
+      .single()
+    const category = categoryData as { name: string } | null
+    categoryName = category?.name || null
+  }
+
+  // Fetch lessons for this course
+  const { data: lessonsData } = await supabase
+    .from('lessons')
+    .select('id, title, order_index')
+    .eq('course_id', course.id)
+    .eq('is_published', true)
+    .order('order_index', { ascending: true })
+
+  const courseLessons = (lessonsData || []) as LessonData[]
+  const firstLessonId = courseLessons[0]?.id
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background">
       <Header />
 
       <main className="flex-1">
         {/* Course Header */}
-        <section className="py-12 bg-gradient-to-b from-slate-900 to-slate-800 text-white">
-          <div className="mx-auto max-w-7xl px-4">
+        <section className="py-16 bg-gradient-to-b from-slate-900 via-slate-800 to-background relative overflow-hidden">
+          {/* Background decoration */}
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]" />
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-indigo-500/20 rounded-full blur-[120px]" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-[120px]" />
+
+          <div className="relative mx-auto max-w-7xl px-4">
             <Link
               href="/academy"
-              className="inline-flex items-center gap-2 text-slate-300 hover:text-white mb-6 transition-colors"
+              className="inline-flex items-center gap-2 text-slate-400 hover:text-white mb-8 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               Back to courses
@@ -76,43 +106,78 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
             <div className="grid lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2">
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {course.category && (
-                    <Badge variant="secondary">{course.category.name}</Badge>
+                  {categoryName && (
+                    <Badge variant="secondary" className="bg-slate-700/50 text-slate-300 border-slate-600">
+                      {categoryName}
+                    </Badge>
                   )}
-                  <Badge className={difficultyColors[course.difficulty]}>
+                  <Badge className={`border ${difficultyColors[course.difficulty]} capitalize`}>
                     {course.difficulty}
                   </Badge>
                 </div>
-                <h1 className="text-3xl md:text-4xl font-bold">{course.title}</h1>
-                <p className="mt-4 text-lg text-slate-300">{course.description}</p>
+                <h1 className="text-3xl md:text-5xl font-bold text-white mb-4">{course.title}</h1>
+                <p className="text-lg text-slate-300 leading-relaxed">{course.description}</p>
 
-                <div className="flex flex-wrap gap-6 mt-6 text-sm text-slate-300">
-                  <div className="flex items-center gap-2">
-                    <BookOpen className="w-5 h-5" />
-                    <span>{course.lessons.length} lessons</span>
+                <div className="flex flex-wrap gap-6 mt-8">
+                  <div className="flex items-center gap-2 text-slate-300">
+                    <div className="w-10 h-10 rounded-lg bg-indigo-500/20 flex items-center justify-center">
+                      <BookOpen className="w-5 h-5 text-indigo-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-slate-400">Lessons</p>
+                      <p className="font-semibold text-white">{courseLessons.length}</p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-5 h-5" />
-                    <span>
-                      {hours > 0 ? `${hours}h ` : ''}{minutes}m total
-                    </span>
+                  <div className="flex items-center gap-2 text-slate-300">
+                    <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                      <BarChart className="w-5 h-5 text-purple-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-slate-400">Level</p>
+                      <p className="font-semibold text-white capitalize">{course.difficulty}</p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <BarChart className="w-5 h-5" />
-                    <span className="capitalize">{course.difficulty} level</span>
+                  <div className="flex items-center gap-2 text-slate-300">
+                    <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
+                      <GraduationCap className="w-5 h-5 text-green-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-slate-400">Access</p>
+                      <p className="font-semibold text-white">Free</p>
+                    </div>
                   </div>
                 </div>
               </div>
 
               <div className="lg:col-span-1">
-                <Card className="bg-white text-slate-900">
+                <Card className="bg-slate-800/80 border-slate-700 backdrop-blur-sm sticky top-4">
                   <CardContent className="p-6">
-                    <Button className="w-full mb-4" size="lg">
-                      Start Course
-                    </Button>
-                    <p className="text-sm text-slate-600 text-center">
-                      Free access for all users
-                    </p>
+                    {firstLessonId ? (
+                      <Button asChild className="w-full mb-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500" size="lg">
+                        <Link href={`/academy/${course.slug}/lesson/${firstLessonId}`}>
+                          <PlayCircle className="w-5 h-5 mr-2" />
+                          Start Learning
+                        </Link>
+                      </Button>
+                    ) : (
+                      <Button className="w-full mb-4" size="lg" disabled>
+                        No lessons available
+                      </Button>
+                    )}
+                    <div className="space-y-3 text-sm">
+                      <div className="flex items-center gap-2 text-slate-300">
+                        <CheckCircle className="w-4 h-4 text-green-400" />
+                        <span>Free access for all users</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-slate-300">
+                        <CheckCircle className="w-4 h-4 text-green-400" />
+                        <span>Track your progress</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-slate-300">
+                        <CheckCircle className="w-4 h-4 text-green-400" />
+                        <span>Interactive flashcards & quizzes</span>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               </div>
@@ -123,34 +188,30 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
         {/* Course Content */}
         <section className="py-12">
           <div className="mx-auto max-w-7xl px-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Course Content</CardTitle>
-                <p className="text-sm text-slate-600">
-                  {course.lessons.length} lessons • {hours > 0 ? `${hours}h ` : ''}{minutes}m total length
+            <Card className="bg-slate-800/50 border-slate-700">
+              <CardHeader className="border-b border-slate-700">
+                <CardTitle className="text-foreground">Course Content</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  {courseLessons.length} lessons
                 </p>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-1">
-                  {course.lessons.map((lesson, index) => (
+              <CardContent className="p-0">
+                <div className="divide-y divide-slate-700/50">
+                  {courseLessons.map((lesson, index) => (
                     <Link
                       key={lesson.id}
                       href={`/academy/${course.slug}/lesson/${lesson.id}`}
-                      className="flex items-center gap-4 p-4 rounded-lg hover:bg-slate-50 transition-colors group"
+                      className="flex items-center gap-4 p-4 hover:bg-slate-700/30 transition-colors group"
                     >
-                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-sm font-medium text-slate-600 group-hover:bg-blue-100 group-hover:text-blue-600">
+                      <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-slate-700/50 flex items-center justify-center text-sm font-medium text-slate-400 group-hover:bg-indigo-500/20 group-hover:text-indigo-400 transition-colors">
                         {index + 1}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-slate-900 group-hover:text-blue-600 truncate">
+                        <h3 className="font-medium text-foreground group-hover:text-primary truncate transition-colors">
                           {lesson.title}
                         </h3>
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-slate-500">
-                        <Clock className="w-4 h-4" />
-                        <span>{lesson.duration_minutes}m</span>
-                      </div>
-                      <PlayCircle className="w-5 h-5 text-slate-400 group-hover:text-blue-600" />
+                      <PlayCircle className="w-5 h-5 text-slate-500 group-hover:text-indigo-400 transition-colors" />
                     </Link>
                   ))}
                 </div>

@@ -1,12 +1,16 @@
 'use client'
 
-import { useState } from 'react'
-import { Search, MoreHorizontal, Eye, Edit, Trash2, CheckCircle, XCircle } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { Search, MoreHorizontal, Eye, Edit, Trash2, CheckCircle, Plus, GraduationCap, BookOpen, Users, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,53 +18,337 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { createClient } from '@/lib/supabase/client'
 
-const mockCourses = [
-  { id: '1', title: 'Introduction to Afaan Oromoo', category: 'Language', difficulty: 'beginner', status: 'published', lessons: 12, enrollments: 234 },
-  { id: '2', title: 'Oromo History: From Ancient Times', category: 'History', difficulty: 'intermediate', status: 'published', lessons: 8, enrollments: 156 },
-  { id: '3', title: 'Advanced Grammar Structures', category: 'Language', difficulty: 'advanced', status: 'draft', lessons: 15, enrollments: 0 },
-  { id: '4', title: 'Gadaa System Deep Dive', category: 'Culture', difficulty: 'advanced', status: 'pending', lessons: 10, enrollments: 0 },
-  { id: '5', title: 'Business Oromo Communication', category: 'Business', difficulty: 'intermediate', status: 'published', lessons: 9, enrollments: 89 },
-]
+interface Course {
+  id: string
+  title: string
+  slug: string
+  description: string | null
+  thumbnail_url: string | null
+  category_id: string | null
+  difficulty: 'beginner' | 'intermediate' | 'advanced'
+  is_published: boolean
+  created_at: string
+  category?: { id: string; name: string } | null
+  lessons_count?: number
+}
 
-const statusColors = {
-  published: 'bg-green-100 text-green-700',
-  draft: 'bg-slate-100 text-slate-700',
-  pending: 'bg-yellow-100 text-yellow-700',
+interface Category {
+  id: string
+  name: string
+  slug: string
 }
 
 const difficultyColors = {
-  beginner: 'bg-green-100 text-green-700',
-  intermediate: 'bg-yellow-100 text-yellow-700',
-  advanced: 'bg-red-100 text-red-700',
+  beginner: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+  intermediate: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+  advanced: 'bg-red-500/10 text-red-400 border-red-500/20',
 }
 
 export default function AdminCoursesPage() {
+  const [courses, setCourses] = useState<Course[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
 
-  const filteredCourses = mockCourses.filter(course => {
+  // Dialog states
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
+
+  // Form state
+  const [formData, setFormData] = useState({
+    title: '',
+    slug: '',
+    description: '',
+    category_id: '',
+    difficulty: 'beginner' as 'beginner' | 'intermediate' | 'advanced',
+    is_published: false,
+  })
+
+  const supabase = createClient()
+
+  // Fetch courses and categories
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true)
+
+      // Fetch courses with category
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: coursesData } = await (supabase
+        .from('courses')
+        .select('*, category:categories(*)')
+        .order('created_at', { ascending: false }) as any)
+
+      // Fetch categories
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: categoriesData } = await (supabase
+        .from('categories')
+        .select('*')
+        .order('name') as any)
+
+      // Fetch lesson counts for each course
+      if (coursesData) {
+        const coursesWithCounts = await Promise.all(
+          (coursesData as Course[]).map(async (course: Course) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const { count } = await (supabase
+              .from('lessons')
+              .select('*', { count: 'exact', head: true })
+              .eq('course_id', course.id) as any)
+            return { ...course, lessons_count: count || 0 }
+          })
+        )
+        setCourses(coursesWithCounts as Course[])
+      }
+
+      if (categoriesData) {
+        setCategories(categoriesData)
+      }
+
+      setIsLoading(false)
+    }
+
+    fetchData()
+  }, [supabase])
+
+  const filteredCourses = courses.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesStatus = statusFilter === 'all' || course.status === statusFilter
+    const matchesStatus = statusFilter === 'all' ||
+      (statusFilter === 'published' && course.is_published) ||
+      (statusFilter === 'draft' && !course.is_published)
     return matchesSearch && matchesStatus
   })
 
+  const handleTogglePublished = async (id: string, currentStatus: boolean) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase.from('courses') as any)
+      .update({ is_published: !currentStatus })
+      .eq('id', id)
+
+    if (!error) {
+      setCourses(courses.map(course =>
+        course.id === id ? { ...course, is_published: !currentStatus } : course
+      ))
+    }
+  }
+
+  const generateSlug = (title: string) => {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '')
+  }
+
+  const handleAddCourse = async () => {
+    setIsSaving(true)
+
+    const slug = formData.slug || generateSlug(formData.title)
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase.from('courses') as any)
+      .insert({
+        title: formData.title,
+        slug,
+        description: formData.description || null,
+        category_id: formData.category_id || null,
+        difficulty: formData.difficulty,
+        is_published: formData.is_published,
+      })
+      .select('*, category:categories(*)')
+      .single()
+
+    if (!error && data) {
+      setCourses([{ ...data, lessons_count: 0 }, ...courses])
+      setIsAddDialogOpen(false)
+      resetForm()
+    }
+
+    setIsSaving(false)
+  }
+
+  const handleEditCourse = async () => {
+    if (!selectedCourse) return
+    setIsSaving(true)
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase.from('courses') as any)
+      .update({
+        title: formData.title,
+        slug: formData.slug,
+        description: formData.description || null,
+        category_id: formData.category_id || null,
+        difficulty: formData.difficulty,
+        is_published: formData.is_published,
+      })
+      .eq('id', selectedCourse.id)
+      .select('*, category:categories(*)')
+      .single()
+
+    if (!error && data) {
+      setCourses(courses.map(course =>
+        course.id === selectedCourse.id ? { ...data, lessons_count: course.lessons_count } : course
+      ))
+      setIsEditDialogOpen(false)
+      resetForm()
+    }
+
+    setIsSaving(false)
+  }
+
+  const handleDeleteCourse = async () => {
+    if (!selectedCourse) return
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase.from('courses') as any)
+      .delete()
+      .eq('id', selectedCourse.id)
+
+    if (!error) {
+      setCourses(courses.filter(course => course.id !== selectedCourse.id))
+      setIsDeleteDialogOpen(false)
+      setSelectedCourse(null)
+    }
+  }
+
+  const openEditDialog = (course: Course) => {
+    setSelectedCourse(course)
+    setFormData({
+      title: course.title,
+      slug: course.slug,
+      description: course.description || '',
+      category_id: course.category_id || '',
+      difficulty: course.difficulty,
+      is_published: course.is_published,
+    })
+    setIsEditDialogOpen(true)
+  }
+
+  const openDeleteDialog = (course: Course) => {
+    setSelectedCourse(course)
+    setIsDeleteDialogOpen(true)
+  }
+
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      slug: '',
+      description: '',
+      category_id: '',
+      difficulty: 'beginner',
+      is_published: false,
+    })
+    setSelectedCourse(null)
+  }
+
+  const publishedCount = courses.filter(c => c.is_published).length
+  const totalLessons = courses.reduce((sum, c) => sum + (c.lessons_count || 0), 0)
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Course Management</h1>
-          <p className="text-slate-600">Manage and moderate course content</p>
+          <h1 className="text-2xl font-bold text-foreground">Course Management</h1>
+          <p className="text-muted-foreground">Manage and moderate course content</p>
         </div>
-        <Button>Add Course</Button>
+        <Button onClick={() => setIsAddDialogOpen(true)}>
+          <Plus className="w-4 h-4 mr-2" />
+          Add Course
+        </Button>
+      </div>
+
+      {/* Stats */}
+      <div className="grid sm:grid-cols-4 gap-4">
+        <Card className="bg-card/50 border-border/50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-green-500 flex items-center justify-center">
+                <GraduationCap className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-foreground">{courses.length}</p>
+                <p className="text-sm text-muted-foreground">Total Courses</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-card/50 border-border/50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+                <CheckCircle className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-foreground">{publishedCount}</p>
+                <p className="text-sm text-muted-foreground">Published</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-card/50 border-border/50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center">
+                <BookOpen className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-foreground">{totalLessons}</p>
+                <p className="text-sm text-muted-foreground">Total Lessons</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-card/50 border-border/50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center">
+                <Users className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-foreground">{categories.length}</p>
+                <p className="text-sm text-muted-foreground">Categories</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Filters */}
-      <Card>
+      <Card className="bg-card/50 border-border/50">
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search courses..."
                 className="pl-10"
@@ -76,7 +364,6 @@ export default function AdminCoursesPage() {
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="published">Published</SelectItem>
                 <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -84,82 +371,273 @@ export default function AdminCoursesPage() {
       </Card>
 
       {/* Courses Table */}
-      <Card>
-        <CardHeader>
+      <Card className="bg-card/50 border-border/50">
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Courses ({filteredCourses.length})</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b text-left">
-                  <th className="pb-3 font-medium text-slate-600">Course</th>
-                  <th className="pb-3 font-medium text-slate-600">Category</th>
-                  <th className="pb-3 font-medium text-slate-600">Difficulty</th>
-                  <th className="pb-3 font-medium text-slate-600">Status</th>
-                  <th className="pb-3 font-medium text-slate-600">Lessons</th>
-                  <th className="pb-3 font-medium text-slate-600">Enrollments</th>
-                  <th className="pb-3 font-medium text-slate-600 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
+        <CardContent className="p-0">
+          {isLoading ? (
+            <div className="p-8 text-center text-muted-foreground">Loading courses...</div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow className="border-border/50 hover:bg-transparent">
+                  <TableHead>Course</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Difficulty</TableHead>
+                  <TableHead>Lessons</TableHead>
+                  <TableHead>Published</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {filteredCourses.map((course) => (
-                  <tr key={course.id} className="border-b last:border-0">
-                    <td className="py-4">
-                      <p className="font-medium text-slate-900">{course.title}</p>
-                    </td>
-                    <td className="py-4 text-slate-600">{course.category}</td>
-                    <td className="py-4">
-                      <Badge className={difficultyColors[course.difficulty as keyof typeof difficultyColors]}>
+                  <TableRow key={course.id} className="border-border/50">
+                    <TableCell>
+                      <div>
+                        <p className="font-medium text-foreground">{course.title}</p>
+                        <p className="text-sm text-muted-foreground">/{course.slug}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {course.category?.name || '-'}
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={`border ${difficultyColors[course.difficulty]}`}>
                         {course.difficulty}
                       </Badge>
-                    </td>
-                    <td className="py-4">
-                      <Badge className={statusColors[course.status as keyof typeof statusColors]}>
-                        {course.status}
-                      </Badge>
-                    </td>
-                    <td className="py-4 text-slate-600">{course.lessons}</td>
-                    <td className="py-4 text-slate-600">{course.enrollments}</td>
-                    <td className="py-4 text-right">
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {course.lessons_count || 0}
+                    </TableCell>
+                    <TableCell>
+                      <Switch
+                        checked={course.is_published}
+                        onCheckedChange={() => handleTogglePublished(course.id, course.is_published)}
+                      />
+                    </TableCell>
+                    <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
                             <MoreHorizontal className="w-4 h-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
-                            <Eye className="w-4 h-4 mr-2" />
-                            View Course
+                          <DropdownMenuItem asChild>
+                            <Link href={`/academy/${course.slug}`}>
+                              <Eye className="w-4 h-4 mr-2" />
+                              View Course
+                            </Link>
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openEditDialog(course)}>
                             <Edit className="w-4 h-4 mr-2" />
                             Edit Course
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-green-600">
-                            <CheckCircle className="w-4 h-4 mr-2" />
-                            Publish
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="text-yellow-600">
-                            <XCircle className="w-4 h-4 mr-2" />
-                            Unpublish
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-600">
+                          <DropdownMenuItem
+                            className="text-red-400"
+                            onClick={() => openDeleteDialog(course)}
+                          >
                             <Trash2 className="w-4 h-4 mr-2" />
                             Delete
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
-          </div>
+                {filteredCourses.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                      No courses found
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
+
+      {/* Add Course Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Add New Course</DialogTitle>
+            <DialogDescription>Create a new course for the academy.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="title">Title</Label>
+              <Input
+                id="title"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value, slug: generateSlug(e.target.value) })}
+                placeholder="Introduction to Afaan Oromoo"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="slug">Slug</Label>
+              <Input
+                id="slug"
+                value={formData.slug}
+                onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                placeholder="introduction-to-afaan-oromoo"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Course description..."
+                rows={3}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>Category</Label>
+                <Select value={formData.category_id} onValueChange={(v) => setFormData({ ...formData, category_id: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label>Difficulty</Label>
+                <Select value={formData.difficulty} onValueChange={(v) => setFormData({ ...formData, difficulty: v as 'beginner' | 'intermediate' | 'advanced' })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="beginner">Beginner</SelectItem>
+                    <SelectItem value="intermediate">Intermediate</SelectItem>
+                    <SelectItem value="advanced">Advanced</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch
+                id="published"
+                checked={formData.is_published}
+                onCheckedChange={(checked) => setFormData({ ...formData, is_published: checked })}
+              />
+              <Label htmlFor="published">Publish immediately</Label>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleAddCourse} disabled={!formData.title || isSaving}>
+              {isSaving ? 'Creating...' : 'Create Course'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Course Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Edit Course</DialogTitle>
+            <DialogDescription>Update course details.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="edit-title">Title</Label>
+              <Input
+                id="edit-title"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-slug">Slug</Label>
+              <Input
+                id="edit-slug"
+                value={formData.slug}
+                onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-description">Description</Label>
+              <Textarea
+                id="edit-description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                rows={3}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>Category</Label>
+                <Select value={formData.category_id} onValueChange={(v) => setFormData({ ...formData, category_id: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label>Difficulty</Label>
+                <Select value={formData.difficulty} onValueChange={(v) => setFormData({ ...formData, difficulty: v as 'beginner' | 'intermediate' | 'advanced' })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="beginner">Beginner</SelectItem>
+                    <SelectItem value="intermediate">Intermediate</SelectItem>
+                    <SelectItem value="advanced">Advanced</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch
+                id="edit-published"
+                checked={formData.is_published}
+                onCheckedChange={(checked) => setFormData({ ...formData, is_published: checked })}
+              />
+              <Label htmlFor="edit-published">Published</Label>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleEditCourse} disabled={!formData.title || isSaving}>
+              {isSaving ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Course</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;{selectedCourse?.title}&quot;? This action cannot be undone and will also delete all lessons associated with this course.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteCourse} className="bg-red-500 hover:bg-red-600">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "leaflet/dist/leaflet.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -60,22 +61,32 @@
 :root {
   --radius: 0.625rem;
 
+  /* Oromo Brand Colors */
+  --oromo-green: #10B981;
+  --oromo-green-dark: #059669;
+  --oromo-green-light: #34D399;
+  --oromo-gold: #F59E0B;
+  --oromo-gold-dark: #D97706;
+  --oromo-gold-light: #FCD34D;
+  --oromo-red: #EF4444;
+  --oromo-red-dark: #DC2626;
+
   /* Core Colors */
   --background: #ffffff;
   --foreground: #1a1a2e;
 
-  /* Primary - Indigo */
-  --primary: #6366f1;
+  /* Primary - Oromo Green */
+  --primary: #10B981;
   --primary-foreground: #ffffff;
 
   /* Secondary */
   --secondary: #f1f5f9;
   --secondary-foreground: #1a1a2e;
 
-  /* Accent Colors */
-  --accent: #10b981;
-  --accent-foreground: #ffffff;
-  --accent-secondary: #f59e0b;
+  /* Accent Colors - Oromo Gold */
+  --accent: #F59E0B;
+  --accent-foreground: #000000;
+  --accent-secondary: #EF4444;
 
   /* Muted */
   --muted: #f1f5f9;
@@ -92,98 +103,108 @@
   /* Border, Input, Ring */
   --border: #e2e8f0;
   --input: #e2e8f0;
-  --ring: #6366f1;
+  --ring: #10B981;
 
-  /* Destructive */
-  --destructive: #ef4444;
+  /* Destructive - Oromo Red */
+  --destructive: #EF4444;
 
-  /* Chart Colors */
-  --chart-1: #6366f1;
-  --chart-2: #10b981;
-  --chart-3: #f59e0b;
-  --chart-4: #ec4899;
-  --chart-5: #8b5cf6;
+  /* Chart Colors - Oromo Theme */
+  --chart-1: #10B981;
+  --chart-2: #F59E0B;
+  --chart-3: #EF4444;
+  --chart-4: #059669;
+  --chart-5: #D97706;
 
   /* Sidebar */
   --sidebar: #f8fafc;
   --sidebar-foreground: #1a1a2e;
-  --sidebar-primary: #6366f1;
+  --sidebar-primary: #10B981;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #f1f5f9;
   --sidebar-accent-foreground: #1a1a2e;
   --sidebar-border: #e2e8f0;
-  --sidebar-ring: #6366f1;
+  --sidebar-ring: #10B981;
 
-  /* Gradients */
-  --gradient-hero: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
-  --gradient-card: linear-gradient(180deg, rgba(99, 102, 241, 0.1) 0%, transparent 100%);
-  --gradient-accent: linear-gradient(90deg, #10b981 0%, #6366f1 100%);
-  --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-  --gradient-cta: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  /* Gradients - Oromo Theme */
+  --gradient-hero: linear-gradient(135deg, #10B981 0%, #F59E0B 50%, #EF4444 100%);
+  --gradient-card: linear-gradient(180deg, rgba(16, 185, 129, 0.1) 0%, transparent 100%);
+  --gradient-accent: linear-gradient(90deg, #10B981 0%, #F59E0B 100%);
+  --gradient-primary: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  --gradient-cta: linear-gradient(135deg, #059669 0%, #10B981 100%);
 }
 
 /* Dark Mode Colors */
 .dark {
+  /* Oromo Brand Colors */
+  --oromo-green: #34D399;
+  --oromo-green-dark: #10B981;
+  --oromo-green-light: #6EE7B7;
+  --oromo-gold: #FBBF24;
+  --oromo-gold-dark: #F59E0B;
+  --oromo-gold-light: #FDE68A;
+  --oromo-red: #F87171;
+  --oromo-red-dark: #EF4444;
+
   /* Core Colors */
-  --background: #0f0f1a;
+  --background: #0f172a;
   --foreground: #f8fafc;
 
-  /* Primary - Lighter Indigo for dark mode */
-  --primary: #818cf8;
-  --primary-foreground: #0f0f1a;
+  /* Primary - Oromo Green (lighter for dark mode) */
+  --primary: #34D399;
+  --primary-foreground: #0f172a;
 
   /* Secondary */
-  --secondary: #1e1e2e;
+  --secondary: #1e293b;
   --secondary-foreground: #f8fafc;
 
-  /* Accent Colors */
-  --accent: #34d399;
-  --accent-foreground: #0f0f1a;
-  --accent-secondary: #fbbf24;
+  /* Accent Colors - Oromo Gold */
+  --accent: #FBBF24;
+  --accent-foreground: #0f172a;
+  --accent-secondary: #F87171;
 
   /* Muted */
-  --muted: #1e1e2e;
+  --muted: #1e293b;
   --muted-foreground: #94a3b8;
 
   /* Card */
-  --card: #16162a;
+  --card: #1e293b;
   --card-foreground: #f8fafc;
 
   /* Popover */
-  --popover: #16162a;
+  --popover: #1e293b;
   --popover-foreground: #f8fafc;
 
   /* Border, Input, Ring */
-  --border: #2d2d44;
-  --input: #2d2d44;
-  --ring: #818cf8;
+  --border: #334155;
+  --input: #334155;
+  --ring: #34D399;
 
   /* Destructive */
-  --destructive: #f87171;
+  --destructive: #F87171;
 
-  /* Chart Colors */
-  --chart-1: #818cf8;
-  --chart-2: #34d399;
-  --chart-3: #fbbf24;
-  --chart-4: #f472b6;
-  --chart-5: #a78bfa;
+  /* Chart Colors - Oromo Theme */
+  --chart-1: #34D399;
+  --chart-2: #FBBF24;
+  --chart-3: #F87171;
+  --chart-4: #10B981;
+  --chart-5: #F59E0B;
 
   /* Sidebar */
-  --sidebar: #16162a;
+  --sidebar: #1e293b;
   --sidebar-foreground: #f8fafc;
-  --sidebar-primary: #818cf8;
-  --sidebar-primary-foreground: #0f0f1a;
-  --sidebar-accent: #1e1e2e;
+  --sidebar-primary: #34D399;
+  --sidebar-primary-foreground: #0f172a;
+  --sidebar-accent: #334155;
   --sidebar-accent-foreground: #f8fafc;
-  --sidebar-border: #2d2d44;
-  --sidebar-ring: #818cf8;
+  --sidebar-border: #334155;
+  --sidebar-ring: #34D399;
 
-  /* Gradients */
-  --gradient-hero: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
-  --gradient-card: linear-gradient(180deg, rgba(129, 140, 248, 0.1) 0%, transparent 100%);
-  --gradient-accent: linear-gradient(90deg, #34d399 0%, #818cf8 100%);
-  --gradient-primary: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%);
-  --gradient-cta: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  /* Gradients - Oromo Theme */
+  --gradient-hero: linear-gradient(135deg, #10B981 0%, #F59E0B 50%, #EF4444 100%);
+  --gradient-card: linear-gradient(180deg, rgba(52, 211, 153, 0.1) 0%, transparent 100%);
+  --gradient-accent: linear-gradient(90deg, #34D399 0%, #FBBF24 100%);
+  --gradient-primary: linear-gradient(135deg, #34D399 0%, #10B981 100%);
+  --gradient-cta: linear-gradient(135deg, #10B981 0%, #34D399 100%);
 }
 
 /* Base styles */
@@ -239,10 +260,10 @@
 
 @keyframes glow {
   0%, 100% {
-    box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
   }
   50% {
-    box-shadow: 0 0 40px rgba(99, 102, 241, 0.6);
+    box-shadow: 0 0 40px rgba(16, 185, 129, 0.6);
   }
 }
 
@@ -418,4 +439,406 @@ html {
 ::selection {
   background: var(--primary);
   color: var(--primary-foreground);
+}
+
+/* 3D Flip Animation for Flashcards */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.transform-style-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+/* Flashcard flip animation */
+.flashcard-inner {
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+}
+
+.flashcard-inner.flipped {
+  transform: rotateY(180deg);
+}
+
+.flashcard-front,
+.flashcard-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flashcard-back {
+  transform: rotateY(180deg);
+}
+
+/* Match game card styles */
+.match-card {
+  perspective: 1000px;
+}
+
+.match-card-inner {
+  transition: transform 0.4s;
+  transform-style: preserve-3d;
+}
+
+.match-card.flipped .match-card-inner {
+  transform: rotateY(180deg);
+}
+
+.match-card-front,
+.match-card-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border-radius: 0.75rem;
+}
+
+.match-card-back {
+  transform: rotateY(180deg);
+}
+
+/* Quiz option animations */
+.quiz-option {
+  transition: all 0.2s ease;
+}
+
+.quiz-option:hover:not(:disabled) {
+  transform: translateX(4px);
+}
+
+.quiz-option.correct {
+  animation: pulse-green 0.5s ease;
+}
+
+.quiz-option.incorrect {
+  animation: shake 0.5s ease;
+}
+
+@keyframes pulse-green {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  20%, 60% {
+    transform: translateX(-5px);
+  }
+  40%, 80% {
+    transform: translateX(5px);
+  }
+}
+
+/* Confetti animation for match game */
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-100vh) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+.confetti {
+  animation: confetti-fall 3s ease-out forwards;
+}
+
+/* Prose styling for markdown content */
+.prose-academy {
+  color: var(--muted-foreground);
+}
+
+.prose-academy h1,
+.prose-academy h2,
+.prose-academy h3,
+.prose-academy h4 {
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+.prose-academy h1 {
+  font-size: 1.875rem;
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.prose-academy h2 {
+  font-size: 1.5rem;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.prose-academy h3 {
+  font-size: 1.25rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.prose-academy p {
+  margin-bottom: 1rem;
+  line-height: 1.75;
+}
+
+.prose-academy ul,
+.prose-academy ol {
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+}
+
+.prose-academy li {
+  margin-bottom: 0.5rem;
+}
+
+.prose-academy strong {
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+.prose-academy table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+}
+
+.prose-academy th,
+.prose-academy td {
+  border: 1px solid var(--border);
+  padding: 0.75rem;
+  text-align: left;
+}
+
+.prose-academy th {
+  background: var(--muted);
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.prose-academy code {
+  background: var(--muted);
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+}
+
+.prose-academy pre {
+  background: var(--muted);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+
+.prose-academy blockquote {
+  border-left: 4px solid var(--primary);
+  padding-left: 1rem;
+  margin: 1rem 0;
+  font-style: italic;
+  color: var(--muted-foreground);
+}
+
+/* ===== Leaflet Dark Mode Styles ===== */
+
+/* Popup styles */
+.leaflet-popup-content-wrapper {
+  background: #1e293b;
+  color: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #334155;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.leaflet-popup-content {
+  margin: 12px 16px;
+  color: #f8fafc;
+}
+
+.leaflet-popup-tip {
+  background: #1e293b;
+  border: 1px solid #334155;
+}
+
+.leaflet-popup-close-button {
+  color: #94a3b8 !important;
+  font-size: 20px !important;
+  padding: 8px 8px 0 0 !important;
+}
+
+.leaflet-popup-close-button:hover {
+  color: #f8fafc !important;
+}
+
+/* Control styles */
+.leaflet-control-zoom {
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+.leaflet-control-zoom a {
+  background: #1e293b !important;
+  color: #f8fafc !important;
+  border: 1px solid #334155 !important;
+  width: 36px !important;
+  height: 36px !important;
+  line-height: 36px !important;
+  font-size: 18px !important;
+  transition: all 0.2s ease;
+}
+
+.leaflet-control-zoom a:hover {
+  background: #334155 !important;
+  color: #10B981 !important;
+}
+
+.leaflet-control-zoom-in {
+  border-radius: 8px 8px 0 0 !important;
+}
+
+.leaflet-control-zoom-out {
+  border-radius: 0 0 8px 8px !important;
+}
+
+/* Attribution */
+.leaflet-control-attribution {
+  background: rgba(30, 41, 59, 0.9) !important;
+  color: #64748b !important;
+  font-size: 10px !important;
+  padding: 2px 8px !important;
+  border-radius: 4px 0 0 0;
+}
+
+.leaflet-control-attribution a {
+  color: #10B981 !important;
+}
+
+/* Scale control */
+.leaflet-control-scale-line {
+  background: rgba(30, 41, 59, 0.9) !important;
+  border-color: #334155 !important;
+  color: #94a3b8 !important;
+}
+
+/* Custom marker styles */
+.custom-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.custom-marker svg {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+  transition: transform 0.2s ease;
+}
+
+.custom-marker:hover svg {
+  transform: scale(1.1);
+}
+
+/* Map container loading animation */
+.leaflet-container {
+  background: #0f172a;
+  font-family: inherit;
+}
+
+/* Tile loading fade */
+.leaflet-tile {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.leaflet-tile-loaded {
+  opacity: 1;
+}
+
+/* Map panes for better layering */
+.leaflet-overlay-pane svg path {
+  transition: fill-opacity 0.2s ease, stroke-opacity 0.2s ease;
+}
+
+/* Tooltip styles */
+.leaflet-tooltip {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #f8fafc;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.leaflet-tooltip-top:before,
+.leaflet-tooltip-bottom:before,
+.leaflet-tooltip-left:before,
+.leaflet-tooltip-right:before {
+  border-top-color: #1e293b;
+}
+
+/* Region polygon hover */
+.region-polygon {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.region-polygon:hover {
+  fill-opacity: 0.4 !important;
+}
+
+/* Fullscreen control (if added) */
+.leaflet-control-fullscreen a {
+  background: #1e293b !important;
+  color: #f8fafc !important;
+  border: 1px solid #334155 !important;
+}
+
+.leaflet-control-fullscreen a:hover {
+  background: #334155 !important;
+  color: #10B981 !important;
+}
+
+/* Map loading overlay */
+.map-loading-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* Pulse animation for markers */
+@keyframes marker-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.marker-pulse {
+  animation: marker-pulse 2s ease-in-out infinite;
 }

@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
-import { Search, MapPin, Plus, SlidersHorizontal, X, Bookmark, BookmarkCheck, Building2, Clock, DollarSign } from 'lucide-react'
+import { Search, MapPin, Plus, SlidersHorizontal, X, Bookmark, BookmarkCheck, Building2, Clock, DollarSign, Briefcase } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
@@ -24,10 +24,10 @@ interface JobFiltersProps {
 }
 
 const jobTypeColors: Record<string, string> = {
-  'full-time': 'bg-green-100 text-green-700',
-  'part-time': 'bg-blue-100 text-blue-700',
-  'contract': 'bg-purple-100 text-purple-700',
-  'internship': 'bg-orange-100 text-orange-700',
+  'full-time': 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+  'part-time': 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+  'contract': 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+  'internship': 'bg-amber-500/10 text-amber-400 border-amber-500/20',
 }
 
 const formatSalary = (min: number | null, max: number | null): string => {
@@ -144,20 +144,29 @@ export const JobFilters = ({ jobs, locations }: JobFiltersProps) => {
   return (
     <>
       {/* Hero Section */}
-      <section className="py-12 bg-gradient-to-b from-emerald-50 to-white">
-        <div className="mx-auto max-w-7xl px-4">
+      <section className="py-16 bg-gradient-to-b from-emerald-900/50 via-background to-background relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]" />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/20 rounded-full blur-[120px]" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-teal-500/20 rounded-full blur-[120px]" />
+
+        <div className="relative mx-auto max-w-7xl px-4">
           <div className="text-center max-w-2xl mx-auto">
-            <h1 className="text-3xl md:text-4xl font-bold text-slate-900">
+            <Badge className="mb-4 bg-emerald-500/10 text-emerald-400">
+              <Briefcase className="w-3 h-3 mr-1" />
+              Careers
+            </Badge>
+            <h1 className="text-3xl md:text-4xl font-bold text-foreground">
               Oromo Careers
             </h1>
-            <p className="mt-4 text-lg text-slate-600">
+            <p className="mt-4 text-lg text-muted-foreground">
               Find job opportunities within the Oromo professional network and community organizations.
             </p>
 
             {/* Search */}
-            <div className="mt-6 flex flex-col sm:flex-row gap-2 max-w-2xl mx-auto">
+            <div className="mt-8 flex flex-col sm:flex-row gap-2 max-w-2xl mx-auto">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
                   placeholder="Search jobs, companies..."
@@ -167,7 +176,7 @@ export const JobFilters = ({ jobs, locations }: JobFiltersProps) => {
                 />
               </div>
               <div className="relative flex-1">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="text"
                   placeholder="Location"
@@ -179,7 +188,7 @@ export const JobFilters = ({ jobs, locations }: JobFiltersProps) => {
               <Button
                 variant="outline"
                 onClick={() => setShowFilters(!showFilters)}
-                className={showFilters ? 'bg-slate-100' : ''}
+                className={showFilters ? 'bg-card' : ''}
               >
                 <SlidersHorizontal className="h-4 w-4" />
               </Button>
@@ -187,10 +196,10 @@ export const JobFilters = ({ jobs, locations }: JobFiltersProps) => {
 
             {/* Advanced Filters */}
             {showFilters && (
-              <div className="mt-4 p-4 bg-white rounded-lg border shadow-sm max-w-2xl mx-auto">
+              <div className="mt-4 p-4 bg-card/80 backdrop-blur rounded-lg border border-border/50 max-w-2xl mx-auto">
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                   <div>
-                    <label className="text-sm font-medium text-slate-700 block mb-2 text-left">
+                    <label className="text-sm font-medium text-foreground block mb-2 text-left">
                       Job Type
                     </label>
                     <Select value={selectedType} onValueChange={setSelectedType}>
@@ -207,7 +216,7 @@ export const JobFilters = ({ jobs, locations }: JobFiltersProps) => {
                     </Select>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-slate-700 block mb-2 text-left">
+                    <label className="text-sm font-medium text-foreground block mb-2 text-left">
                       Location
                     </label>
                     <Select value={selectedLocation} onValueChange={setSelectedLocation}>
@@ -223,7 +232,7 @@ export const JobFilters = ({ jobs, locations }: JobFiltersProps) => {
                     </Select>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-slate-700 block mb-2 text-left">
+                    <label className="text-sm font-medium text-foreground block mb-2 text-left">
                       Sort by
                     </label>
                     <Select value={sortBy} onValueChange={setSortBy}>
@@ -251,9 +260,8 @@ export const JobFilters = ({ jobs, locations }: JobFiltersProps) => {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
             <div className="flex items-center gap-4 flex-wrap">
               <Button
-                variant={showSavedOnly ? 'default' : 'outline'}
+                variant={showSavedOnly ? 'gradient-secondary' : 'outline'}
                 onClick={() => setShowSavedOnly(!showSavedOnly)}
-                className={showSavedOnly ? 'bg-emerald-600 hover:bg-emerald-700' : ''}
               >
                 <Bookmark className="w-4 h-4 mr-2" />
                 Saved Jobs ({savedJobs.length})
@@ -266,7 +274,7 @@ export const JobFilters = ({ jobs, locations }: JobFiltersProps) => {
               )}
             </div>
 
-            <Button asChild className="bg-emerald-600 hover:bg-emerald-700">
+            <Button asChild variant="gradient-secondary">
               <Link href="/careers/post">
                 <Plus className="w-4 h-4 mr-2" />
                 Post a Job
@@ -276,8 +284,8 @@ export const JobFilters = ({ jobs, locations }: JobFiltersProps) => {
 
           {/* Results Count */}
           <div className="flex items-center justify-between mb-6">
-            <p className="text-slate-600">
-              <span className="font-medium text-slate-900">{filteredJobs.length}</span> jobs found
+            <p className="text-muted-foreground">
+              <span className="font-medium text-foreground">{filteredJobs.length}</span> jobs found
             </p>
           </div>
 
@@ -285,18 +293,18 @@ export const JobFilters = ({ jobs, locations }: JobFiltersProps) => {
           {filteredJobs.length > 0 ? (
             <div className="grid md:grid-cols-2 gap-6">
               {filteredJobs.map((job) => (
-                <Card key={job.id} className="hover:shadow-md transition-all duration-200">
-                  <CardHeader className="pb-2">
+                <Card key={job.id} variant="interactive" className="py-0">
+                  <CardHeader className="pb-2 pt-6">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center">
-                          <Building2 className="w-6 h-6 text-slate-400" />
+                        <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center">
+                          <Building2 className="w-6 h-6 text-emerald-400" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-lg text-slate-900 hover:text-emerald-600">
+                          <h3 className="font-semibold text-lg text-foreground hover:text-primary transition-colors">
                             <Link href={`/careers/${job.id}`}>{job.title}</Link>
                           </h3>
-                          <p className="text-sm text-slate-600">{job.company_name}</p>
+                          <p className="text-sm text-muted-foreground">{job.company_name}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -307,29 +315,29 @@ export const JobFilters = ({ jobs, locations }: JobFiltersProps) => {
                           onClick={() => toggleSaveJob(job.id, job.title)}
                         >
                           {savedJobs.includes(job.id) ? (
-                            <BookmarkCheck className="w-5 h-5 text-emerald-600" />
+                            <BookmarkCheck className="w-5 h-5 text-emerald-400" />
                           ) : (
                             <Bookmark className="w-5 h-5" />
                           )}
                         </Button>
-                        <Badge className={cn('shrink-0', jobTypeColors[job.job_type])}>
+                        <Badge className={cn('shrink-0 border', jobTypeColors[job.job_type])}>
                           {job.job_type.replace('-', ' ')}
                         </Badge>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent className="pb-2">
-                    <p className="text-slate-600 text-sm line-clamp-2 mb-4">
+                    <p className="text-muted-foreground text-sm line-clamp-2 mb-4">
                       {job.description}
                     </p>
-                    <div className="flex flex-wrap gap-4 text-sm text-slate-500">
+                    <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                       {job.location && (
                         <div className="flex items-center gap-1">
                           <MapPin className="w-4 h-4" />
                           <span>{job.location}</span>
                         </div>
                       )}
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1 text-emerald-400">
                         <DollarSign className="w-4 h-4" />
                         <span>{formatSalary(job.salary_min, job.salary_max)}</span>
                       </div>
@@ -339,8 +347,8 @@ export const JobFilters = ({ jobs, locations }: JobFiltersProps) => {
                       </div>
                     </div>
                   </CardContent>
-                  <CardFooter className="pt-4">
-                    <Button asChild className="w-full bg-slate-900 hover:bg-slate-800">
+                  <CardFooter className="pt-4 pb-6">
+                    <Button asChild variant="gradient" className="w-full">
                       <Link href={`/careers/${job.id}`}>View Details</Link>
                     </Button>
                   </CardFooter>
@@ -349,11 +357,11 @@ export const JobFilters = ({ jobs, locations }: JobFiltersProps) => {
             </div>
           ) : (
             <div className="text-center py-16">
-              <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
-                <Search className="w-8 h-8 text-slate-400" />
+              <div className="w-16 h-16 rounded-full bg-card flex items-center justify-center mx-auto mb-4">
+                <Search className="w-8 h-8 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-semibold text-slate-800 mb-2">No jobs found</h3>
-              <p className="text-slate-600 mb-4">
+              <h3 className="text-lg font-semibold text-foreground mb-2">No jobs found</h3>
+              <p className="text-muted-foreground mb-4">
                 {showSavedOnly
                   ? "You haven't saved any jobs yet."
                   : "Try adjusting your search or filters to find what you're looking for."}

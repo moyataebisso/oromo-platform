@@ -52,12 +52,14 @@ export default function LoginPage() {
   }
 
   return (
-    <Card className="w-full">
+    <Card className="w-full bg-card/50 backdrop-blur border-border/50">
       <CardHeader className="text-center">
-        <Link href="/" className="text-2xl font-bold text-slate-900 mb-2 inline-block">
-          Oromo
+        <Link href="/" className="text-2xl font-bold mb-2 inline-block">
+          <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+            Oromo
+          </span>
         </Link>
-        <CardTitle className="text-xl">Welcome back</CardTitle>
+        <CardTitle className="text-xl text-foreground">Welcome back</CardTitle>
         <CardDescription>
           Enter your credentials to access your account
         </CardDescription>
@@ -65,7 +67,7 @@ export default function LoginPage() {
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {error && (
-            <div className="p-3 text-sm text-red-600 bg-red-50 rounded-md">
+            <div className="p-3 text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-md">
               {error}
             </div>
           )}
@@ -80,7 +82,7 @@ export default function LoginPage() {
               disabled={isLoading}
             />
             {errors.email && (
-              <p className="text-sm text-red-600">{errors.email.message}</p>
+              <p className="text-sm text-red-400">{errors.email.message}</p>
             )}
           </div>
 
@@ -89,7 +91,7 @@ export default function LoginPage() {
               <Label htmlFor="password">Password</Label>
               <Link
                 href="/forgot-password"
-                className="text-sm text-blue-600 hover:text-blue-700"
+                className="text-sm text-primary hover:text-primary/80 transition-colors"
               >
                 Forgot password?
               </Link>
@@ -97,16 +99,16 @@ export default function LoginPage() {
             <Input
               id="password"
               type="password"
-              placeholder="••••••••"
+              placeholder="Enter your password"
               {...register('password')}
               disabled={isLoading}
             />
             {errors.password && (
-              <p className="text-sm text-red-600">{errors.password.message}</p>
+              <p className="text-sm text-red-400">{errors.password.message}</p>
             )}
           </div>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button type="submit" variant="gradient" className="w-full" disabled={isLoading}>
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -119,9 +121,9 @@ export default function LoginPage() {
         </form>
       </CardContent>
       <CardFooter className="flex justify-center">
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-muted-foreground">
           Don&apos;t have an account?{' '}
-          <Link href="/signup" className="text-blue-600 hover:text-blue-700 font-medium">
+          <Link href="/signup" className="text-primary hover:text-primary/80 font-medium transition-colors">
             Sign up
           </Link>
         </p>

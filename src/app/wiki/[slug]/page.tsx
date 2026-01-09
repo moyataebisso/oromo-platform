@@ -1,22 +1,30 @@
-import Link from 'next/link'
-import { ArrowLeft, Clock, Eye, Edit, Bookmark, ChevronRight } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Separator } from '@/components/ui/separator'
+import { notFound } from 'next/navigation'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
-import { SocialShare } from '@/components/shared/social-share'
-import { WikiArticle } from '@/types/wiki'
+import { WikiArticleContent } from '@/components/wiki/wiki-article-content'
+import { createClient } from '@/lib/supabase/server'
 
-// Mock article data
-const mockArticle: WikiArticle = {
-  id: '1',
-  title: 'The Gadaa System: Ancient Democratic Governance',
-  slug: 'gadaa-system',
-  content: `
-## Introduction
+// Mock article data for fallback
+const mockArticles: Record<string, {
+  id: string
+  title: string
+  slug: string
+  content: string
+  summary: string
+  category: string
+  category_slug: string
+  author_name: string
+  is_featured: boolean
+  view_count: number
+  created_at: string
+  updated_at: string
+}> = {
+  'gadaa-system': {
+    id: '1',
+    title: 'The Gadaa System: Ancient Democratic Governance',
+    slug: 'gadaa-system',
+    summary: 'The Gadaa system is an indigenous democratic socio-political system of the Oromo people.',
+    content: `## Introduction
 
 The Gadaa system is an indigenous democratic socio-political system practiced by the Oromo people of Ethiopia and parts of Kenya. It is one of the oldest and most sophisticated systems of governance in Africa, predating many modern democratic systems by centuries.
 
@@ -76,216 +84,395 @@ Today, the Gadaa system continues to be practiced in various Oromo communities, 
 
 ## Conclusion
 
-The Gadaa system represents one of humanity's earliest experiments in democratic governance. Its sophisticated structure, emphasis on term limits, and systems of checks and balances demonstrate that complex democratic societies existed in Africa long before European colonization.
-  `,
-  category_id: '1',
-  author_id: '1',
-  status: 'published',
-  is_featured: true,
-  views_count: 1250,
-  created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-  updated_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-  category: { id: '1', name: 'History', slug: 'history', description: null },
-  author: { id: '1', display_name: 'Bekele Abera', avatar_url: null },
+The Gadaa system represents one of humanity's earliest experiments in democratic governance. Its sophisticated structure, emphasis on term limits, and systems of checks and balances demonstrate that complex democratic societies existed in Africa long before European colonization.`,
+    category: 'History',
+    category_slug: 'history',
+    author_name: 'Bekele Abera',
+    is_featured: true,
+    view_count: 1250,
+    created_at: '2024-01-15',
+    updated_at: '2024-01-20',
+  },
+  'irreecha-festival': {
+    id: '2',
+    title: 'Irreecha: The Oromo Thanksgiving Festival',
+    slug: 'irreecha-festival',
+    summary: 'Irreecha is the most important annual Oromo thanksgiving holiday.',
+    content: `## What is Irreecha?
+
+Irreecha (also spelled Irreessa) is the most important annual Oromo thanksgiving holiday celebrated at the beginning of spring (Birraa). It marks the end of the rainy season and thanks Waaqa (God) for the blessings of the past year.
+
+## Historical Significance
+
+Irreecha has been celebrated for thousands of years by the Oromo people. It represents:
+
+- Gratitude to Waaqa for peace, fertility, and prosperity
+- The renewal of nature and human relationships
+- The coming together of Oromo communities from all regions
+
+## When is Irreecha Celebrated?
+
+Irreecha is celebrated in late September or early October, coinciding with the end of the Ethiopian rainy season. The main celebration takes place at:
+
+- **Lake Hora Harsadi** in Bishoftu (Debre Zeit) - the largest gathering
+- Various lakes and rivers throughout Oromia
+
+## The Celebration
+
+### Traditional Elements
+
+The celebration includes several key elements:
+
+- **Malkaa** - Gathering at water bodies (lakes, rivers)
+- **Irreeffachuu** - The act of giving thanks
+- **Eebba** - Blessings from elders
+- **Sirba** - Traditional songs and dances
+
+### What People Carry
+
+Participants carry symbolic items:
+
+- **Fresh green grass (Coqorsa)** - Symbol of fertility and new life
+- **Yellow flowers (Adey Abeba)** - Symbol of the new season
+- **Traditional Oromo attire** - Cultural identity
+
+## Cultural Importance
+
+Irreecha is more than just a religious celebration. It serves as:
+
+- A time for reconciliation and peace-making
+- An occasion for strengthening community bonds
+- A celebration of Oromo identity and culture
+- A gathering of Oromo from the diaspora
+
+## Modern Celebrations
+
+In recent years, Irreecha has grown to become one of the largest annual gatherings in Africa, with millions of Oromo people participating. The celebration has also spread to Oromo diaspora communities worldwide.
+
+## Conclusion
+
+Irreecha embodies the Oromo values of gratitude, community, and connection to nature. It remains a powerful expression of Oromo cultural identity and spirituality.`,
+    category: 'Culture',
+    category_slug: 'culture',
+    author_name: 'Fatuma Ahmed',
+    is_featured: true,
+    view_count: 980,
+    created_at: '2024-01-12',
+    updated_at: '2024-01-18',
+  },
+  'qubee-alphabet': {
+    id: '3',
+    title: 'Introduction to Qubee: The Oromo Alphabet',
+    slug: 'qubee-alphabet',
+    summary: 'Qubee is the Latin-based writing system adopted for Afaan Oromoo.',
+    content: `## What is Qubee?
+
+Qubee is the Latin-based alphabet used to write Afaan Oromoo (the Oromo language). It was officially adopted in 1991 after the fall of the Derg regime, replacing the Ge'ez (Ethiopic) script that had been imposed on the language.
+
+## History of Qubee
+
+### Before Qubee
+
+Prior to 1991, Afaan Oromoo was written using:
+- The Ge'ez script (forced adoption under Haile Selassie and Derg regimes)
+- Various Latin-based systems developed by missionaries and scholars
+
+### Adoption of Qubee
+
+The modern Qubee alphabet was:
+- Standardized by the Oromo Liberation Front (OLF) in the 1970s
+- Based on earlier Latin-based orthographies
+- Officially adopted in Oromia in 1991
+
+## The Qubee Alphabet
+
+### Basic Letters
+
+Qubee uses 33 letters:
+
+| Qubee | Sound |
+|-------|-------|
+| A a | as in "father" |
+| B b | as in "boy" |
+| C c | ch as in "church" |
+| D d | as in "dog" |
+| E e | as in "bed" |
+| F f | as in "fan" |
+| G g | as in "go" |
+| H h | as in "hat" |
+| I i | ee as in "see" |
+| J j | as in "jam" |
+| K k | as in "king" |
+| L l | as in "love" |
+| M m | as in "man" |
+| N n | as in "no" |
+| O o | as in "open" |
+| P p | as in "pen" |
+| Q q | glottal stop |
+| R r | as in "run" |
+| S s | as in "sun" |
+| T t | as in "top" |
+| U u | oo as in "food" |
+| V v | as in "van" |
+| W w | as in "water" |
+| X x | t' (ejective t) |
+| Y y | as in "yes" |
+| Z z | as in "zero" |
+
+### Special Characters
+
+Qubee includes special characters for sounds unique to Oromo:
+- **CH** - as in "church"
+- **DH** - implosive d
+- **NY** - as in "canyon"
+- **PH** - aspirated p
+- **SH** - as in "ship"
+
+## Vowel Length
+
+In Oromo, vowel length is significant and changes meaning:
+- **Short vowels**: a, e, i, o, u
+- **Long vowels**: aa, ee, ii, oo, uu
+
+Example:
+- **lafa** = earth
+- **laafaa** = soft
+
+## Importance of Qubee
+
+The adoption of Qubee was significant because:
+
+- It made reading and writing Oromo much easier
+- It helped preserve Oromo literature and culture
+- It enabled mass literacy in Afaan Oromoo
+- It strengthened Oromo cultural identity
+
+## Conclusion
+
+Qubee represents a crucial step in the preservation and promotion of Afaan Oromoo. It enables millions of Oromo speakers to read and write their language easily and has contributed significantly to the growth of Oromo literature and education.`,
+    category: 'Language',
+    category_slug: 'language',
+    author_name: 'Chaltu Negasa',
+    is_featured: true,
+    view_count: 1100,
+    created_at: '2024-01-10',
+    updated_at: '2024-01-15',
+  },
 }
 
-const relatedArticles = [
-  { title: 'Abba Gadaa: Leadership in Oromo Society', slug: 'abba-gadaa' },
-  { title: 'Gumi Gayo: The Oromo Legislative Assembly', slug: 'gumi-gayo' },
-  { title: 'Irreecha and the Gadaa Calendar', slug: 'irreecha-gadaa-calendar' },
-]
-
-const formatDate = (dateString: string): string => {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  })
+// Mock flashcards for articles
+const mockFlashcards: Record<string, Array<{ id: string; term: string; definition: string }>> = {
+  'gadaa-system': [
+    { id: '1', term: 'Gadaa', definition: 'The indigenous democratic socio-political system of the Oromo people' },
+    { id: '2', term: 'Abba Gadaa', definition: 'The democratically elected leader who presides over the Gadaa assembly' },
+    { id: '3', term: 'Gumi Gayo', definition: 'The legislative assembly in the Gadaa system' },
+    { id: '4', term: 'Seera', definition: 'The primary laws in the Gadaa system' },
+    { id: '5', term: 'Heera', definition: 'The bylaws that supplement Seera in Gadaa governance' },
+    { id: '6', term: 'Hiriya', definition: 'Age sets that pass through Gadaa grades' },
+    { id: '7', term: 'Dabballee', definition: 'First Gadaa grade for children aged 0-8 years' },
+    { id: '8', term: 'Kuusa', definition: 'Fourth Gadaa grade (24-32 years) for preparation for leadership' },
+  ],
+  'irreecha-festival': [
+    { id: '1', term: 'Irreecha', definition: 'The most important annual Oromo thanksgiving festival' },
+    { id: '2', term: 'Birraa', definition: 'The spring season when Irreecha is celebrated' },
+    { id: '3', term: 'Waaqa', definition: 'The Oromo word for God' },
+    { id: '4', term: 'Malkaa', definition: 'The gathering at water bodies during Irreecha' },
+    { id: '5', term: 'Coqorsa', definition: 'Fresh green grass carried as a symbol of fertility' },
+    { id: '6', term: 'Adey Abeba', definition: 'Yellow flowers symbolizing the new season' },
+    { id: '7', term: 'Eebba', definition: 'Blessings given by elders during Irreecha' },
+    { id: '8', term: 'Lake Hora Harsadi', definition: 'The main gathering place for Irreecha in Bishoftu' },
+  ],
+  'qubee-alphabet': [
+    { id: '1', term: 'Qubee', definition: 'The Latin-based alphabet used to write Afaan Oromoo' },
+    { id: '2', term: 'Afaan Oromoo', definition: 'The Oromo language' },
+    { id: '3', term: "Ge'ez Script", definition: 'The Ethiopic script that was replaced by Qubee in 1991' },
+    { id: '4', term: 'Long Vowels', definition: 'Vowels written as aa, ee, ii, oo, uu that change word meaning' },
+    { id: '5', term: 'Ejective', definition: 'A consonant sound produced with a burst of air (like X in Qubee)' },
+    { id: '6', term: 'Implosive D', definition: 'The DH sound in Qubee, unique to Oromo' },
+    { id: '7', term: '33 Letters', definition: 'The number of letters in the Qubee alphabet' },
+    { id: '8', term: '1991', definition: 'The year Qubee was officially adopted in Oromia' },
+  ],
 }
 
-interface ArticlePageProps {
+// Mock quiz questions
+const mockQuizQuestions: Record<string, Array<{
+  id: string
+  question: string
+  correct_answer: string
+  wrong_answers: string[]
+  explanation: string
+}>> = {
+  'gadaa-system': [
+    {
+      id: '1',
+      question: 'How long is the term of an Abba Gadaa?',
+      correct_answer: '8 years',
+      wrong_answers: ['4 years', '10 years', '6 years'],
+      explanation: 'The Abba Gadaa serves a non-renewable eight-year term as the leader of the Gadaa assembly.',
+    },
+    {
+      id: '2',
+      question: 'In what year was the Gadaa system inscribed by UNESCO as Intangible Cultural Heritage?',
+      correct_answer: '2016',
+      wrong_answers: ['2010', '2018', '2012'],
+      explanation: 'UNESCO recognized the Gadaa system in 2016 for its significance as a living cultural tradition.',
+    },
+    {
+      id: '3',
+      question: 'What is the Oromo legislative assembly called?',
+      correct_answer: 'Gumi Gayo',
+      wrong_answers: ['Seera', 'Hiriya', 'Heera'],
+      explanation: 'Gumi Gayo is the legislative assembly where laws are discussed and the Abba Gadaa presides.',
+    },
+    {
+      id: '4',
+      question: 'How many grades does the Gadaa system have?',
+      correct_answer: '5 grades',
+      wrong_answers: ['3 grades', '7 grades', '4 grades'],
+      explanation: 'The Gadaa system has 5 grades: Dabballee, Folle/Gamme, Qondaala, Kuusa, and Gadaa.',
+    },
+    {
+      id: '5',
+      question: 'What is the complete Gadaa cycle in years?',
+      correct_answer: '40 years',
+      wrong_answers: ['20 years', '50 years', '30 years'],
+      explanation: 'Males pass through all five Gadaa grades over a complete 40-year cycle.',
+    },
+  ],
+  'irreecha-festival': [
+    {
+      id: '1',
+      question: 'When is Irreecha celebrated?',
+      correct_answer: 'Late September or early October',
+      wrong_answers: ['January', 'June', 'March'],
+      explanation: 'Irreecha marks the end of the rainy season and is celebrated in late September or early October.',
+    },
+    {
+      id: '2',
+      question: 'What does the fresh green grass (Coqorsa) symbolize?',
+      correct_answer: 'Fertility and new life',
+      wrong_answers: ['Wealth', 'Wisdom', 'Strength'],
+      explanation: 'Coqorsa (fresh green grass) is carried as a symbol of fertility and new life.',
+    },
+    {
+      id: '3',
+      question: 'Where is the largest Irreecha celebration held?',
+      correct_answer: 'Lake Hora Harsadi in Bishoftu',
+      wrong_answers: ['Addis Ababa', 'Jimma', 'Harar'],
+      explanation: 'The largest Irreecha gathering takes place at Lake Hora Harsadi in Bishoftu (Debre Zeit).',
+    },
+    {
+      id: '4',
+      question: 'What are the yellow flowers carried during Irreecha called?',
+      correct_answer: 'Adey Abeba',
+      wrong_answers: ['Coqorsa', 'Malkaa', 'Birraa'],
+      explanation: 'Adey Abeba (yellow flowers) symbolize the new season during Irreecha.',
+    },
+  ],
+  'qubee-alphabet': [
+    {
+      id: '1',
+      question: 'When was Qubee officially adopted in Oromia?',
+      correct_answer: '1991',
+      wrong_answers: ['1985', '2000', '1975'],
+      explanation: 'Qubee was officially adopted in 1991 after the fall of the Derg regime.',
+    },
+    {
+      id: '2',
+      question: 'How many letters are in the Qubee alphabet?',
+      correct_answer: '33',
+      wrong_answers: ['26', '28', '40'],
+      explanation: 'The Qubee alphabet consists of 33 letters.',
+    },
+    {
+      id: '3',
+      question: 'What script did Qubee replace?',
+      correct_answer: "Ge'ez (Ethiopic) script",
+      wrong_answers: ['Arabic script', 'Cyrillic script', 'Greek script'],
+      explanation: "Qubee replaced the Ge'ez (Ethiopic) script that had been imposed on the Oromo language.",
+    },
+    {
+      id: '4',
+      question: 'How are long vowels written in Qubee?',
+      correct_answer: 'By doubling the vowel (aa, ee, ii, oo, uu)',
+      wrong_answers: ['With an accent mark', 'With a tilde', 'With a circumflex'],
+      explanation: 'Long vowels in Qubee are written by doubling: aa, ee, ii, oo, uu.',
+    },
+  ],
+}
+
+// Mock related articles
+const mockRelatedArticles: Record<string, Array<{ id: string; title: string; slug: string; summary: string; category: string }>> = {
+  'gadaa-system': [
+    { id: '2', title: 'Abba Gadaa: Leadership in Oromo Society', slug: 'abba-gadaa', summary: 'The Abba Gadaa is the elected leader of the Gadaa assembly.', category: 'History' },
+    { id: '3', title: 'Gumi Gayo: The Legislative Assembly', slug: 'gumi-gayo', summary: 'Understanding the Oromo legislative tradition.', category: 'History' },
+    { id: '4', title: 'Irreecha and the Gadaa Calendar', slug: 'irreecha-gadaa', summary: 'How Irreecha relates to the Gadaa cycle.', category: 'Culture' },
+  ],
+  'irreecha-festival': [
+    { id: '1', title: 'The Gadaa System', slug: 'gadaa-system', summary: 'Ancient democratic governance of the Oromo.', category: 'History' },
+    { id: '3', title: 'Waaqeffanna: Traditional Religion', slug: 'waaqeffanna', summary: 'The traditional Oromo religion.', category: 'Culture' },
+    { id: '4', title: 'Oromo Coffee Ceremony', slug: 'coffee-ceremony', summary: 'The cultural significance of coffee.', category: 'Culture' },
+  ],
+  'qubee-alphabet': [
+    { id: '2', title: 'Oromo Proverbs', slug: 'oromo-proverbs', summary: 'Traditional wisdom in Afaan Oromoo.', category: 'Language' },
+    { id: '3', title: 'Learning Afaan Oromoo', slug: 'learning-oromo', summary: 'A guide to learning the Oromo language.', category: 'Language' },
+    { id: '4', title: 'Oromo Literature', slug: 'oromo-literature', summary: 'The rich literary tradition of the Oromo.', category: 'Language' },
+  ],
+}
+
+interface PageProps {
   params: Promise<{ slug: string }>
 }
 
-export default async function ArticlePage({ params }: ArticlePageProps) {
+export default async function WikiArticlePage({ params }: PageProps) {
   const { slug } = await params
-  void slug
-  const article = mockArticle
+  const supabase = await createClient()
+
+  // Try to fetch from database first
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: dbArticle } = await (supabase as any)
+    .from('wiki_articles')
+    .select('*')
+    .eq('slug', slug)
+    .eq('is_published', true)
+    .single()
+
+  // Use mock data if no database result
+  const mockArticle = mockArticles[slug]
+
+  if (!dbArticle && !mockArticle) {
+    notFound()
+  }
+
+  // Format article data
+  const article = dbArticle || {
+    ...mockArticle,
+    wiki_categories: { name: mockArticle.category, slug: mockArticle.category_slug, icon: '📚' },
+  }
+
+  // Get flashcards (mock for now)
+  const flashcards = mockFlashcards[slug] || []
+
+  // Get quiz questions (mock for now)
+  const quizQuestions = mockQuizQuestions[slug] || []
+
+  // Get related articles (mock for now)
+  const relatedArticles = mockRelatedArticles[slug] || []
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-slate-900">
       <Header />
 
-      <main className="flex-1 bg-white">
-        {/* Breadcrumb */}
-        <div className="border-b">
-          <div className="mx-auto max-w-7xl px-4 py-3">
-            <nav className="flex items-center gap-2 text-sm text-slate-600">
-              <Link href="/wiki" className="hover:text-slate-900">Wiki</Link>
-              <ChevronRight className="w-4 h-4" />
-              {article.category && (
-                <>
-                  <Link href={`/wiki/category/${article.category.slug}`} className="hover:text-slate-900">
-                    {article.category.name}
-                  </Link>
-                  <ChevronRight className="w-4 h-4" />
-                </>
-              )}
-              <span className="text-slate-900 truncate">{article.title}</span>
-            </nav>
-          </div>
-        </div>
-
-        <div className="mx-auto max-w-7xl px-4 py-8">
-          <div className="grid lg:grid-cols-4 gap-8">
-            {/* Main Content */}
-            <article className="lg:col-span-3">
-              {/* Article Header */}
-              <header className="mb-8">
-                {article.category && (
-                  <Badge variant="secondary" className="mb-4">
-                    {article.category.name}
-                  </Badge>
-                )}
-                <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-                  {article.title}
-                </h1>
-
-                <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600">
-                  {article.author && (
-                    <div className="flex items-center gap-2">
-                      <Avatar className="w-6 h-6">
-                        <AvatarImage src={article.author.avatar_url || undefined} />
-                        <AvatarFallback>
-                          {article.author.display_name?.[0] || 'A'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span>{article.author.display_name}</span>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-4 h-4" />
-                    <span>Updated {formatDate(article.updated_at || article.created_at)}</span>
-                  </div>
-                  {article.views_count !== undefined && (
-                    <div className="flex items-center gap-1">
-                      <Eye className="w-4 h-4" />
-                      <span>{article.views_count.toLocaleString()} views</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex flex-wrap items-center gap-4 mt-4">
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm">
-                      <Edit className="w-4 h-4 mr-2" />
-                      Edit
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Bookmark className="w-4 h-4 mr-2" />
-                      Save
-                    </Button>
-                  </div>
-                  <SocialShare title={article.title} />
-                </div>
-              </header>
-
-              <Separator className="mb-8" />
-
-              {/* Article Content */}
-              <div className="prose prose-slate max-w-none">
-                <div dangerouslySetInnerHTML={{ __html: formatMarkdown(article.content) }} />
-              </div>
-
-              {/* Tags/Footer */}
-              <Separator className="my-8" />
-
-              <div className="flex items-center justify-between">
-                <Button variant="outline" asChild>
-                  <Link href="/wiki">
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Back to Wiki
-                  </Link>
-                </Button>
-                <p className="text-sm text-slate-500">
-                  Last updated: {formatDate(article.updated_at || article.created_at)}
-                </p>
-              </div>
-            </article>
-
-            {/* Sidebar */}
-            <aside className="lg:col-span-1">
-              <div className="sticky top-24 space-y-6">
-                {/* Table of Contents */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">Table of Contents</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <nav className="space-y-1 text-sm">
-                      <a href="#introduction" className="block text-slate-600 hover:text-blue-600">
-                        Introduction
-                      </a>
-                      <a href="#historical-background" className="block text-slate-600 hover:text-blue-600">
-                        Historical Background
-                      </a>
-                      <a href="#structure-and-organization" className="block text-slate-600 hover:text-blue-600">
-                        Structure and Organization
-                      </a>
-                      <a href="#democratic-principles" className="block text-slate-600 hover:text-blue-600">
-                        Democratic Principles
-                      </a>
-                      <a href="#laws-and-legislation" className="block text-slate-600 hover:text-blue-600">
-                        Laws and Legislation
-                      </a>
-                      <a href="#modern-relevance" className="block text-slate-600 hover:text-blue-600">
-                        Modern Relevance
-                      </a>
-                      <a href="#conclusion" className="block text-slate-600 hover:text-blue-600">
-                        Conclusion
-                      </a>
-                    </nav>
-                  </CardContent>
-                </Card>
-
-                {/* Related Articles */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">Related Articles</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <ul className="space-y-2">
-                      {relatedArticles.map((related) => (
-                        <li key={related.slug}>
-                          <Link
-                            href={`/wiki/${related.slug}`}
-                            className="text-sm text-slate-600 hover:text-blue-600 line-clamp-2"
-                          >
-                            {related.title}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-              </div>
-            </aside>
-          </div>
-        </div>
+      <main className="flex-1">
+        <WikiArticleContent
+          article={article}
+          flashcards={flashcards}
+          quizQuestions={quizQuestions}
+          relatedArticles={relatedArticles}
+        />
       </main>
 
       <Footer />
     </div>
   )
-}
-
-// Simple markdown to HTML converter
-function formatMarkdown(content: string): string {
-  return content
-    .replace(/^### (.*$)/gim, '<h3 id="$1" class="text-lg font-semibold mt-6 mb-3 scroll-mt-24">$1</h3>')
-    .replace(/^## (.*$)/gim, '<h2 id="$1" class="text-xl font-semibold mt-8 mb-4 scroll-mt-24">$1</h2>')
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/^\d+\. \*\*(.*?)\*\*: (.*$)/gim, '<li class="ml-4 mb-2"><strong>$1</strong>: $2</li>')
-    .replace(/^- (.*$)/gim, '<li class="ml-4 mb-1">$1</li>')
-    .replace(/\n\n/g, '</p><p class="mb-4">')
 }
