@@ -12,7 +12,7 @@ interface CourseCardProps {
     slug: string
     description: string | null
     thumbnail_url: string | null
-    category: string
+    course_category: string
     difficulty: string
     estimated_hours: number | null
     xp_reward: number
@@ -45,8 +45,8 @@ const difficultyColors: Record<string, string> = {
 }
 
 export function CourseCard({ course, lessonCount, progress }: CourseCardProps) {
-  const categoryColor = categoryColors[course.category] || 'bg-slate-100 text-slate-700'
-  const categoryLabel = categoryLabels[course.category] || course.category
+  const categoryColor = categoryColors[course.course_category] || 'bg-slate-100 text-slate-700'
+  const categoryLabel = categoryLabels[course.course_category] || course.course_category
   const difficultyColor = difficultyColors[course.difficulty] || 'text-slate-600'
 
   return (

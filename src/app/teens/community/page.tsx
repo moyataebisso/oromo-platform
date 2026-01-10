@@ -33,7 +33,7 @@ interface Post {
   user_id: string
   title: string | null
   content: string
-  category: string
+  post_category: string
   likes_count: number
   comments_count: number
   is_pinned: boolean
@@ -149,7 +149,7 @@ export default function TeenCommunityPage() {
         .insert({
           user_id: user.id,
           content: newPost.trim(),
-          category: postCategory,
+          post_category: postCategory,
           is_approved: true, // Auto-approve for now
         })
         .select('*, profiles(display_name, avatar_url)')
@@ -230,7 +230,7 @@ export default function TeenCommunityPage() {
   const filteredPosts =
     selectedCategory === 'all'
       ? posts
-      : posts.filter((p) => p.category === selectedCategory)
+      : posts.filter((p) => p.post_category === selectedCategory)
 
   const pinnedPosts = filteredPosts.filter((p) => p.is_pinned)
   const regularPosts = filteredPosts.filter((p) => !p.is_pinned)
@@ -416,7 +416,7 @@ function PostCard({
 }) {
   const displayName = post.profiles?.display_name || 'Anonymous'
   const initials = displayName.charAt(0).toUpperCase()
-  const categoryColor = categoryColors[post.category] || 'bg-slate-100 text-slate-700'
+  const categoryColor = categoryColors[post.post_category] || 'bg-slate-100 text-slate-700'
 
   return (
     <Card className={cn(post.is_pinned && 'border-amber-200 bg-amber-50/30')}>
@@ -432,7 +432,7 @@ function PostCard({
               <span className="font-medium text-slate-900">{displayName}</span>
               <span className="text-sm text-slate-400">{formatTimeAgo(post.created_at)}</span>
               <span className={cn('text-xs px-2 py-0.5 rounded-full', categoryColor)}>
-                {post.category.replace('-', ' ')}
+                {post.post_category.replace('-', ' ')}
               </span>
               {post.is_pinned && (
                 <span className="flex items-center gap-1 text-xs text-amber-600">

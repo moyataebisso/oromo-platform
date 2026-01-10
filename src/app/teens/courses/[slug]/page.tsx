@@ -26,7 +26,7 @@ interface Course {
   slug: string
   description: string | null
   thumbnail_url: string | null
-  category: string
+  course_category: string
   difficulty: string
   estimated_hours: number | null
   xp_reward: number
@@ -37,7 +37,6 @@ interface Lesson {
   id: string
   title: string
   slug: string
-  description: string | null
   duration_minutes: number | null
   xp_reward: number
   order_index: number
@@ -105,9 +104,8 @@ export default function CourseDetailPage() {
         // Fetch lessons
         const { data: lessonsData, error: lessonsError } = await sb
           .from('teen_lessons')
-          .select('id, title, slug, description, duration_minutes, xp_reward, order_index')
+          .select('id, title, slug, duration_minutes, xp_reward, order_index')
           .eq('course_id', courseData.id)
-          .eq('is_published', true)
           .order('order_index')
 
         if (lessonsError) {
@@ -192,7 +190,7 @@ export default function CourseDetailPage() {
     )
   }
 
-  const difficultyInfo = difficultyLabels[course.difficulty] || difficultyLabels.beginner
+  const difficultyInfo = difficultyLabels[course.difficulty || 'beginner'] || difficultyLabels.beginner
 
   return (
     <div className="py-8 px-4">
@@ -213,7 +211,7 @@ export default function CourseDetailPage() {
             {/* Category and difficulty badges */}
             <div className="flex flex-wrap items-center gap-2 mb-4">
               <span className="text-sm font-medium bg-white/20 px-3 py-1 rounded-full">
-                {categoryLabels[course.category] || course.category}
+                {categoryLabels[course.course_category] || course.course_category}
               </span>
               <span
                 className={cn(
@@ -350,11 +348,6 @@ export default function CourseDetailPage() {
                                 </span>
                               )}
                             </div>
-                            {lesson.description && (
-                              <p className="text-sm text-slate-600 line-clamp-1">
-                                {lesson.description}
-                              </p>
-                            )}
                             <div className="flex items-center gap-4 mt-2 text-xs text-slate-500">
                               {lesson.duration_minutes && (
                                 <span className="flex items-center gap-1">

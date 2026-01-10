@@ -14,11 +14,12 @@ interface Course {
   slug: string
   description: string | null
   thumbnail_url: string | null
-  category: string
+  course_category: string
   difficulty: string
   estimated_hours: number | null
   xp_reward: number
   is_featured: boolean
+  is_published: boolean
   lesson_count?: number
 }
 
@@ -89,7 +90,7 @@ export default function TeenCoursesPage() {
   const filteredCourses =
     selectedCategory === 'all'
       ? courses
-      : courses.filter((c) => c.category === selectedCategory)
+      : courses.filter((c) => c.course_category === selectedCategory)
 
   const featuredCourses = filteredCourses.filter((c) => c.is_featured)
   const regularCourses = filteredCourses.filter((c) => !c.is_featured)

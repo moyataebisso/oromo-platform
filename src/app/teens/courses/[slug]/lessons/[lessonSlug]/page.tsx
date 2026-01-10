@@ -36,7 +36,6 @@ interface Lesson {
   id: string
   title: string
   slug: string
-  description: string | null
   content: string | null
   video_url: string | null
   duration_minutes: number | null
@@ -160,7 +159,6 @@ export default function LessonPage() {
           .from('teen_lessons')
           .select('id, title, slug, order_index, duration_minutes')
           .eq('course_id', courseData.id)
-          .eq('is_published', true)
           .order('order_index')
 
         setAllLessons((allLessonsData || []) as LessonNav[])
