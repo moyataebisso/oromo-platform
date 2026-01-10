@@ -51,10 +51,18 @@ export default function TeenCoursesPage() {
           .order('is_featured', { ascending: false })
           .order('order_index')
 
-        if (error) throw error
+        if (error) {
+          console.error('Error fetching courses:', error.message || error.code || error)
+          // If table doesn't exist, show empty state instead of error
+          if (error.code === '42P01' || error.message?.includes('does not exist')) {
+            console.warn('teen_courses table not found. Please run database migrations.')
+          }
+          setIsLoading(false)
+          return
+        }
 
         // Fetch lesson counts for each course
-        if (coursesData) {
+        if (coursesData && coursesData.length > 0) {
           const coursesWithCounts = await Promise.all(
             (coursesData as Course[]).map(async (course: Course) => {
               const { count } = await sb

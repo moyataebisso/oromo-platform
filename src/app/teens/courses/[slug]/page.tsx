@@ -82,7 +82,19 @@ export default function CourseDetailPage() {
           .eq('slug', slug)
           .single()
 
-        if (courseError) throw courseError
+        if (courseError) {
+          console.error('Course query error:', courseError.message || courseError.code || courseError)
+          // Check if table doesn't exist
+          if (courseError.code === '42P01' || courseError.message?.includes('does not exist')) {
+            setError('Teen courses table not found. Please run the database migrations.')
+          } else if (courseError.code === 'PGRST116') {
+            setError('Course not found')
+          } else {
+            setError(`Failed to load course: ${courseError.message || 'Unknown error'}`)
+          }
+          return
+        }
+
         if (!courseData) {
           setError('Course not found')
           return
@@ -98,7 +110,9 @@ export default function CourseDetailPage() {
           .eq('is_published', true)
           .order('order_index')
 
-        if (lessonsError) throw lessonsError
+        if (lessonsError) {
+          console.error('Lessons query error:', lessonsError.message || lessonsError)
+        }
         setLessons((lessonsData || []) as Lesson[])
 
         // Fetch completed lessons for current user
@@ -122,9 +136,10 @@ export default function CourseDetailPage() {
             setCompletedLessons(lessonIds)
           }
         }
-      } catch (err) {
-        console.error('Error fetching course:', err)
-        setError('Failed to load course')
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+        console.error('Error fetching course:', errorMessage, err)
+        setError(`Failed to load course: ${errorMessage}`)
       } finally {
         setIsLoading(false)
       }
