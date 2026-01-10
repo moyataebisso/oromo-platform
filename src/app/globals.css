@@ -327,6 +327,10 @@
   animation: shimmer 2s linear infinite;
 }
 
+.animate-shake {
+  animation: shake 0.5s ease;
+}
+
 /* Gradient backgrounds */
 .bg-gradient-hero {
   background: var(--gradient-hero);

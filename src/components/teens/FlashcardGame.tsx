@@ -106,19 +106,19 @@ export function FlashcardGame({ flashcards, title, xpReward = 50, onComplete }: 
   if (isComplete) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
-        <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-6 animate-bounce">
-          <Trophy className="w-12 h-12 text-green-600" />
+        <div className="w-24 h-24 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-6 animate-bounce">
+          <Trophy className="w-12 h-12 text-green-600 dark:text-green-400" />
         </div>
-        <h2 className="text-2xl font-bold text-slate-900 mb-2">Great Job!</h2>
-        <p className="text-slate-600 mb-4">
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Great Job!</h2>
+        <p className="text-slate-600 dark:text-gray-400 mb-4">
           You mastered all {totalCards} flashcards!
         </p>
-        <div className="bg-amber-50 border border-amber-200 rounded-lg px-6 py-3 mb-6">
-          <p className="text-amber-700 font-semibold text-lg">
+        <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 rounded-lg px-6 py-3 mb-6">
+          <p className="text-amber-700 dark:text-amber-400 font-semibold text-lg">
             +{xpReward} XP earned!
           </p>
         </div>
-        <Button onClick={handleReset} variant="outline">
+        <Button onClick={handleReset} variant="outline" className="dark:border-gray-600 dark:text-gray-300">
           <RotateCcw className="w-4 h-4 mr-2" />
           Practice Again
         </Button>
@@ -129,7 +129,7 @@ export function FlashcardGame({ flashcards, title, xpReward = 50, onComplete }: 
   if (!currentCard) {
     return (
       <div className="text-center py-12">
-        <p className="text-slate-600">No flashcards available</p>
+        <p className="text-slate-600 dark:text-gray-400">No flashcards available</p>
       </div>
     )
   }
@@ -139,20 +139,20 @@ export function FlashcardGame({ flashcards, title, xpReward = 50, onComplete }: 
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="font-semibold text-slate-900">{title}</h3>
-          <p className="text-sm text-slate-500">
+          <h3 className="font-semibold text-slate-900 dark:text-white">{title}</h3>
+          <p className="text-sm text-slate-500 dark:text-gray-400">
             Card {currentIndex + 1} of {deck.length} remaining
             {masteredCount > 0 && ` (${masteredCount} mastered)`}
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={shuffleDeck}>
+        <Button variant="outline" size="sm" onClick={shuffleDeck} className="dark:border-gray-600 dark:text-gray-300">
           <Shuffle className="w-4 h-4 mr-1" />
           Shuffle
         </Button>
       </div>
 
       {/* Progress bar */}
-      <div className="w-full bg-slate-200 rounded-full h-2">
+      <div className="w-full bg-slate-200 dark:bg-gray-700 rounded-full h-2">
         <div
           className="bg-green-500 h-2 rounded-full transition-all duration-300"
           style={{ width: `${(masteredCount / totalCards) * 100}%` }}
@@ -175,7 +175,7 @@ export function FlashcardGame({ flashcards, title, xpReward = 50, onComplete }: 
           {/* Front */}
           <Card
             className={cn(
-              'absolute inset-0 backface-hidden flex flex-col items-center justify-center p-8 bg-gradient-to-br from-blue-600 to-purple-700 text-white',
+              'absolute inset-0 backface-hidden flex flex-col items-center justify-center p-8 bg-gradient-to-br from-green-600 to-emerald-700 text-white',
               isFlipped && 'invisible'
             )}
             style={{ backfaceVisibility: 'hidden' }}
@@ -190,7 +190,7 @@ export function FlashcardGame({ flashcards, title, xpReward = 50, onComplete }: 
           {/* Back */}
           <Card
             className={cn(
-              'absolute inset-0 backface-hidden flex flex-col items-center justify-center p-8 bg-gradient-to-br from-green-500 to-emerald-600 text-white',
+              'absolute inset-0 backface-hidden flex flex-col items-center justify-center p-8 bg-gradient-to-br from-amber-500 to-yellow-600 text-white',
               !isFlipped && 'invisible'
             )}
             style={{
@@ -211,8 +211,8 @@ export function FlashcardGame({ flashcards, title, xpReward = 50, onComplete }: 
       {currentCard.hint && (
         <div className="text-center">
           {showHint ? (
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-              <p className="text-amber-700 text-sm">
+            <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 rounded-lg p-3">
+              <p className="text-amber-700 dark:text-amber-400 text-sm">
                 <Lightbulb className="w-4 h-4 inline mr-1" />
                 {currentCard.hint}
               </p>
@@ -222,7 +222,7 @@ export function FlashcardGame({ flashcards, title, xpReward = 50, onComplete }: 
               variant="ghost"
               size="sm"
               onClick={() => setShowHint(true)}
-              className="text-amber-600"
+              className="text-amber-600 dark:text-amber-400"
             >
               <Lightbulb className="w-4 h-4 mr-1" />
               Show Hint
@@ -233,13 +233,13 @@ export function FlashcardGame({ flashcards, title, xpReward = 50, onComplete }: 
 
       {/* Actions */}
       <div className="flex items-center justify-center gap-3">
-        <Button variant="outline" size="icon" onClick={handlePrevious}>
+        <Button variant="outline" size="icon" onClick={handlePrevious} className="dark:border-gray-600 dark:text-gray-300">
           <ChevronLeft className="w-5 h-5" />
         </Button>
 
         <Button
           variant="outline"
-          className="text-orange-600 border-orange-200 hover:bg-orange-50"
+          className="text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/30"
           onClick={handleReviewAgain}
           disabled={deck.length <= 1}
         >
@@ -253,7 +253,7 @@ export function FlashcardGame({ flashcards, title, xpReward = 50, onComplete }: 
           Got it!
         </Button>
 
-        <Button variant="outline" size="icon" onClick={handleNext}>
+        <Button variant="outline" size="icon" onClick={handleNext} className="dark:border-gray-600 dark:text-gray-300">
           <ChevronRight className="w-5 h-5" />
         </Button>
       </div>

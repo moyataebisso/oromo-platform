@@ -202,32 +202,32 @@ export function MatchingGame({
                 'w-12 h-12 transition-all',
                 n <= stars
                   ? 'text-amber-400 fill-amber-400 scale-110'
-                  : 'text-slate-300'
+                  : 'text-slate-300 dark:text-gray-600'
               )}
             />
           ))}
         </div>
 
-        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6">
-          <Trophy className="w-10 h-10 text-green-600" />
+        <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-6">
+          <Trophy className="w-10 h-10 text-green-600 dark:text-green-400" />
         </div>
 
-        <h2 className="text-2xl font-bold text-slate-900 mb-2">
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
           {stars === 3 ? 'Perfect!' : stars === 2 ? 'Great Job!' : 'Good Try!'}
         </h2>
 
-        <p className="text-slate-600 mb-4">
+        <p className="text-slate-600 dark:text-gray-400 mb-4">
           Score: {score}% | Time: {formatTime(timeTaken)} | Mistakes: {mistakes}
         </p>
 
-        <div className="bg-amber-50 border border-amber-200 rounded-lg px-6 py-3 mb-6">
-          <p className="text-amber-700 font-semibold text-lg flex items-center gap-2">
+        <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 rounded-lg px-6 py-3 mb-6">
+          <p className="text-amber-700 dark:text-amber-400 font-semibold text-lg flex items-center gap-2">
             <Sparkles className="w-5 h-5" />
             +{xpEarned} XP earned
           </p>
         </div>
 
-        <Button onClick={handlePlayAgain}>
+        <Button onClick={handlePlayAgain} className="bg-green-600 hover:bg-green-700">
           <RotateCcw className="w-4 h-4 mr-2" />
           Play Again
         </Button>
@@ -240,8 +240,8 @@ export function MatchingGame({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="font-semibold text-slate-900">{title}</h3>
-          <p className="text-sm text-slate-500">
+          <h3 className="font-semibold text-slate-900 dark:text-white">{title}</h3>
+          <p className="text-sm text-slate-500 dark:text-gray-400">
             Matched: {matchedPairs.length} / {pairs.length}
           </p>
         </div>
@@ -249,7 +249,7 @@ export function MatchingGame({
           <div
             className={cn(
               'flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium',
-              timeRemaining < 30 ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-700'
+              timeRemaining < 30 ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' : 'bg-slate-100 dark:bg-gray-700 text-slate-700 dark:text-gray-300'
             )}
           >
             <Clock className="w-4 h-4" />
@@ -259,7 +259,7 @@ export function MatchingGame({
       </div>
 
       {/* Progress bar */}
-      <div className="w-full bg-slate-200 rounded-full h-2">
+      <div className="w-full bg-slate-200 dark:bg-gray-700 rounded-full h-2">
         <div
           className="bg-green-500 h-2 rounded-full transition-all duration-300"
           style={{ width: `${(matchedPairs.length / pairs.length) * 100}%` }}
@@ -270,7 +270,7 @@ export function MatchingGame({
       <div className="grid grid-cols-2 gap-4 md:gap-8">
         {/* Left column - Terms */}
         <div className="space-y-3">
-          <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">
+          <p className="text-xs font-medium text-slate-500 dark:text-gray-400 uppercase tracking-wider mb-2">
             Terms
           </p>
           {leftItems.map((item) => {
@@ -283,13 +283,13 @@ export function MatchingGame({
                 onClick={() => handleSelectLeft(item.id)}
                 className={cn(
                   'p-4 cursor-pointer transition-all duration-200 border-2',
-                  item.isMatched && 'opacity-50 bg-green-50 border-green-300 cursor-default',
-                  !item.isMatched && isSelected && 'border-blue-500 bg-blue-50 ring-2 ring-blue-200',
-                  !item.isMatched && !isSelected && !isWrong && 'border-blue-100 bg-blue-50/50 hover:border-blue-300',
-                  isWrong && 'border-red-500 bg-red-50 animate-shake'
+                  item.isMatched && 'opacity-50 bg-green-50 dark:bg-green-900/30 border-green-300 dark:border-green-700 cursor-default',
+                  !item.isMatched && isSelected && 'border-green-500 bg-green-50 dark:bg-green-900/30 ring-2 ring-green-200 dark:ring-green-700',
+                  !item.isMatched && !isSelected && !isWrong && 'border-green-100 dark:border-green-800 bg-green-50/50 dark:bg-green-900/20 hover:border-green-300 dark:hover:border-green-600',
+                  isWrong && 'border-red-500 bg-red-50 dark:bg-red-900/30 animate-shake'
                 )}
               >
-                <p className="text-sm font-medium text-slate-900">{item.text}</p>
+                <p className="text-sm font-medium text-slate-900 dark:text-white">{item.text}</p>
               </Card>
             )
           })}
@@ -297,7 +297,7 @@ export function MatchingGame({
 
         {/* Right column - Definitions */}
         <div className="space-y-3">
-          <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">
+          <p className="text-xs font-medium text-slate-500 dark:text-gray-400 uppercase tracking-wider mb-2">
             Definitions
           </p>
           {rightItems.map((item) => {
@@ -310,13 +310,13 @@ export function MatchingGame({
                 onClick={() => handleSelectRight(item.id)}
                 className={cn(
                   'p-4 cursor-pointer transition-all duration-200 border-2',
-                  item.isMatched && 'opacity-50 bg-green-50 border-green-300 cursor-default',
-                  !item.isMatched && isSelected && 'border-purple-500 bg-purple-50 ring-2 ring-purple-200',
-                  !item.isMatched && !isSelected && !isWrong && 'border-purple-100 bg-purple-50/50 hover:border-purple-300',
-                  isWrong && 'border-red-500 bg-red-50 animate-shake'
+                  item.isMatched && 'opacity-50 bg-green-50 dark:bg-green-900/30 border-green-300 dark:border-green-700 cursor-default',
+                  !item.isMatched && isSelected && 'border-amber-500 bg-amber-50 dark:bg-amber-900/30 ring-2 ring-amber-200 dark:ring-amber-700',
+                  !item.isMatched && !isSelected && !isWrong && 'border-amber-100 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/20 hover:border-amber-300 dark:hover:border-amber-600',
+                  isWrong && 'border-red-500 bg-red-50 dark:bg-red-900/30 animate-shake'
                 )}
               >
-                <p className="text-sm text-slate-700">{item.text}</p>
+                <p className="text-sm text-slate-700 dark:text-gray-300">{item.text}</p>
               </Card>
             )
           })}
@@ -324,7 +324,7 @@ export function MatchingGame({
       </div>
 
       {/* Instructions */}
-      <p className="text-center text-sm text-slate-500">
+      <p className="text-center text-sm text-slate-500 dark:text-gray-400">
         Click a term on the left, then click its matching definition on the right
       </p>
     </div>

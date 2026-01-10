@@ -144,29 +144,29 @@ export function QuizGame({
         <div
           className={cn(
             'w-24 h-24 rounded-full flex items-center justify-center mb-6',
-            passed ? 'bg-green-100' : 'bg-amber-100'
+            passed ? 'bg-green-100 dark:bg-green-900/30' : 'bg-amber-100 dark:bg-amber-900/30'
           )}
         >
           {passed ? (
-            <Trophy className="w-12 h-12 text-green-600" />
+            <Trophy className="w-12 h-12 text-green-600 dark:text-green-400" />
           ) : (
-            <RotateCcw className="w-12 h-12 text-amber-600" />
+            <RotateCcw className="w-12 h-12 text-amber-600 dark:text-amber-400" />
           )}
         </div>
 
-        <h2 className="text-2xl font-bold text-slate-900 mb-2">
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
           {passed ? 'Congratulations!' : 'Keep Practicing!'}
         </h2>
 
-        <p className="text-slate-600 mb-4">
+        <p className="text-slate-600 dark:text-gray-400 mb-4">
           You scored {correctCount} out of {totalQuestions} ({score}%)
         </p>
 
         <div className="text-lg font-semibold mb-6">
           {passed ? (
-            <span className="text-green-600">You passed!</span>
+            <span className="text-green-600 dark:text-green-400">You passed!</span>
           ) : (
-            <span className="text-amber-600">
+            <span className="text-amber-600 dark:text-amber-400">
               You need {passingScore}% to pass. Try again!
             </span>
           )}
@@ -175,20 +175,20 @@ export function QuizGame({
         <div
           className={cn(
             'border rounded-lg px-6 py-3 mb-6',
-            passed ? 'bg-amber-50 border-amber-200' : 'bg-slate-50 border-slate-200'
+            passed ? 'bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-700' : 'bg-slate-50 dark:bg-gray-700 border-slate-200 dark:border-gray-600'
           )}
         >
-          <p className={cn('font-semibold text-lg', passed ? 'text-amber-700' : 'text-slate-600')}>
+          <p className={cn('font-semibold text-lg', passed ? 'text-amber-700 dark:text-amber-400' : 'text-slate-600 dark:text-gray-300')}>
             +{passed ? xpReward : Math.round(xpReward * 0.25)} XP earned
           </p>
         </div>
 
         <div className="flex gap-3">
-          <Button variant="outline" onClick={() => setShowReview(true)}>
+          <Button variant="outline" onClick={() => setShowReview(true)} className="dark:border-gray-600 dark:text-gray-300">
             <Eye className="w-4 h-4 mr-2" />
             Review Answers
           </Button>
-          <Button onClick={handleRetake}>
+          <Button onClick={handleRetake} className="bg-green-600 hover:bg-green-700">
             <RotateCcw className="w-4 h-4 mr-2" />
             Retake Quiz
           </Button>
@@ -202,8 +202,8 @@ export function QuizGame({
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-slate-900">Review Answers</h3>
-          <Button variant="outline" size="sm" onClick={() => setShowReview(false)}>
+          <h3 className="font-semibold text-slate-900 dark:text-white">Review Answers</h3>
+          <Button variant="outline" size="sm" onClick={() => setShowReview(false)} className="dark:border-gray-600 dark:text-gray-300">
             Back to Results
           </Button>
         </div>
@@ -212,20 +212,20 @@ export function QuizGame({
           {questions.map((q, i) => {
             const answer = answers.find((a) => a.questionId === q.id)
             return (
-              <Card key={q.id} className={cn(answer?.isCorrect ? 'border-green-200' : 'border-red-200')}>
+              <Card key={q.id} className={cn(answer?.isCorrect ? 'border-green-200 dark:border-green-700' : 'border-red-200 dark:border-red-700', 'dark:bg-gray-800')}>
                 <CardContent className="p-4">
-                  <p className="text-sm text-slate-500 mb-1">Question {i + 1}</p>
-                  <p className="font-medium text-slate-900 mb-3">{q.question_text}</p>
+                  <p className="text-sm text-slate-500 dark:text-gray-400 mb-1">Question {i + 1}</p>
+                  <p className="font-medium text-slate-900 dark:text-white mb-3">{q.question_text}</p>
 
                   <div className="space-y-2 text-sm">
-                    <p className={cn(answer?.isCorrect ? 'text-green-600' : 'text-red-600')}>
+                    <p className={cn(answer?.isCorrect ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400')}>
                       Your answer: {answer?.answer || 'No answer'}
                     </p>
                     {!answer?.isCorrect && (
-                      <p className="text-green-600">Correct answer: {q.correct_answer}</p>
+                      <p className="text-green-600 dark:text-green-400">Correct answer: {q.correct_answer}</p>
                     )}
                     {q.explanation && (
-                      <p className="text-slate-600 bg-slate-50 p-2 rounded mt-2">
+                      <p className="text-slate-600 dark:text-gray-300 bg-slate-50 dark:bg-gray-700 p-2 rounded mt-2">
                         {q.explanation}
                       </p>
                     )}
@@ -237,7 +237,7 @@ export function QuizGame({
         </div>
 
         <div className="flex justify-center">
-          <Button onClick={handleRetake}>
+          <Button onClick={handleRetake} className="bg-green-600 hover:bg-green-700">
             <RotateCcw className="w-4 h-4 mr-2" />
             Retake Quiz
           </Button>
@@ -252,8 +252,8 @@ export function QuizGame({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="font-semibold text-slate-900">{title}</h3>
-          <p className="text-sm text-slate-500">
+          <h3 className="font-semibold text-slate-900 dark:text-white">{title}</h3>
+          <p className="text-sm text-slate-500 dark:text-gray-400">
             Question {currentIndex + 1} of {totalQuestions}
           </p>
         </div>
@@ -261,7 +261,7 @@ export function QuizGame({
           <div
             className={cn(
               'flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium',
-              timeRemaining < 60 ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-700'
+              timeRemaining < 60 ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' : 'bg-slate-100 dark:bg-gray-700 text-slate-700 dark:text-gray-300'
             )}
           >
             <Clock className="w-4 h-4" />
@@ -271,17 +271,17 @@ export function QuizGame({
       </div>
 
       {/* Progress bar */}
-      <div className="w-full bg-slate-200 rounded-full h-2">
+      <div className="w-full bg-slate-200 dark:bg-gray-700 rounded-full h-2">
         <div
-          className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+          className="bg-green-600 h-2 rounded-full transition-all duration-300"
           style={{ width: `${((currentIndex + 1) / totalQuestions) * 100}%` }}
         />
       </div>
 
       {/* Question */}
-      <Card>
+      <Card className="dark:bg-gray-800 dark:border-gray-700">
         <CardContent className="p-6">
-          <p className="text-lg font-medium text-slate-900 mb-6">
+          <p className="text-lg font-medium text-slate-900 dark:text-white mb-6">
             {currentQuestion.question_text}
           </p>
 
@@ -302,17 +302,17 @@ export function QuizGame({
                     disabled={showResult}
                     className={cn(
                       'w-full flex items-center gap-3 p-4 rounded-lg border-2 text-left transition-all',
-                      !showResult && isSelected && 'border-blue-500 bg-blue-50',
-                      !showResult && !isSelected && 'border-slate-200 hover:border-slate-300',
-                      showCorrect && 'border-green-500 bg-green-50',
-                      showWrong && 'border-red-500 bg-red-50'
+                      !showResult && isSelected && 'border-green-500 bg-green-50 dark:bg-green-900/30',
+                      !showResult && !isSelected && 'border-slate-200 dark:border-gray-600 hover:border-slate-300 dark:hover:border-gray-500 dark:bg-gray-700/50',
+                      showCorrect && 'border-green-500 bg-green-50 dark:bg-green-900/30',
+                      showWrong && 'border-red-500 bg-red-50 dark:bg-red-900/30'
                     )}
                   >
                     <span
                       className={cn(
                         'w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm',
-                        !showResult && isSelected && 'bg-blue-500 text-white',
-                        !showResult && !isSelected && 'bg-slate-100 text-slate-600',
+                        !showResult && isSelected && 'bg-green-500 text-white',
+                        !showResult && !isSelected && 'bg-slate-100 dark:bg-gray-600 text-slate-600 dark:text-gray-300',
                         showCorrect && 'bg-green-500 text-white',
                         showWrong && 'bg-red-500 text-white'
                       )}
@@ -325,7 +325,7 @@ export function QuizGame({
                         letter
                       )}
                     </span>
-                    <span className="flex-1 text-slate-900">{option}</span>
+                    <span className="flex-1 text-slate-900 dark:text-white">{option}</span>
                   </button>
                 )
               })}
@@ -348,10 +348,10 @@ export function QuizGame({
                     disabled={showResult}
                     className={cn(
                       'p-6 rounded-lg border-2 font-semibold text-lg transition-all',
-                      !showResult && isSelected && 'border-blue-500 bg-blue-50 text-blue-700',
-                      !showResult && !isSelected && 'border-slate-200 hover:border-slate-300 text-slate-700',
-                      showCorrect && 'border-green-500 bg-green-50 text-green-700',
-                      showWrong && 'border-red-500 bg-red-50 text-red-700'
+                      !showResult && isSelected && 'border-green-500 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400',
+                      !showResult && !isSelected && 'border-slate-200 dark:border-gray-600 hover:border-slate-300 dark:hover:border-gray-500 text-slate-700 dark:text-gray-300 dark:bg-gray-700/50',
+                      showCorrect && 'border-green-500 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400',
+                      showWrong && 'border-red-500 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400'
                     )}
                   >
                     {option}
@@ -370,21 +370,21 @@ export function QuizGame({
                 placeholder="Type your answer..."
                 disabled={showResult}
                 className={cn(
-                  'text-lg p-4',
+                  'text-lg p-4 dark:bg-gray-700 dark:border-gray-600 dark:text-white',
                   showResult &&
                     fillBlankAnswer.toLowerCase().trim() ===
                       currentQuestion.correct_answer.toLowerCase().trim() &&
-                    'border-green-500 bg-green-50',
+                    'border-green-500 bg-green-50 dark:bg-green-900/30',
                   showResult &&
                     fillBlankAnswer.toLowerCase().trim() !==
                       currentQuestion.correct_answer.toLowerCase().trim() &&
-                    'border-red-500 bg-red-50'
+                    'border-red-500 bg-red-50 dark:bg-red-900/30'
                 )}
               />
               {showResult &&
                 fillBlankAnswer.toLowerCase().trim() !==
                   currentQuestion.correct_answer.toLowerCase().trim() && (
-                  <p className="text-green-600 text-sm">
+                  <p className="text-green-600 dark:text-green-400 text-sm">
                     Correct answer: {currentQuestion.correct_answer}
                   </p>
                 )}
@@ -393,8 +393,8 @@ export function QuizGame({
 
           {/* Explanation */}
           {showResult && currentQuestion.explanation && (
-            <div className="mt-4 p-4 bg-slate-50 rounded-lg">
-              <p className="text-sm text-slate-600">{currentQuestion.explanation}</p>
+            <div className="mt-4 p-4 bg-slate-50 dark:bg-gray-700 rounded-lg">
+              <p className="text-sm text-slate-600 dark:text-gray-300">{currentQuestion.explanation}</p>
             </div>
           )}
         </CardContent>
@@ -410,11 +410,12 @@ export function QuizGame({
                 ? !fillBlankAnswer.trim()
                 : !selectedAnswer
             }
+            className="bg-green-600 hover:bg-green-700"
           >
             Submit Answer
           </Button>
         ) : (
-          <Button onClick={handleNextQuestion}>
+          <Button onClick={handleNextQuestion} className="bg-green-600 hover:bg-green-700">
             {currentIndex < totalQuestions - 1 ? (
               <>
                 Next Question

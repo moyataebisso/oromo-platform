@@ -10,16 +10,11 @@ import {
   ChevronLeft,
   ChevronRight,
   CheckCircle2,
-  PlayCircle,
-  Layers,
-  FileQuestion,
-  Gamepad2,
+  ArrowLeft,
+  Star,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Skeleton } from '@/components/ui/skeleton'
-import { LessonSidebar } from '@/components/teens/LessonSidebar'
 import { FlashcardGame } from '@/components/teens/FlashcardGame'
 import { QuizGame } from '@/components/teens/QuizGame'
 import { MatchingGame } from '@/components/teens/MatchingGame'
@@ -51,18 +46,31 @@ interface LessonNav {
   duration_minutes: number | null
 }
 
+interface Flashcard {
+  id: string
+  front_text: string
+  back_text: string
+  hint: string | null
+  order_index: number
+}
+
 interface FlashcardSet {
   id: string
   title: string
   description: string | null
   xp_reward: number
-  teen_flashcards: {
-    id: string
-    front_text: string
-    back_text: string
-    hint: string | null
-    order_index: number
-  }[]
+  cards: Flashcard[]
+}
+
+interface QuizQuestion {
+  id: string
+  question_text: string
+  question_type: string
+  options: string | null
+  correct_answer: string
+  explanation: string | null
+  points: number
+  order_index: number
 }
 
 interface Quiz {
@@ -72,16 +80,14 @@ interface Quiz {
   time_limit_minutes: number | null
   passing_score: number
   xp_reward: number
-  teen_quiz_questions: {
-    id: string
-    question_text: string
-    question_type: 'multiple_choice' | 'true_false' | 'fill_blank'
-    options: string[] | null
-    correct_answer: string
-    explanation: string | null
-    points: number
-    order_index: number
-  }[]
+  questions: QuizQuestion[]
+}
+
+interface MatchingPair {
+  id: string
+  left_text: string
+  right_text: string
+  order_index: number
 }
 
 interface MatchingGameData {
@@ -90,12 +96,7 @@ interface MatchingGameData {
   description: string | null
   time_limit_seconds: number | null
   xp_reward: number
-  teen_matching_pairs: {
-    id: string
-    left_text: string
-    right_text: string
-    order_index: number
-  }[]
+  pairs: MatchingPair[]
 }
 
 export default function LessonPage() {
@@ -107,14 +108,13 @@ export default function LessonPage() {
   const [course, setCourse] = useState<Course | null>(null)
   const [lesson, setLesson] = useState<Lesson | null>(null)
   const [allLessons, setAllLessons] = useState<LessonNav[]>([])
-  const [completedLessons, setCompletedLessons] = useState<string[]>([])
   const [flashcardSets, setFlashcardSets] = useState<FlashcardSet[]>([])
   const [quizzes, setQuizzes] = useState<Quiz[]>([])
   const [matchingGames, setMatchingGames] = useState<MatchingGameData[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isCompleted, setIsCompleted] = useState(false)
-  const [activeTab, setActiveTab] = useState('content')
+  const [activeTab, setActiveTab] = useState<'learn' | 'flashcards' | 'quiz' | 'match'>('learn')
   const supabase = createClient()
 
   useEffect(() => {
@@ -130,9 +130,10 @@ export default function LessonPage() {
           .eq('slug', courseSlug)
           .single()
 
-        if (courseError) throw courseError
-        if (!courseData) {
+        if (courseError) {
+          console.error('Course error:', courseError)
           setError('Course not found')
+          setIsLoading(false)
           return
         }
 
@@ -146,9 +147,10 @@ export default function LessonPage() {
           .eq('slug', lessonSlug)
           .single()
 
-        if (lessonError) throw lessonError
-        if (!lessonData) {
+        if (lessonError) {
+          console.error('Lesson error:', lessonError)
           setError('Lesson not found')
+          setIsLoading(false)
           return
         }
 
@@ -163,51 +165,81 @@ export default function LessonPage() {
 
         setAllLessons((allLessonsData || []) as LessonNav[])
 
-        // Fetch user progress
-        const {
-          data: { session },
-        } = await supabase.auth.getSession()
+        // Fetch flashcard sets for this lesson
+        const { data: flashcardSetsData } = await sb
+          .from('teen_flashcard_sets')
+          .select('id, title, description, xp_reward')
+          .eq('lesson_id', lessonData.id)
 
+        if (flashcardSetsData && flashcardSetsData.length > 0) {
+          const setsWithCards = await Promise.all(
+            flashcardSetsData.map(async (set: any) => {
+              const { data: cardsData } = await sb
+                .from('teen_flashcards')
+                .select('id, front_text, back_text, hint, order_index')
+                .eq('flashcard_set_id', set.id)
+                .order('order_index')
+              return { ...set, cards: cardsData || [] }
+            })
+          )
+          setFlashcardSets(setsWithCards as FlashcardSet[])
+        }
+
+        // Fetch quizzes for this lesson
+        const { data: quizzesData } = await sb
+          .from('teen_quizzes')
+          .select('id, title, description, time_limit_minutes, passing_score, xp_reward')
+          .eq('lesson_id', lessonData.id)
+
+        if (quizzesData && quizzesData.length > 0) {
+          const quizzesWithQuestions = await Promise.all(
+            quizzesData.map(async (quiz: any) => {
+              const { data: questionsData } = await sb
+                .from('teen_quiz_questions')
+                .select('id, question_text, question_type, options, correct_answer, explanation, points, order_index')
+                .eq('quiz_id', quiz.id)
+                .order('order_index')
+              return { ...quiz, questions: questionsData || [] }
+            })
+          )
+          setQuizzes(quizzesWithQuestions as Quiz[])
+        }
+
+        // Fetch matching games for this lesson
+        const { data: matchingData } = await sb
+          .from('teen_matching_games')
+          .select('id, title, description, time_limit_seconds, xp_reward')
+          .eq('lesson_id', lessonData.id)
+
+        if (matchingData && matchingData.length > 0) {
+          const gamesWithPairs = await Promise.all(
+            matchingData.map(async (game: any) => {
+              const { data: pairsData } = await sb
+                .from('teen_matching_pairs')
+                .select('id, left_text, right_text, order_index')
+                .eq('game_id', game.id)
+                .order('order_index')
+              return { ...game, pairs: pairsData || [] }
+            })
+          )
+          setMatchingGames(gamesWithPairs as MatchingGameData[])
+        }
+
+        // Check user progress
+        const { data: { session } } = await supabase.auth.getSession()
         if (session?.user) {
           const { data: progressData } = await sb
             .from('teen_progress')
-            .select('lesson_id, completed')
+            .select('completed')
             .eq('user_id', session.user.id)
-            .eq('course_id', courseData.id)
+            .eq('lesson_id', lessonData.id)
             .eq('activity_type', 'lesson')
+            .single()
 
-          if (progressData) {
-            const completed = (progressData as { lesson_id: string | null; completed: boolean }[])
-              .filter((p) => p.completed)
-              .map((p) => p.lesson_id)
-            setCompletedLessons(completed.filter(Boolean) as string[])
-            setIsCompleted(progressData.some((p: { lesson_id: string | null; completed: boolean }) => p.lesson_id === lessonData.id && p.completed))
+          if (progressData?.completed) {
+            setIsCompleted(true)
           }
         }
-
-        // Fetch flashcard sets
-        const { data: flashcardsData } = await sb
-          .from('teen_flashcard_sets')
-          .select('*, teen_flashcards(*)')
-          .eq('lesson_id', lessonData.id)
-
-        setFlashcardSets((flashcardsData || []) as FlashcardSet[])
-
-        // Fetch quizzes
-        const { data: quizzesData } = await sb
-          .from('teen_quizzes')
-          .select('*, teen_quiz_questions(*)')
-          .eq('lesson_id', lessonData.id)
-
-        setQuizzes((quizzesData || []) as Quiz[])
-
-        // Fetch matching games
-        const { data: matchingData } = await sb
-          .from('teen_matching_games')
-          .select('*, teen_matching_pairs(*)')
-          .eq('lesson_id', lessonData.id)
-
-        setMatchingGames((matchingData || []) as MatchingGameData[])
       } catch (err) {
         console.error('Error fetching lesson:', err)
         setError('Failed to load lesson')
@@ -222,9 +254,7 @@ export default function LessonPage() {
   }, [courseSlug, lessonSlug, supabase])
 
   const handleMarkComplete = async () => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
+    const { data: { session } } = await supabase.auth.getSession()
 
     if (!session?.user || !course || !lesson) {
       router.push(`/login?redirect=/teens/courses/${courseSlug}/lessons/${lessonSlug}`)
@@ -235,7 +265,6 @@ export default function LessonPage() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const sb = supabase as any
 
-      // Upsert progress
       await sb.from('teen_progress').upsert(
         {
           user_id: session.user.id,
@@ -250,13 +279,16 @@ export default function LessonPage() {
       )
 
       setIsCompleted(true)
-      setCompletedLessons((prev) => [...prev, lesson.id])
 
-      // Update teen profile points
-      await sb.rpc('increment_teen_points', {
-        p_user_id: session.user.id,
-        p_points: lesson.xp_reward,
-      })
+      // Try to increment XP
+      try {
+        await sb.rpc('increment_teen_points', {
+          p_user_id: session.user.id,
+          p_points: lesson.xp_reward,
+        })
+      } catch (xpError) {
+        console.log('XP increment not available:', xpError)
+      }
     } catch (err) {
       console.error('Error marking complete:', err)
     }
@@ -268,22 +300,17 @@ export default function LessonPage() {
   const nextLesson = currentIndex < allLessons.length - 1 ? allLessons[currentIndex + 1] : null
 
   // Count activities
-  const hasFlashcards = flashcardSets.some((s) => s.teen_flashcards.length > 0)
-  const hasQuizzes = quizzes.some((q) => q.teen_quiz_questions.length > 0)
-  const hasMatching = matchingGames.some((g) => g.teen_matching_pairs.length > 0)
+  const hasFlashcards = flashcardSets.some((s) => s.cards.length > 0)
+  const hasQuizzes = quizzes.some((q) => q.questions.length > 0)
+  const hasMatching = matchingGames.some((g) => g.pairs.length > 0)
 
   // Loading state
   if (isLoading) {
     return (
-      <div className="flex min-h-screen">
-        <div className="hidden lg:block w-72 border-r">
-          <Skeleton className="h-full" />
-        </div>
-        <div className="flex-1 p-8">
-          <Skeleton className="h-8 w-48 mb-4" />
-          <Skeleton className="h-4 w-96 mb-8" />
-          <Skeleton className="h-64 w-full mb-8" />
-          <Skeleton className="h-32 w-full" />
+      <div className="min-h-screen bg-slate-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500 mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading lesson...</p>
         </div>
       </div>
     )
@@ -292,245 +319,269 @@ export default function LessonPage() {
   // Error state
   if (error || !course || !lesson) {
     return (
-      <div className="py-16 px-4 text-center">
-        <BookOpen className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-        <h1 className="text-2xl font-bold text-slate-900 mb-2">Lesson Not Found</h1>
-        <p className="text-slate-600 mb-6">{error || 'This lesson does not exist.'}</p>
-        <Button asChild>
-          <Link href="/teens/courses">Browse Courses</Link>
-        </Button>
+      <div className="min-h-screen bg-slate-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Lesson Not Found</h1>
+          <p className="text-gray-500 dark:text-gray-400 mb-6">{error || 'This lesson does not exist.'}</p>
+          <Button asChild className="bg-green-600 hover:bg-green-700">
+            <Link href="/teens/courses">Browse Courses</Link>
+          </Button>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
-      {/* Sidebar */}
-      <LessonSidebar
-        courseTitle={course.title}
-        courseSlug={course.slug}
-        lessons={allLessons}
-        currentLessonSlug={lessonSlug}
-        completedLessons={completedLessons}
-        className="hidden lg:block"
-      />
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-900">
+      {/* Header */}
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <Link
+            href={`/teens/courses/${course.slug}`}
+            className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to {course.title}
+          </Link>
+          <div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-400">
+            <Star className="w-4 h-4 fill-current" />
+            <span className="text-sm font-medium">+{lesson.xp_reward} XP</span>
+          </div>
+        </div>
+      </div>
 
-      {/* Main content */}
-      <main className="flex-1 lg:ml-0">
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          {/* Breadcrumb */}
-          <div className="flex items-center gap-2 text-sm text-slate-500 mb-6">
-            <Link href="/teens/courses" className="hover:text-slate-700">
-              Courses
-            </Link>
-            <ChevronRight className="w-4 h-4" />
-            <Link href={`/teens/courses/${course.slug}`} className="hover:text-slate-700">
-              {course.title}
-            </Link>
-            <ChevronRight className="w-4 h-4" />
-            <span className="text-slate-900">Lesson {currentIndex + 1}</span>
+      <div className="max-w-6xl mx-auto flex">
+        {/* Sidebar - Lesson List */}
+        <div className="hidden lg:block w-64 border-r border-gray-200 dark:border-gray-700 min-h-screen p-4 bg-white dark:bg-gray-800">
+          <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-4">Course Content</h3>
+          <div className="space-y-1">
+            {allLessons.map((l, index) => (
+              <Link
+                key={l.id}
+                href={`/teens/courses/${course.slug}/lessons/${l.slug}`}
+                className={cn(
+                  'flex items-center gap-3 p-2 rounded-lg transition-colors',
+                  l.id === lesson.id
+                    ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
+                )}
+              >
+                <span className={cn(
+                  'w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium',
+                  l.id === lesson.id
+                    ? 'bg-green-600 text-white'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                )}>
+                  {index + 1}
+                </span>
+                <span className="text-sm truncate">{l.title}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 p-6">
+          {/* Activity Tabs */}
+          <div className="flex gap-2 mb-6 border-b border-gray-200 dark:border-gray-700 pb-4 overflow-x-auto">
+            <button
+              onClick={() => setActiveTab('learn')}
+              className={cn(
+                'px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap',
+                activeTab === 'learn'
+                  ? 'bg-green-600 text-white'
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
+              )}
+            >
+              Learn
+            </button>
+            {hasFlashcards && (
+              <button
+                onClick={() => setActiveTab('flashcards')}
+                className={cn(
+                  'px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap',
+                  activeTab === 'flashcards'
+                    ? 'bg-green-600 text-white'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
+                )}
+              >
+                Flashcards ({flashcardSets.reduce((acc, s) => acc + s.cards.length, 0)})
+              </button>
+            )}
+            {hasQuizzes && (
+              <button
+                onClick={() => setActiveTab('quiz')}
+                className={cn(
+                  'px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap',
+                  activeTab === 'quiz'
+                    ? 'bg-green-600 text-white'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
+                )}
+              >
+                Quiz ({quizzes.reduce((acc, q) => acc + q.questions.length, 0)})
+              </button>
+            )}
+            {hasMatching && (
+              <button
+                onClick={() => setActiveTab('match')}
+                className={cn(
+                  'px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap',
+                  activeTab === 'match'
+                    ? 'bg-green-600 text-white'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
+                )}
+              >
+                Match ({matchingGames.reduce((acc, g) => acc + g.pairs.length, 0)})
+              </button>
+            )}
           </div>
 
-          {/* Lesson header */}
-          <div className="mb-8">
-            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-3">
-              {lesson.title}
-            </h1>
-
-            <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500">
-              {lesson.duration_minutes && (
-                <span className="flex items-center gap-1">
-                  <Clock className="w-4 h-4" />
-                  {lesson.duration_minutes} min
-                </span>
-              )}
-              <span className="flex items-center gap-1 text-amber-600">
-                <Trophy className="w-4 h-4" />
-                {lesson.xp_reward} XP
-              </span>
-              {isCompleted && (
-                <span className="flex items-center gap-1 text-green-600">
-                  <CheckCircle2 className="w-4 h-4" />
-                  Completed
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Video player */}
-          {lesson.video_url && (
-            <div className="mb-8">
-              <div className="aspect-video bg-slate-900 rounded-xl overflow-hidden">
-                <iframe
-                  src={lesson.video_url}
-                  className="w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
+          {/* Content based on active tab */}
+          {activeTab === 'learn' && (
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-2">{lesson.title}</h1>
+              <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-6">
+                {lesson.duration_minutes && (
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-4 h-4" />
+                    {lesson.duration_minutes} min
+                  </span>
+                )}
+                {isCompleted && (
+                  <span className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                    <CheckCircle2 className="w-4 h-4" />
+                    Completed
+                  </span>
+                )}
               </div>
+
+              {/* Video player */}
+              {lesson.video_url && (
+                <div className="mb-8">
+                  <div className="aspect-video bg-gray-900 rounded-xl overflow-hidden">
+                    <iframe
+                      src={lesson.video_url}
+                      className="w-full h-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Lesson content */}
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
+                {lesson.content ? (
+                  <div
+                    className="prose prose-slate dark:prose-invert max-w-none"
+                    dangerouslySetInnerHTML={{ __html: lesson.content }}
+                  />
+                ) : (
+                  <p className="text-gray-500 dark:text-gray-400 text-center py-8">
+                    No content available for this lesson yet.
+                  </p>
+                )}
+              </div>
+
+              {/* Mark complete button */}
+              {!isCompleted && (
+                <div className="mt-6">
+                  <Button
+                    size="lg"
+                    className="w-full bg-green-600 hover:bg-green-700"
+                    onClick={handleMarkComplete}
+                  >
+                    <CheckCircle2 className="w-5 h-5 mr-2" />
+                    Mark as Complete (+{lesson.xp_reward} XP)
+                  </Button>
+                </div>
+              )}
             </div>
           )}
 
-          {/* Tabs for content and activities */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-            <TabsList className="w-full justify-start border-b rounded-none bg-transparent p-0 mb-6">
-              <TabsTrigger
-                value="content"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-transparent"
-              >
-                <BookOpen className="w-4 h-4 mr-2" />
-                Lesson
-              </TabsTrigger>
-              {hasFlashcards && (
-                <TabsTrigger
-                  value="flashcards"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-transparent"
-                >
-                  <Layers className="w-4 h-4 mr-2" />
-                  Flashcards
-                </TabsTrigger>
-              )}
-              {hasQuizzes && (
-                <TabsTrigger
-                  value="quiz"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-transparent"
-                >
-                  <FileQuestion className="w-4 h-4 mr-2" />
-                  Quiz
-                </TabsTrigger>
-              )}
-              {hasMatching && (
-                <TabsTrigger
-                  value="matching"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-transparent"
-                >
-                  <Gamepad2 className="w-4 h-4 mr-2" />
-                  Matching
-                </TabsTrigger>
-              )}
-            </TabsList>
+          {activeTab === 'flashcards' && hasFlashcards && (
+            <div className="space-y-8">
+              {flashcardSets.map((set) => (
+                <FlashcardGame
+                  key={set.id}
+                  title={set.title}
+                  flashcards={set.cards.sort((a, b) => a.order_index - b.order_index)}
+                  xpReward={set.xp_reward}
+                />
+              ))}
+            </div>
+          )}
 
-            {/* Lesson content */}
-            <TabsContent value="content" className="mt-0">
-              <Card>
-                <CardContent className="p-6">
-                  {lesson.content ? (
-                    <div
-                      className="prose prose-slate max-w-none"
-                      dangerouslySetInnerHTML={{ __html: lesson.content }}
-                    />
-                  ) : (
-                    <p className="text-slate-500 text-center py-8">
-                      No content available for this lesson yet.
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
+          {activeTab === 'quiz' && hasQuizzes && (
+            <div className="space-y-8">
+              {quizzes.map((quiz) => (
+                <QuizGame
+                  key={quiz.id}
+                  title={quiz.title}
+                  questions={quiz.questions.sort((a, b) => a.order_index - b.order_index).map(q => ({
+                    ...q,
+                    question_type: q.question_type as 'multiple_choice' | 'true_false' | 'fill_blank',
+                    options: q.options ? (typeof q.options === 'string' ? JSON.parse(q.options) : q.options) : null
+                  }))}
+                  timeLimit={quiz.time_limit_minutes || undefined}
+                  passingScore={quiz.passing_score}
+                  xpReward={quiz.xp_reward}
+                />
+              ))}
+            </div>
+          )}
 
-            {/* Flashcards */}
-            {hasFlashcards && (
-              <TabsContent value="flashcards" className="mt-0">
-                <Card>
-                  <CardContent className="p-6">
-                    {flashcardSets.map((set) => (
-                      <FlashcardGame
-                        key={set.id}
-                        title={set.title}
-                        flashcards={set.teen_flashcards.sort((a, b) => a.order_index - b.order_index)}
-                        xpReward={set.xp_reward}
-                      />
-                    ))}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            )}
-
-            {/* Quiz */}
-            {hasQuizzes && (
-              <TabsContent value="quiz" className="mt-0">
-                <Card>
-                  <CardContent className="p-6">
-                    {quizzes.map((quiz) => (
-                      <QuizGame
-                        key={quiz.id}
-                        title={quiz.title}
-                        questions={quiz.teen_quiz_questions.sort((a, b) => a.order_index - b.order_index)}
-                        timeLimit={quiz.time_limit_minutes || undefined}
-                        passingScore={quiz.passing_score}
-                        xpReward={quiz.xp_reward}
-                      />
-                    ))}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            )}
-
-            {/* Matching game */}
-            {hasMatching && (
-              <TabsContent value="matching" className="mt-0">
-                <Card>
-                  <CardContent className="p-6">
-                    {matchingGames.map((game) => (
-                      <MatchingGame
-                        key={game.id}
-                        title={game.title}
-                        pairs={game.teen_matching_pairs.sort((a, b) => a.order_index - b.order_index)}
-                        timeLimit={game.time_limit_seconds || undefined}
-                        xpReward={game.xp_reward}
-                      />
-                    ))}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            )}
-          </Tabs>
-
-          {/* Mark complete button */}
-          {!isCompleted && (
-            <div className="mb-8">
-              <Button
-                size="lg"
-                className="w-full bg-green-600 hover:bg-green-700"
-                onClick={handleMarkComplete}
-              >
-                <CheckCircle2 className="w-5 h-5 mr-2" />
-                Mark as Complete (+{lesson.xp_reward} XP)
-              </Button>
+          {activeTab === 'match' && hasMatching && (
+            <div className="space-y-8">
+              {matchingGames.map((game) => (
+                <MatchingGame
+                  key={game.id}
+                  title={game.title}
+                  pairs={game.pairs.sort((a, b) => a.order_index - b.order_index)}
+                  timeLimit={game.time_limit_seconds || undefined}
+                  xpReward={game.xp_reward}
+                />
+              ))}
             </div>
           )}
 
           {/* Navigation */}
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
             {prevLesson ? (
-              <Button variant="outline" asChild>
-                <Link href={`/teens/courses/${course.slug}/lessons/${prevLesson.slug}`}>
-                  <ChevronLeft className="w-4 h-4 mr-2" />
-                  Previous
-                </Link>
-              </Button>
+              <Link
+                href={`/teens/courses/${course.slug}/lessons/${prevLesson.slug}`}
+                className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+              >
+                <ChevronLeft className="w-5 h-5" />
+                <span className="hidden sm:inline">{prevLesson.title}</span>
+                <span className="sm:hidden">Previous</span>
+              </Link>
             ) : (
               <div />
             )}
 
             {nextLesson ? (
-              <Button asChild>
-                <Link href={`/teens/courses/${course.slug}/lessons/${nextLesson.slug}`}>
-                  Next Lesson
-                  <ChevronRight className="w-4 h-4 ml-2" />
-                </Link>
-              </Button>
+              <Link
+                href={`/teens/courses/${course.slug}/lessons/${nextLesson.slug}`}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+              >
+                <span className="hidden sm:inline">Next: {nextLesson.title}</span>
+                <span className="sm:hidden">Next</span>
+                <ChevronRight className="w-5 h-5" />
+              </Link>
             ) : (
-              <Button asChild>
-                <Link href={`/teens/courses/${course.slug}`}>
-                  Back to Course
-                  <ChevronRight className="w-4 h-4 ml-2" />
-                </Link>
-              </Button>
+              <Link
+                href={`/teens/courses/${course.slug}`}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+              >
+                <CheckCircle2 className="w-5 h-5" />
+                Complete Course
+              </Link>
             )}
           </div>
         </div>
-      </main>
+      </div>
     </div>
   )
 }
