@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Loader2 } from 'lucide-react'
+import { ArrowLeft, Loader2, Gift, Info } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 
@@ -26,6 +27,14 @@ const jobSchema = z.object({
   description: z.string().min(50, 'Description must be at least 50 characters'),
   requirements: z.string().optional(),
   benefits: z.string().optional(),
+  // Referral program fields
+  enable_referral: z.boolean().optional(),
+  referral_bonus_amount: z.string().optional(),
+  referral_bonus_currency: z.enum(['USD', 'EUR', 'ETB']).optional(),
+  referral_bonus_type: z.enum(['cash', 'odda_points', 'gift_card', 'other']).optional(),
+  referral_bonus_description: z.string().optional(),
+  referral_max_referrals: z.string().optional(),
+  referral_probation_days: z.string().optional(),
 })
 
 type JobFormData = z.infer<typeof jobSchema>
@@ -34,18 +43,28 @@ export default function PostJobPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [enableReferral, setEnableReferral] = useState(false)
 
   const {
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<JobFormData>({
     resolver: zodResolver(jobSchema),
     defaultValues: {
       job_type: 'full-time',
+      referral_bonus_currency: 'USD',
+      referral_bonus_type: 'cash',
+      referral_probation_days: '90',
     },
   })
+
+  const handleReferralToggle = (checked: boolean) => {
+    setEnableReferral(checked)
+    setValue('enable_referral', checked)
+  }
 
   const onSubmit = async (data: JobFormData) => {
     setIsLoading(true)
@@ -114,7 +133,7 @@ export default function PostJobPage() {
                   <Label htmlFor="company_name">Company Name *</Label>
                   <Input
                     id="company_name"
-                    placeholder="e.g. Oromo Tech Solutions"
+                    placeholder="e.g. ODDA Tech Solutions"
                     {...register('company_name')}
                     disabled={isLoading}
                   />
@@ -215,6 +234,133 @@ export default function PostJobPage() {
                     {...register('benefits')}
                     disabled={isLoading}
                   />
+                </div>
+
+                {/* Referral Program Section */}
+                <div className="border-t pt-6 mt-6">
+                  <div className="flex items-start gap-3 mb-6">
+                    <Checkbox
+                      id="enable_referral"
+                      checked={enableReferral}
+                      onCheckedChange={handleReferralToggle}
+                      disabled={isLoading}
+                    />
+                    <div className="grid gap-1.5 leading-none">
+                      <Label
+                        htmlFor="enable_referral"
+                        className="flex items-center gap-2 cursor-pointer"
+                      >
+                        <Gift className="w-4 h-4 text-primary" />
+                        Enable Referral Bonus
+                      </Label>
+                      <p className="text-sm text-muted-foreground">
+                        Offer a bonus to community members who refer successful candidates
+                      </p>
+                    </div>
+                  </div>
+
+                  {enableReferral && (
+                    <div className="space-y-4 p-4 bg-muted/30 rounded-lg border">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+                        <Info className="w-4 h-4" />
+                        <span>Referrals can help you find quality candidates faster</span>
+                      </div>
+
+                      {/* Bonus Amount & Currency */}
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="referral_bonus_amount">Bonus Amount *</Label>
+                          <Input
+                            id="referral_bonus_amount"
+                            type="number"
+                            placeholder="e.g. 1000"
+                            {...register('referral_bonus_amount')}
+                            disabled={isLoading}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Currency</Label>
+                          <Select
+                            defaultValue="USD"
+                            onValueChange={(value) => setValue('referral_bonus_currency', value as 'USD' | 'EUR' | 'ETB')}
+                            disabled={isLoading}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select currency" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="USD">USD ($)</SelectItem>
+                              <SelectItem value="EUR">EUR (€)</SelectItem>
+                              <SelectItem value="ETB">ETB (Ethiopian Birr)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      {/* Bonus Type */}
+                      <div className="space-y-2">
+                        <Label>Bonus Type</Label>
+                        <Select
+                          defaultValue="cash"
+                          onValueChange={(value) => setValue('referral_bonus_type', value as 'cash' | 'odda_points' | 'gift_card' | 'other')}
+                          disabled={isLoading}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select bonus type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="cash">Cash</SelectItem>
+                            <SelectItem value="odda_points">ODDA Points</SelectItem>
+                            <SelectItem value="gift_card">Gift Card</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Bonus Description */}
+                      <div className="space-y-2">
+                        <Label htmlFor="referral_bonus_description">Additional Bonus Details (Optional)</Label>
+                        <Textarea
+                          id="referral_bonus_description"
+                          placeholder="e.g. Plus company swag, or additional ODDA points"
+                          rows={2}
+                          {...register('referral_bonus_description')}
+                          disabled={isLoading}
+                        />
+                      </div>
+
+                      {/* Max Referrals & Probation Period */}
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="referral_max_referrals">
+                            Max Referrals
+                            <span className="text-muted-foreground font-normal ml-1">(blank = unlimited)</span>
+                          </Label>
+                          <Input
+                            id="referral_max_referrals"
+                            type="number"
+                            placeholder="Leave blank for unlimited"
+                            {...register('referral_max_referrals')}
+                            disabled={isLoading}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="referral_probation_days">Probation Period (days)</Label>
+                          <Input
+                            id="referral_probation_days"
+                            type="number"
+                            placeholder="90"
+                            defaultValue="90"
+                            {...register('referral_probation_days')}
+                            disabled={isLoading}
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Bonus is paid after the hire completes this period
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Submit */}

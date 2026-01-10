@@ -90,8 +90,8 @@ export function OdaaLogo({
 
       {showText && variant === 'full' && (
         <span className={cn('font-bold', text)}>
-          <span className="text-emerald-500">Oro</span>
-          <span className="text-amber-500">mo</span>
+          <span className="text-emerald-500">O</span>
+          <span className="text-amber-500">DDA</span>
         </span>
       )}
     </div>

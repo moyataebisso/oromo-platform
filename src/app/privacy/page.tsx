@@ -15,7 +15,7 @@ export default function PrivacyPage() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-slate-900 mb-4">1. Introduction</h2>
               <p className="text-slate-600 mb-4">
-                Oromo Platform (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) is committed to protecting your privacy.
+                ODDA (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) is committed to protecting your privacy.
                 This Privacy Policy explains how we collect, use, disclose, and safeguard your
                 information when you use our platform.
               </p>
@@ -88,7 +88,7 @@ export default function PrivacyPage() {
                 If you have questions about this Privacy Policy, please contact us at:
               </p>
               <p className="text-slate-600">
-                Email: privacy@oromoplatform.com<br />
+                Email: privacy@odda.org<br />
                 Address: Minneapolis, MN, United States
               </p>
             </section>

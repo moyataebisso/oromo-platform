@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Search, Briefcase, TrendingUp, GraduationCap } from 'lucide-react'
+import { Search, Briefcase, TrendingUp, GraduationCap, Users } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { Input } from '@/components/ui/input'
 import { CareerCard } from '@/components/careers/career-card'
@@ -93,6 +93,13 @@ export default async function CareersPage({ searchParams }: CareersPageProps) {
               >
                 <TrendingUp className="w-5 h-5 text-primary" />
                 <span className="text-foreground font-medium">Teen Career Prep</span>
+              </Link>
+              <Link
+                href="/careers/referrals"
+                className="flex items-center gap-2 px-6 py-3 bg-secondary hover:bg-secondary/80 rounded-xl transition-colors"
+              >
+                <Users className="w-5 h-5 text-primary" />
+                <span className="text-foreground font-medium">Referral Network</span>
               </Link>
             </div>
           </div>

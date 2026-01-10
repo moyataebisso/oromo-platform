@@ -51,7 +51,7 @@ const getAIResponse = (message: string): string => {
   }
 
   if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
-    return "Akkam! (Hello!) Welcome to Oromo Platform. I'm here to help you navigate our Academy, Careers, and Wiki sections. What would you like to know about?"
+    return "Akkam! (Hello!) Welcome to ODDA. I'm here to help you navigate our Academy, Careers, and Wiki sections. What would you like to know about?"
   }
 
   if (lowerMessage.includes('thank')) {
@@ -68,7 +68,7 @@ export const AIChatbot = () => {
     {
       id: '1',
       role: 'assistant',
-      content: "Akkam! 👋 I'm your Oromo Platform assistant. I can help you find courses, jobs, wiki articles, or answer questions about Oromo culture. What would you like to know?",
+      content: "Akkam! 👋 I'm your ODDA assistant. I can help you find courses, jobs, wiki articles, or answer questions about Oromo culture. What would you like to know?",
       timestamp: new Date(),
     },
   ])

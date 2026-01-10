@@ -112,7 +112,7 @@ export const Header = () => {
             {/* Logo */}
             <Link href="/kids" className="flex items-center gap-2">
               <span className="text-2xl">🌟</span>
-              <span className="text-2xl font-bold text-white">Oromo Kids</span>
+              <span className="text-2xl font-bold text-white">ODDA Kids</span>
             </Link>
 
             {/* Desktop Navigation */}

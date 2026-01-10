@@ -1517,10 +1517,10 @@ When you type a website address and press Enter, a complex but fast process happ
 - **Server**: A computer that stores and serves websites
 
 ### URL Breakdown
-\`https://www.oromoplatform.com/academy/courses\`
+\`https://www.odda.org/academy/courses\`
 
 - \`https://\` - Protocol (secure connection)
-- \`www.oromoplatform.com\` - Domain name
+- \`www.odda.org\` - Domain name
 - \`/academy/courses\` - Path to specific page
 
 ### The Three Languages of the Web

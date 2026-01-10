@@ -107,12 +107,12 @@ export async function generateMetadata({ params }: EventDetailPageProps): Promis
 
   if (!event) {
     return {
-      title: 'Event Not Found | Oromo Platform',
+      title: 'Event Not Found | ODDA',
     }
   }
 
   return {
-    title: `${event.title} | Oromo Platform`,
+    title: `${event.title} | ODDA`,
     description: event.description?.slice(0, 160),
   }
 }

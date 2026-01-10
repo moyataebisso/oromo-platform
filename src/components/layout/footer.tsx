@@ -113,7 +113,7 @@ export const Footer = () => {
               <OdaaLogo size="md" showText={true} />
             </Link>
             <p className="mt-4 text-sm text-slate-400 max-w-xs">
-              Empowering the global Oromo community through education, careers, and cultural preservation.
+              ODDA - Empowering the global Oromo community through education, careers, and cultural preservation.
             </p>
             {/* Social Links */}
             <div className="flex gap-3 mt-6">
@@ -185,7 +185,7 @@ export const Footer = () => {
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400">Contact</h3>
             <ul className="mt-4 space-y-3 text-slate-300 text-sm">
-              <li>support@oromoplatform.com</li>
+              <li>support@odda.org</li>
               <li>Minneapolis, MN</li>
               <li>United States</li>
             </ul>
@@ -195,7 +195,7 @@ export const Footer = () => {
         {/* Copyright */}
         <div className="mt-12 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-slate-400 flex items-center gap-2">
-            &copy; {currentYear} Oromo Platform. Made with <Heart className="w-4 h-4 text-red-500 fill-red-500" /> for the Oromo community.
+            &copy; {currentYear} ODDA - Oromo Digital Diaspora Association. Made with <Heart className="w-4 h-4 text-red-500 fill-red-500" /> for the Oromo community.
           </p>
           <div className="flex gap-6 text-sm text-slate-400">
             <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>

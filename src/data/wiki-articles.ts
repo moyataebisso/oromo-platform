@@ -461,7 +461,7 @@ Resources for learning:
 - "Barnoota Afaan Oromoo" textbooks
 - Oromo language apps (Duolingo, Mango)
 - YouTube tutorials
-- Oromo Platform Academy courses`,
+- ODDA Academy courses`,
     category: 'language',
     author: {
       id: 'author-3',

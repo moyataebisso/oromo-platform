@@ -70,8 +70,8 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-slate-900">Email</h3>
-                    <p className="text-slate-600">support@oromoplatform.com</p>
-                    <p className="text-slate-600">info@oromoplatform.com</p>
+                    <p className="text-slate-600">support@odda.org</p>
+                    <p className="text-slate-600">info@odda.org</p>
                   </div>
                 </CardContent>
               </Card>

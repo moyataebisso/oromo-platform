@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Oromo Platform",
+  title: "ODDA - Oromo Digital Diaspora Association",
   description: "A comprehensive community platform for the Oromo diaspora - Academy, Careers, and Wiki",
 };
 

@@ -35,11 +35,11 @@ export default function AdminSettingsPage() {
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="siteName">Site Name</Label>
-              <Input id="siteName" defaultValue="Oromo Platform" />
+              <Input id="siteName" defaultValue="ODDA" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="supportEmail">Support Email</Label>
-              <Input id="supportEmail" type="email" defaultValue="support@oromoplatform.com" />
+              <Input id="supportEmail" type="email" defaultValue="support@odda.org" />
             </div>
           </div>
           <div className="space-y-2">

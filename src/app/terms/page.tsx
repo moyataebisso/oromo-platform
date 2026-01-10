@@ -15,7 +15,7 @@ export default function TermsPage() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-slate-900 mb-4">1. Acceptance of Terms</h2>
               <p className="text-slate-600 mb-4">
-                By accessing and using the Oromo Platform, you agree to be bound by these Terms
+                By accessing and using the ODDA, you agree to be bound by these Terms
                 of Service. If you do not agree to these terms, please do not use our platform.
               </p>
             </section>
@@ -23,7 +23,7 @@ export default function TermsPage() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-slate-900 mb-4">2. Description of Service</h2>
               <p className="text-slate-600 mb-4">
-                Oromo Platform provides educational resources, career opportunities, and a
+                ODDA provides educational resources, career opportunities, and a
                 community knowledge base for the Oromo diaspora. Our services include:
               </p>
               <ul className="list-disc pl-6 text-slate-600 mb-4">
@@ -64,8 +64,8 @@ export default function TermsPage() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-slate-900 mb-4">5. Intellectual Property</h2>
               <p className="text-slate-600 mb-4">
-                The Oromo Platform and its original content, features, and functionality are
-                owned by Oromo Platform and are protected by international copyright, trademark,
+                The ODDA and its original content, features, and functionality are
+                owned by ODDA and are protected by international copyright, trademark,
                 and other intellectual property laws.
               </p>
             </section>
@@ -82,7 +82,7 @@ export default function TermsPage() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-slate-900 mb-4">7. Limitation of Liability</h2>
               <p className="text-slate-600 mb-4">
-                Oromo Platform shall not be liable for any indirect, incidental, special,
+                ODDA shall not be liable for any indirect, incidental, special,
                 consequential, or punitive damages resulting from your use of or inability
                 to use the service.
               </p>
@@ -110,7 +110,7 @@ export default function TermsPage() {
                 If you have questions about these Terms, please contact us at:
               </p>
               <p className="text-slate-600">
-                Email: legal@oromoplatform.com<br />
+                Email: legal@odda.org<br />
                 Address: Minneapolis, MN, United States
               </p>
             </section>
