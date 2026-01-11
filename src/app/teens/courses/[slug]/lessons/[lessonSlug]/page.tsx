@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import {
   BookOpen,
   Clock,
@@ -473,10 +475,88 @@ export default function LessonPage() {
               {/* Lesson content */}
               <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
                 {lesson.content ? (
-                  <div
-                    className="prose prose-slate dark:prose-invert max-w-none"
-                    dangerouslySetInnerHTML={{ __html: lesson.content }}
-                  />
+                  <article className="max-w-none">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        table: ({ children, ...props }) => (
+                          <div className="overflow-x-auto my-6">
+                            <table className="min-w-full border-collapse" {...props}>{children}</table>
+                          </div>
+                        ),
+                        thead: ({ children, ...props }) => (
+                          <thead className="bg-gray-100 dark:bg-gray-700" {...props}>{children}</thead>
+                        ),
+                        th: ({ children, ...props }) => (
+                          <th className="text-left p-3 border border-gray-200 dark:border-gray-600 font-semibold text-slate-900 dark:text-white" {...props}>{children}</th>
+                        ),
+                        td: ({ children, ...props }) => (
+                          <td className="p-3 border border-gray-200 dark:border-gray-600 text-slate-700 dark:text-gray-300" {...props}>{children}</td>
+                        ),
+                        tr: ({ children, ...props }) => (
+                          <tr className="border-b border-gray-200 dark:border-gray-600" {...props}>{children}</tr>
+                        ),
+                        h1: ({ children, ...props }) => (
+                          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mt-8 mb-4 pb-2 border-b border-gray-200 dark:border-gray-700" {...props}>{children}</h1>
+                        ),
+                        h2: ({ children, ...props }) => (
+                          <h2 className="text-xl md:text-2xl font-semibold text-slate-800 dark:text-green-400 mt-8 mb-4" {...props}>{children}</h2>
+                        ),
+                        h3: ({ children, ...props }) => (
+                          <h3 className="text-lg md:text-xl font-medium text-slate-800 dark:text-white mt-6 mb-3" {...props}>{children}</h3>
+                        ),
+                        h4: ({ children, ...props }) => (
+                          <h4 className="text-base md:text-lg font-medium text-slate-700 dark:text-gray-200 mt-4 mb-2" {...props}>{children}</h4>
+                        ),
+                        p: ({ children, ...props }) => (
+                          <p className="text-slate-700 dark:text-gray-300 mb-4 leading-relaxed" {...props}>{children}</p>
+                        ),
+                        ul: ({ children, ...props }) => (
+                          <ul className="list-disc list-outside ml-6 text-slate-700 dark:text-gray-300 mb-4 space-y-2" {...props}>{children}</ul>
+                        ),
+                        ol: ({ children, ...props }) => (
+                          <ol className="list-decimal list-outside ml-6 text-slate-700 dark:text-gray-300 mb-4 space-y-2" {...props}>{children}</ol>
+                        ),
+                        li: ({ children, ...props }) => (
+                          <li className="text-slate-700 dark:text-gray-300" {...props}>{children}</li>
+                        ),
+                        strong: ({ children, ...props }) => (
+                          <strong className="text-slate-900 dark:text-white font-semibold" {...props}>{children}</strong>
+                        ),
+                        em: ({ children, ...props }) => (
+                          <em className="text-slate-700 dark:text-gray-200 italic" {...props}>{children}</em>
+                        ),
+                        blockquote: ({ children, ...props }) => (
+                          <blockquote className="border-l-4 border-green-500 pl-4 py-1 my-4 bg-green-50 dark:bg-gray-700/50 rounded-r-lg italic text-slate-600 dark:text-gray-300" {...props}>{children}</blockquote>
+                        ),
+                        code: ({ children, className, ...props }) => {
+                          const isInline = !className
+                          if (isInline) {
+                            return (
+                              <code className="bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded text-sm text-slate-800 dark:text-green-400 font-mono" {...props}>{children}</code>
+                            )
+                          }
+                          return (
+                            <code className={className} {...props}>{children}</code>
+                          )
+                        },
+                        pre: ({ children, ...props }) => (
+                          <pre className="bg-gray-100 dark:bg-gray-900 p-4 rounded-lg overflow-x-auto mb-4 text-sm" {...props}>{children}</pre>
+                        ),
+                        a: ({ children, href, ...props }) => (
+                          <a href={href} className="text-green-600 dark:text-green-400 underline hover:text-green-700 dark:hover:text-green-300" {...props}>{children}</a>
+                        ),
+                        hr: ({ ...props }) => (
+                          <hr className="border-gray-200 dark:border-gray-700 my-8" {...props} />
+                        ),
+                        img: ({ src, alt, ...props }) => (
+                          <img src={src} alt={alt} className="rounded-lg my-4 max-w-full" {...props} />
+                        ),
+                      }}
+                    >
+                      {lesson.content}
+                    </ReactMarkdown>
+                  </article>
                 ) : (
                   <p className="text-gray-500 dark:text-gray-400 text-center py-8">
                     No content available for this lesson yet.

@@ -47,7 +47,7 @@ const gradeSelectors = [
     icon: '📚',
     color: 'from-blue-500 to-indigo-500',
     shadowColor: 'shadow-blue-500/25',
-    href: '/academy',
+    href: '/middle-school',
     features: ['Oromo Language', 'History Basics', 'Cultural Studies', 'Math & Science'],
   },
   {
