@@ -31,7 +31,9 @@
       "Bash(Get-ChildItem -Path \"src/app\" -Recurse -Directory)",
       "Bash(dir:*)",
       "Bash(findstr:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(ls:*)",
+      "Bash(npx next build)"
     ]
   }
 }
