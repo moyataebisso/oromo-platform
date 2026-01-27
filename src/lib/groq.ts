@@ -1,8 +1,15 @@
 import Groq from 'groq-sdk'
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-})
+let _groq: Groq | null = null
+
+function getGroqClient(): Groq {
+  if (!_groq) {
+    _groq = new Groq({
+      apiKey: process.env.GROQ_API_KEY,
+    })
+  }
+  return _groq
+}
 
 export interface Message {
   role: 'user' | 'assistant' | 'system'
@@ -26,7 +33,7 @@ export async function chatCompletion(
   const { maxTokens = 500, temperature = 0.7 } = options
 
   try {
-    const completion = await groq.chat.completions.create({
+    const completion = await getGroqClient().chat.completions.create({
       model: 'llama-3.1-70b-versatile',
       messages: [
         { role: 'system', content: systemPrompt },
@@ -54,7 +61,7 @@ export async function* streamChatCompletion(
   const { maxTokens = 500, temperature = 0.7 } = options
 
   try {
-    const stream = await groq.chat.completions.create({
+    const stream = await getGroqClient().chat.completions.create({
       model: 'llama-3.1-70b-versatile',
       messages: [
         { role: 'system', content: systemPrompt },
