@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { BackToTop } from "@/components/shared/back-to-top";
-import { AIChatbot } from "@/components/shared/ai-chatbot";
+import { OromoAssistant } from "@/components/ai-assistant";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { FeedbackButton, FeedbackProvider } from "@/components/feedback";
+import { GoogleTranslateInit } from "@/components/translation";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -32,10 +35,16 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ThemeProvider>
-          {children}
-          <BackToTop />
-          <AIChatbot />
-          <Toaster position="top-right" />
+          <LanguageProvider>
+            <FeedbackProvider>
+              {children}
+              <BackToTop />
+              <OromoAssistant />
+              <FeedbackButton />
+              <GoogleTranslateInit />
+              <Toaster position="top-right" />
+            </FeedbackProvider>
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>

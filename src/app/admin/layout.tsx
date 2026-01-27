@@ -42,6 +42,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 const sidebarLinks = [
   { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
   { name: 'Users', href: '/admin/users', icon: Users, badge: '2.5k' },
+  { name: 'Feedback', href: '/admin/feedback', icon: MessageSquare },
   { name: 'News', href: '/admin/news', icon: Newspaper, badge: '8' },
   { name: 'News Sources', href: '/admin/news/sources', icon: Rss },
   { name: 'Review Queue', href: '/admin/news/review', icon: FileCheck },

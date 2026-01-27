@@ -28,6 +28,7 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
+import { FeaturedBusinessGallery } from '@/components/businesses/featured-business-gallery'
 import { cn } from '@/lib/utils'
 
 // Grade selector data
@@ -478,6 +479,9 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+
+        {/* Featured Businesses Section */}
+        <FeaturedBusinessGallery />
 
         {/* Why It Works Section */}
         <section className="py-24 relative">

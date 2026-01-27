@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
   ArrowLeft,
@@ -9,11 +9,12 @@ import {
   Mail,
   Globe,
   Star,
-  Share2,
   CheckCircle,
-  Flag,
   Edit,
   MessageSquare,
+  ChevronRight,
+  Sparkles,
+  ImageIcon,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -24,46 +25,13 @@ import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 import { HoursDisplay } from '@/components/businesses/hours-display'
 import { ReviewCard } from '@/components/businesses/review-card'
-import { SocialShare } from '@/components/shared/social-share'
+import { BusinessActions } from '@/components/businesses/business-actions'
+import { BusinessCard } from '@/components/businesses/business-card'
 import { Business, BusinessReview, BUSINESS_CATEGORIES } from '@/types/business'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 
-// Mock business data
-const mockBusiness: Business = {
-  id: '1',
-  name: 'Oromia Restaurant',
-  slug: 'oromia-restaurant',
-  description: 'Authentic Oromo cuisine featuring traditional dishes like kitfo, tibs, and injera. Family-owned since 2010. We pride ourselves on using fresh, locally-sourced ingredients and traditional cooking methods passed down through generations. Our warm atmosphere and friendly staff make every visit feel like coming home. Whether you\'re new to Ethiopian cuisine or a longtime fan, our menu offers something for everyone.',
-  category: 'restaurant',
-  address: '1234 Lake Street',
-  city: 'Minneapolis',
-  state: 'MN',
-  zip_code: '55407',
-  phone: '(612) 555-0123',
-  email: 'info@oromiarestaurant.com',
-  website: 'https://oromiarestaurant.com',
-  logo_url: null,
-  cover_image_url: null,
-  hours: {
-    monday: { open: '11:00', close: '22:00' },
-    tuesday: { open: '11:00', close: '22:00' },
-    wednesday: { open: '11:00', close: '22:00' },
-    thursday: { open: '11:00', close: '22:00' },
-    friday: { open: '11:00', close: '23:00' },
-    saturday: { open: '10:00', close: '23:00' },
-    sunday: { open: '10:00', close: '21:00' },
-  },
-  rating: 4.8,
-  review_count: 127,
-  is_verified: true,
-  is_claimed: true,
-  owner_id: '1',
-  status: 'approved',
-  created_at: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
-  updated_at: new Date().toISOString(),
-}
-
+// Mock reviews - will be replaced with Supabase query
 const mockReviews: BusinessReview[] = [
   {
     id: '1',
@@ -100,13 +68,25 @@ const mockReviews: BusinessReview[] = [
   },
 ]
 
-export default function BusinessDetailPage() {
+interface BusinessDetailContentProps {
+  business: Business
+  similarBusinesses: Business[]
+}
+
+export function BusinessDetailContent({ business, similarBusinesses }: BusinessDetailContentProps) {
   const [userRating, setUserRating] = useState(0)
   const [hoverRating, setHoverRating] = useState(0)
   const [reviewText, setReviewText] = useState('')
+  const [selectedImage, setSelectedImage] = useState<string | null>(null)
 
-  const business = mockBusiness
   const category = BUSINESS_CATEGORIES.find(c => c.value === business.category)
+  const isPremium = business.subscription_tier === 'premium'
+
+  // Log page view
+  useEffect(() => {
+    // TODO: Connect to analytics
+    console.log('Business view logged:', business.id)
+  }, [business.id])
 
   const handleSubmitReview = () => {
     if (userRating === 0) {
@@ -128,7 +108,7 @@ export default function BusinessDetailPage() {
     <div className="min-h-screen flex flex-col">
       <Header />
 
-      <main className="flex-1 bg-slate-50">
+      <main className="flex-1 bg-slate-50 dark:bg-background">
         {/* Cover Image */}
         <div className="relative h-64 md:h-80 bg-gradient-to-br from-emerald-400 to-teal-500">
           {business.cover_image_url ? (
@@ -143,6 +123,14 @@ export default function BusinessDetailPage() {
             </div>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+
+          {/* Featured Badge */}
+          {isPremium && (
+            <Badge className="absolute top-4 right-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0">
+              <Sparkles className="w-3 h-3 mr-1" />
+              Featured Business
+            </Badge>
+          )}
 
           {/* Back Button */}
           <Button
@@ -167,7 +155,7 @@ export default function BusinessDetailPage() {
                 <CardContent className="p-6">
                   <div className="flex items-start gap-4">
                     {/* Logo */}
-                    <div className="w-20 h-20 rounded-xl bg-white shadow-lg flex items-center justify-center text-4xl border flex-shrink-0">
+                    <div className="w-20 h-20 rounded-xl bg-white dark:bg-slate-800 shadow-lg flex items-center justify-center text-4xl border flex-shrink-0">
                       {business.logo_url ? (
                         <img
                           src={business.logo_url}
@@ -181,11 +169,11 @@ export default function BusinessDetailPage() {
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h1 className="text-2xl md:text-3xl font-bold text-slate-900">
+                        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100">
                           {business.name}
                         </h1>
                         {business.is_verified && (
-                          <Badge className="bg-emerald-100 text-emerald-700">
+                          <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">
                             <CheckCircle className="w-3 h-3 mr-1" />
                             Verified
                           </Badge>
@@ -207,34 +195,30 @@ export default function BusinessDetailPage() {
                                 'w-5 h-5',
                                 star <= Math.round(business.rating)
                                   ? 'text-amber-400 fill-amber-400'
-                                  : 'text-slate-200'
+                                  : 'text-slate-200 dark:text-slate-600'
                               )}
                             />
                           ))}
-                          <span className="font-semibold text-slate-900 ml-1">
+                          <span className="font-semibold text-slate-900 dark:text-slate-100 ml-1">
                             {business.rating}
                           </span>
                         </div>
-                        <span className="text-slate-500">
+                        <span className="text-slate-500 dark:text-slate-400">
                           ({business.review_count} reviews)
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Actions */}
-                  <div className="flex flex-wrap gap-3 mt-6 pt-6 border-t">
-                    <SocialShare title={business.name} />
-                    <Button variant="outline" size="sm">
-                      <Flag className="w-4 h-4 mr-2" />
-                      Report
-                    </Button>
-                    {business.is_claimed && (
-                      <Button variant="outline" size="sm">
-                        <Edit className="w-4 h-4 mr-2" />
-                        Suggest Edit
-                      </Button>
-                    )}
+                  {/* Address */}
+                  <div className="flex items-center gap-2 mt-4 text-slate-600 dark:text-slate-400">
+                    <MapPin className="w-4 h-4" />
+                    <span>{business.address}, {business.city}, {business.state} {business.zip_code}</span>
+                  </div>
+
+                  {/* Actions - Mobile */}
+                  <div className="mt-6 pt-6 border-t lg:hidden">
+                    <BusinessActions business={business} variant="compact" />
                   </div>
                 </CardContent>
               </Card>
@@ -243,6 +227,7 @@ export default function BusinessDetailPage() {
               <Tabs defaultValue="about" className="space-y-4">
                 <TabsList>
                   <TabsTrigger value="about">About</TabsTrigger>
+                  <TabsTrigger value="photos">Photos</TabsTrigger>
                   <TabsTrigger value="reviews">Reviews ({business.review_count})</TabsTrigger>
                 </TabsList>
 
@@ -252,9 +237,41 @@ export default function BusinessDetailPage() {
                       <CardTitle>About {business.name}</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-slate-600 whitespace-pre-line">
+                      <p className="text-slate-600 dark:text-slate-400 whitespace-pre-line">
                         {business.description}
                       </p>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="photos">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Photos</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {business.gallery_images && business.gallery_images.length > 0 ? (
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                          {business.gallery_images.map((image, index) => (
+                            <button
+                              key={index}
+                              onClick={() => setSelectedImage(image)}
+                              className="aspect-video rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800 hover:opacity-90 transition-opacity"
+                            >
+                              <img
+                                src={image}
+                                alt={`${business.name} photo ${index + 1}`}
+                                className="w-full h-full object-cover"
+                              />
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-12">
+                          <ImageIcon className="w-12 h-12 mx-auto text-slate-300 dark:text-slate-600 mb-4" />
+                          <p className="text-slate-500 dark:text-slate-400">No photos available yet</p>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </TabsContent>
@@ -268,7 +285,7 @@ export default function BusinessDetailPage() {
                     <CardContent className="space-y-4">
                       {/* Star Rating */}
                       <div>
-                        <label className="text-sm font-medium text-slate-700 mb-2 block">
+                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">
                           Your Rating
                         </label>
                         <div className="flex items-center gap-1">
@@ -285,7 +302,7 @@ export default function BusinessDetailPage() {
                                   'w-8 h-8 transition-colors',
                                   star <= (hoverRating || userRating)
                                     ? 'text-amber-400 fill-amber-400'
-                                    : 'text-slate-200'
+                                    : 'text-slate-200 dark:text-slate-600'
                                 )}
                               />
                             </button>
@@ -295,7 +312,7 @@ export default function BusinessDetailPage() {
 
                       {/* Review Text */}
                       <div>
-                        <label className="text-sm font-medium text-slate-700 mb-2 block">
+                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">
                           Your Review
                         </label>
                         <Textarea
@@ -330,6 +347,16 @@ export default function BusinessDetailPage() {
 
             {/* Sidebar */}
             <div className="space-y-6">
+              {/* Actions Card - Desktop */}
+              <Card className="hidden lg:block">
+                <CardHeader>
+                  <CardTitle className="text-lg">Get in Touch</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <BusinessActions business={business} />
+                </CardContent>
+              </Card>
+
               {/* Contact Info */}
               <Card>
                 <CardHeader>
@@ -339,8 +366,8 @@ export default function BusinessDetailPage() {
                   <div className="flex items-start gap-3">
                     <MapPin className="w-5 h-5 text-slate-400 mt-0.5" />
                     <div>
-                      <p className="text-slate-900">{business.address}</p>
-                      <p className="text-slate-600">
+                      <p className="text-slate-900 dark:text-slate-100">{business.address}</p>
+                      <p className="text-slate-600 dark:text-slate-400">
                         {business.city}, {business.state} {business.zip_code}
                       </p>
                     </div>
@@ -351,7 +378,7 @@ export default function BusinessDetailPage() {
                       <Phone className="w-5 h-5 text-slate-400" />
                       <a
                         href={`tel:${business.phone}`}
-                        className="text-blue-600 hover:underline"
+                        className="text-emerald-600 dark:text-emerald-400 hover:underline"
                       >
                         {business.phone}
                       </a>
@@ -363,7 +390,7 @@ export default function BusinessDetailPage() {
                       <Mail className="w-5 h-5 text-slate-400" />
                       <a
                         href={`mailto:${business.email}`}
-                        className="text-blue-600 hover:underline"
+                        className="text-emerald-600 dark:text-emerald-400 hover:underline"
                       >
                         {business.email}
                       </a>
@@ -377,19 +404,12 @@ export default function BusinessDetailPage() {
                         href={business.website}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline"
+                        className="text-emerald-600 dark:text-emerald-400 hover:underline"
                       >
                         Visit Website
                       </a>
                     </div>
                   )}
-
-                  <Button className="w-full mt-4" asChild>
-                    <a href={`tel:${business.phone}`}>
-                      <Phone className="w-4 h-4 mr-2" />
-                      Call Now
-                    </a>
-                  </Button>
                 </CardContent>
               </Card>
 
@@ -403,20 +423,46 @@ export default function BusinessDetailPage() {
                 </CardContent>
               </Card>
 
-              {/* Map Placeholder */}
-              <Card>
-                <CardContent className="p-0">
-                  <div className="h-48 bg-slate-200 flex items-center justify-center rounded-lg">
-                    <div className="text-center text-slate-500">
-                      <MapPin className="w-8 h-8 mx-auto mb-2" />
-                      <p className="text-sm">Map View</p>
-                      <p className="text-xs">(Coming soon)</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              {/* Claim Business */}
+              {!business.is_claimed && (
+                <Card className="border-dashed">
+                  <CardContent className="p-4 text-center">
+                    <Edit className="w-8 h-8 mx-auto text-slate-400 mb-2" />
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
+                      Is this your business?
+                    </p>
+                    <Button variant="outline" size="sm" asChild>
+                      <Link href={`/businesses/${business.slug}/claim`}>
+                        Claim this listing
+                      </Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </div>
+
+          {/* Similar Businesses */}
+          {similarBusinesses.length > 0 && (
+            <div className="mt-12">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                  Similar Businesses
+                </h2>
+                <Button variant="ghost" asChild>
+                  <Link href={`/businesses?category=${business.category}`}>
+                    View All
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Link>
+                </Button>
+              </div>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {similarBusinesses.map((similarBusiness) => (
+                  <BusinessCard key={similarBusiness.id} business={similarBusiness} showActions={false} />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </main>
 

@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, X, User, LogOut, Settings, LayoutDashboard, ChevronDown } from 'lucide-react'
+import { Menu, X, User, LogOut, Settings, LayoutDashboard, ChevronDown, Building2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/shared/theme-toggle'
+import { LanguageToggle } from '@/components/translation'
+import { LinkPreviewTooltip } from '@/components/ui/LinkPreviewTooltip'
 import { OdaaLogo } from '@/components/ui/odaa-logo'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -43,7 +45,7 @@ const navigationConfig: Record<string, NavItem[]> = {
     { name: 'Academy', href: '/academy' },
     { name: 'News', href: '/news' },
     { name: 'Careers', href: '/careers' },
-    { name: 'Interview Prep', href: '/careers/interview-prep' },
+    { name: 'Businesses', href: '/businesses' },
     { name: 'Wiki', href: '/wiki' },
     { name: 'Events', href: '/events' },
     { name: 'Resources', href: '/resources' },
@@ -52,7 +54,7 @@ const navigationConfig: Record<string, NavItem[]> = {
     { name: 'Academy', href: '/academy' },
     { name: 'News', href: '/news' },
     { name: 'Careers', href: '/careers' },
-    { name: 'Interview Prep', href: '/careers/interview-prep' },
+    { name: 'Businesses', href: '/businesses' },
     { name: 'Wiki', href: '/wiki' },
     { name: 'Events', href: '/events' },
     { name: 'Resources', href: '/resources' },
@@ -219,18 +221,22 @@ export const Header = () => {
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-8">
               {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={navLinkClasses}
-                >
-                  {item.name}
-                </Link>
+                <LinkPreviewTooltip key={item.name} href={item.href}>
+                  <Link
+                    href={item.href}
+                    className={navLinkClasses}
+                  >
+                    {item.name}
+                  </Link>
+                </LinkPreviewTooltip>
               ))}
             </nav>
 
             {/* Desktop Auth Buttons / User Menu */}
             <div className="hidden md:flex items-center gap-3">
+              {/* Language Toggle */}
+              <LanguageToggle />
+
               {/* Theme Toggle */}
               <ThemeToggle variant="simple" />
 
@@ -321,6 +327,7 @@ export const Header = () => {
 
             {/* Mobile Menu Button */}
             <div className="md:hidden flex items-center gap-2">
+              <LanguageToggle />
               <ThemeToggle variant="simple" />
               <button
                 className={cn(

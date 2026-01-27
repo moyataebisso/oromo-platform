@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
 import { OdaaLogo } from '@/components/ui/odaa-logo'
+import { FooterBusinessBanner } from '@/components/businesses/footer-business-banner'
 
 const footerLinks = {
   platform: [
@@ -64,6 +65,9 @@ export const Footer = () => {
 
   return (
     <footer className="bg-[#0a0a14] text-white relative overflow-hidden">
+      {/* Business Banner */}
+      <FooterBusinessBanner />
+
       {/* Gradient decoration */}
       <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent" />
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-500/5 rounded-full blur-[120px]" />

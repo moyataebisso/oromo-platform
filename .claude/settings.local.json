@@ -27,7 +27,11 @@
       "Bash(git push)",
       "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: Add complete teen courses, lessons, and community pages\n\n- Add teen course listing page at /teens/courses with category filters\n- Add course detail page at /teens/courses/[slug] with progress tracking\n- Add lesson page at /teens/courses/[slug]/lessons/[lessonSlug] with activities\n- Create FlashcardGame component with 3D flip animation\n- Create QuizGame component supporting multiple choice, true/false, fill-in-blank\n- Create MatchingGame component with timer and star rating\n- Create LessonSidebar and CourseCard reusable components\n- Add teen community page at /teens/community with posts and likes\n- Update database types for all teen tables\n- Update teens dashboard with correct slug-based navigation\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
       "Bash(if not exist \"C:\\\\Users\\\\ebiss\\\\Desktop\\\\oromo-platform\\\\oromo-platform\\\\supabase\\\\migrations\" mkdir \"C:\\\\Users\\\\ebiss\\\\Desktop\\\\oromo-platform\\\\oromo-platform\\\\supabase\\\\migrations\")",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(Get-ChildItem -Path \"src/app\" -Recurse -Directory)",
+      "Bash(dir:*)",
+      "Bash(findstr:*)",
+      "Bash(cat:*)"
     ]
   }
 }

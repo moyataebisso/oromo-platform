@@ -48,6 +48,7 @@ import {
 interface Business {
   id: string
   name: string
+  slug: string
   description: string
   category: string
   city: string
@@ -62,11 +63,11 @@ interface Business {
 }
 
 const mockBusinesses: Business[] = [
-  { id: '1', name: 'Oromo Coffee House', description: 'Authentic Ethiopian coffee experience', category: 'Food & Beverage', city: 'Minneapolis', state: 'MN', phone: '(612) 555-0123', email: 'contact@oromocoffee.com', website: 'https://oromocoffee.com', status: 'approved', is_verified: true, is_featured: true, created_at: '2025-12-01' },
-  { id: '2', name: 'Gadaa Legal Services', description: 'Immigration and family law specialists', category: 'Legal Services', city: 'Washington', state: 'DC', phone: '(202) 555-0456', email: 'info@gadaalegal.com', website: 'https://gadaalegal.com', status: 'approved', is_verified: true, is_featured: false, created_at: '2025-11-15' },
-  { id: '3', name: 'Oromo Tech Solutions', description: 'IT consulting and software development', category: 'Technology', city: 'Seattle', state: 'WA', phone: '(206) 555-0789', email: 'hello@oromotech.com', website: null, status: 'pending', is_verified: false, is_featured: false, created_at: '2025-12-20' },
-  { id: '4', name: 'Harar Market', description: 'Specialty African groceries and goods', category: 'Retail', city: 'Columbus', state: 'OH', phone: '(614) 555-0321', email: 'shop@hararmarket.com', website: 'https://hararmarket.com', status: 'approved', is_verified: false, is_featured: false, created_at: '2025-10-05' },
-  { id: '5', name: 'Oromia Travel Agency', description: 'Travel services to Ethiopia and beyond', category: 'Travel', city: 'Atlanta', state: 'GA', phone: '(404) 555-0654', email: 'travel@oromiatravel.com', website: null, status: 'rejected', is_verified: false, is_featured: false, created_at: '2025-12-10' },
+  { id: '1', name: 'Oromo Coffee House', slug: 'oromo-coffee-house', description: 'Authentic Ethiopian coffee experience', category: 'Food & Beverage', city: 'Minneapolis', state: 'MN', phone: '(612) 555-0123', email: 'contact@oromocoffee.com', website: 'https://oromocoffee.com', status: 'approved', is_verified: true, is_featured: true, created_at: '2025-12-01' },
+  { id: '2', name: 'Gadaa Legal Services', slug: 'gadaa-legal-services', description: 'Immigration and family law specialists', category: 'Legal Services', city: 'Washington', state: 'DC', phone: '(202) 555-0456', email: 'info@gadaalegal.com', website: 'https://gadaalegal.com', status: 'approved', is_verified: true, is_featured: false, created_at: '2025-11-15' },
+  { id: '3', name: 'Oromo Tech Solutions', slug: 'oromo-tech-solutions', description: 'IT consulting and software development', category: 'Technology', city: 'Seattle', state: 'WA', phone: '(206) 555-0789', email: 'hello@oromotech.com', website: null, status: 'pending', is_verified: false, is_featured: false, created_at: '2025-12-20' },
+  { id: '4', name: 'Harar Market', slug: 'harar-market', description: 'Specialty African groceries and goods', category: 'Retail', city: 'Columbus', state: 'OH', phone: '(614) 555-0321', email: 'shop@hararmarket.com', website: 'https://hararmarket.com', status: 'approved', is_verified: false, is_featured: false, created_at: '2025-10-05' },
+  { id: '5', name: 'Oromia Travel Agency', slug: 'oromia-travel-agency', description: 'Travel services to Ethiopia and beyond', category: 'Travel', city: 'Atlanta', state: 'GA', phone: '(404) 555-0654', email: 'travel@oromiatravel.com', website: null, status: 'rejected', is_verified: false, is_featured: false, created_at: '2025-12-10' },
 ]
 
 const statusColors = {
@@ -135,10 +136,15 @@ export default function AdminBusinessesPage() {
     ))
   }
 
+  const generateSlug = (name: string) => {
+    return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+  }
+
   const handleAddBusiness = () => {
     setIsSaving(true)
     const newBusiness: Business = {
       id: Date.now().toString(),
+      slug: generateSlug(formData.name),
       ...formData,
       website: formData.website || null,
       created_at: new Date().toISOString(),
@@ -374,7 +380,7 @@ export default function AdminBusinessesPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
-                          <Link href={`/businesses/${biz.id}`}>
+                          <Link href={`/businesses/${biz.slug}`}>
                             <Eye className="w-4 h-4 mr-2" />
                             View
                           </Link>
