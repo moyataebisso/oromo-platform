@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Search, MoreHorizontal, Edit, Trash2, Plus, MessageSquare, Brain, Users, Lightbulb, CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -65,39 +66,9 @@ const difficultyColors = {
   hard: 'bg-red-500/10 text-red-400 border-red-500/20',
 }
 
-// Mock data
-const mockQuestions: InterviewQuestion[] = [
-  {
-    id: '1',
-    question: 'Tell me about a time you had to deal with a difficult team member.',
-    category: 'behavioral',
-    difficulty: 'medium',
-    sample_answer: 'Use the STAR method to describe a specific situation...',
-    tips: 'Focus on the resolution and what you learned.',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    question: 'How would you design a URL shortening service like bit.ly?',
-    category: 'technical',
-    difficulty: 'hard',
-    sample_answer: 'Start by clarifying requirements: scale, features needed...',
-    tips: 'Draw diagrams as you explain your architecture.',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: '3',
-    question: 'Explain a complex technical concept to a non-technical stakeholder.',
-    category: 'communication',
-    difficulty: 'medium',
-    sample_answer: 'Choose a concept you know well and use analogies...',
-    tips: 'Avoid jargon and use relatable examples.',
-    created_at: new Date().toISOString(),
-  },
-]
-
 export default function AdminInterviewPrepPage() {
-  const [questions, setQuestions] = useState<InterviewQuestion[]>(mockQuestions)
+  const [questions, setQuestions] = useState<InterviewQuestion[]>([])
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [searchQuery, setSearchQuery] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('all')
 
@@ -105,6 +76,7 @@ export default function AdminInterviewPrepPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false)
   const [selectedQuestion, setSelectedQuestion] = useState<InterviewQuestion | null>(null)
   const [isSaving, setIsSaving] = useState(false)
 
@@ -183,6 +155,35 @@ export default function AdminInterviewPrepPage() {
     setSelectedQuestion(null)
   }
 
+  const toggleSelectId = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredQuestions.length && filteredQuestions.length > 0) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(filteredQuestions.map(q => q.id)))
+    }
+  }
+
+  const handleBulkDelete = () => {
+    setQuestions(questions.filter(q => !selectedIds.has(q.id)))
+    setSelectedIds(new Set())
+    setIsBulkDeleteDialogOpen(false)
+  }
+
+  const isAllSelected = filteredQuestions.length > 0 && selectedIds.size === filteredQuestions.length
+  const isSomeSelected = selectedIds.size > 0 && selectedIds.size < filteredQuestions.length
+
   const behavioralCount = questions.filter(q => q.category === 'behavioral').length
   const technicalCount = questions.filter(q => q.category === 'technical').length
   const caseStudyCount = questions.filter(q => q.category === 'case-study').length
@@ -195,10 +196,18 @@ export default function AdminInterviewPrepPage() {
           <h1 className="text-2xl font-bold text-foreground">Interview Prep</h1>
           <p className="text-muted-foreground">Manage interview questions and answers</p>
         </div>
-        <Button onClick={() => setIsAddDialogOpen(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          Add Question
-        </Button>
+        <div className="flex items-center gap-2">
+          {selectedIds.size > 0 && (
+            <Button variant="destructive" onClick={() => setIsBulkDeleteDialogOpen(true)}>
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete Selected ({selectedIds.size})
+            </Button>
+          )}
+          <Button onClick={() => setIsAddDialogOpen(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Add Question
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -295,6 +304,13 @@ export default function AdminInterviewPrepPage() {
           <Table>
             <TableHeader>
               <TableRow className="border-border/50 hover:bg-transparent">
+                <TableHead className="w-12">
+                  <Checkbox
+                    checked={isAllSelected ? true : isSomeSelected ? 'indeterminate' : false}
+                    onCheckedChange={toggleSelectAll}
+                    aria-label="Select all questions"
+                  />
+                </TableHead>
                 <TableHead>Question</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead>Difficulty</TableHead>
@@ -304,6 +320,13 @@ export default function AdminInterviewPrepPage() {
             <TableBody>
               {filteredQuestions.map((question) => (
                 <TableRow key={question.id} className="border-border/50">
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedIds.has(question.id)}
+                      onCheckedChange={() => toggleSelectId(question.id)}
+                      aria-label={`Select question: ${question.question}`}
+                    />
+                  </TableCell>
                   <TableCell>
                     <p className="font-medium text-foreground line-clamp-2">{question.question}</p>
                   </TableCell>
@@ -340,8 +363,8 @@ export default function AdminInterviewPrepPage() {
               ))}
               {filteredQuestions.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                    No questions found
+                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    {questions.length === 0 ? 'No interview questions found' : 'No questions found'}
                   </TableCell>
                 </TableRow>
               )}
@@ -461,6 +484,24 @@ export default function AdminInterviewPrepPage() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteQuestion} className="bg-red-500 hover:bg-red-600">
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <AlertDialog open={isBulkDeleteDialogOpen} onOpenChange={setIsBulkDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Selected Questions</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {selectedIds.size} selected question{selectedIds.size !== 1 ? 's' : ''}? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleBulkDelete} className="bg-red-500 hover:bg-red-600">
+              Delete {selectedIds.size} Question{selectedIds.size !== 1 ? 's' : ''}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import {
@@ -64,55 +65,19 @@ const categoryColors = {
   social: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
 }
 
-// Mock data
-const mockMajors: Major[] = [
-  {
-    id: '1',
-    title: 'Computer Science',
-    slug: 'computer-science',
-    category: 'stem',
-    description: 'Learn programming, algorithms, and software development.',
-    avg_salary: '$89,000',
-    growth_rate: '+22%',
-    job_openings: '162,900',
-    is_published: true,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    title: 'Nursing',
-    slug: 'nursing',
-    category: 'healthcare',
-    description: 'Prepare for a career in patient care and health promotion.',
-    avg_salary: '$77,600',
-    growth_rate: '+6%',
-    job_openings: '203,200',
-    is_published: true,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: '3',
-    title: 'Business Administration',
-    slug: 'business-administration',
-    category: 'business',
-    description: 'Develop leadership and management skills.',
-    avg_salary: '$72,000',
-    growth_rate: '+8%',
-    job_openings: '148,500',
-    is_published: true,
-    created_at: new Date().toISOString(),
-  },
-]
-
 export default function AdminMajorsPage() {
-  const [majors, setMajors] = useState<Major[]>(mockMajors)
+  const [majors, setMajors] = useState<Major[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('all')
+
+  // Selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
   // Dialog states
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isDeleteSelectedDialogOpen, setIsDeleteSelectedDialogOpen] = useState(false)
   const [selectedMajor, setSelectedMajor] = useState<Major | null>(null)
   const [isSaving, setIsSaving] = useState(false)
 
@@ -161,9 +126,43 @@ export default function AdminMajorsPage() {
   const handleDeleteMajor = async () => {
     if (!selectedMajor) return
     setMajors(majors.filter(m => m.id !== selectedMajor.id))
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      next.delete(selectedMajor.id)
+      return next
+    })
     setIsDeleteDialogOpen(false)
     setSelectedMajor(null)
   }
+
+  const handleDeleteSelected = () => {
+    setMajors(majors.filter(m => !selectedIds.has(m.id)))
+    setSelectedIds(new Set())
+    setIsDeleteSelectedDialogOpen(false)
+  }
+
+  const handleToggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(new Set(filteredMajors.map(m => m.id)))
+    } else {
+      setSelectedIds(new Set())
+    }
+  }
+
+  const isAllSelected = filteredMajors.length > 0 && filteredMajors.every(m => selectedIds.has(m.id))
+  const isSomeSelected = filteredMajors.some(m => selectedIds.has(m.id)) && !isAllSelected
 
   const openEditDialog = (major: Major) => {
     setSelectedMajor(major)
@@ -211,10 +210,21 @@ export default function AdminMajorsPage() {
           <h1 className="text-2xl font-bold text-foreground">Majors Guide</h1>
           <p className="text-muted-foreground">Manage college major information</p>
         </div>
-        <Button onClick={() => setIsAddDialogOpen(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          Add Major
-        </Button>
+        <div className="flex items-center gap-2">
+          {selectedIds.size > 0 && (
+            <Button
+              variant="destructive"
+              onClick={() => setIsDeleteSelectedDialogOpen(true)}
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete Selected ({selectedIds.size})
+            </Button>
+          )}
+          <Button onClick={() => setIsAddDialogOpen(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Add Major
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -313,6 +323,13 @@ export default function AdminMajorsPage() {
           <Table>
             <TableHeader>
               <TableRow className="border-border/50 hover:bg-transparent">
+                <TableHead className="w-[40px]">
+                  <Checkbox
+                    checked={isAllSelected ? true : isSomeSelected ? 'indeterminate' : false}
+                    onCheckedChange={(checked) => handleSelectAll(checked === true)}
+                    aria-label="Select all majors"
+                  />
+                </TableHead>
                 <TableHead>Major</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead>Avg. Salary</TableHead>
@@ -324,6 +341,13 @@ export default function AdminMajorsPage() {
             <TableBody>
               {filteredMajors.map((major) => (
                 <TableRow key={major.id} className="border-border/50">
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedIds.has(major.id)}
+                      onCheckedChange={() => handleToggleSelect(major.id)}
+                      aria-label={`Select ${major.title}`}
+                    />
+                  </TableCell>
                   <TableCell>
                     <div>
                       <p className="font-medium text-foreground">{major.title}</p>
@@ -369,7 +393,7 @@ export default function AdminMajorsPage() {
               ))}
               {filteredMajors.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                     No majors found
                   </TableCell>
                 </TableRow>
@@ -498,6 +522,24 @@ export default function AdminMajorsPage() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteMajor} className="bg-red-500 hover:bg-red-600">
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Selected Confirmation Dialog */}
+      <AlertDialog open={isDeleteSelectedDialogOpen} onOpenChange={setIsDeleteSelectedDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Selected Majors</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {selectedIds.size} selected major{selectedIds.size !== 1 ? 's' : ''}? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteSelected} className="bg-red-500 hover:bg-red-600">
+              Delete {selectedIds.size} Major{selectedIds.size !== 1 ? 's' : ''}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

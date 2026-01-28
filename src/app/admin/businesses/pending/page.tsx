@@ -13,12 +13,14 @@ import {
   ChevronRight,
   AlertCircle,
   Building2,
+  Trash2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
   DialogContent,
@@ -44,58 +46,37 @@ interface PendingBusiness {
   submitted_at: string
 }
 
-const mockPendingBusinesses: PendingBusiness[] = [
-  {
-    id: '1',
-    name: 'Oromo Tech Solutions',
-    description: 'IT consulting and software development for small businesses and startups. Specializing in web development, mobile apps, and cloud solutions.',
-    category: 'Technology',
-    city: 'Seattle',
-    state: 'WA',
-    address: '1234 Tech Way',
-    phone: '(206) 555-0789',
-    email: 'hello@oromotech.com',
-    website: 'https://oromotech.com',
-    submitted_by: 'Abdii Tolesa',
-    submitted_at: '2025-12-20T10:30:00Z',
-  },
-  {
-    id: '2',
-    name: 'Finfinnee Fitness',
-    description: 'Community gym with personal training services. Offering group classes, weightlifting, cardio, and specialized African dance fitness sessions.',
-    category: 'Health & Wellness',
-    city: 'Minneapolis',
-    state: 'MN',
-    address: '5678 Wellness Blvd',
-    phone: '(612) 555-0456',
-    email: 'info@finfinneefitness.com',
-    website: null,
-    submitted_by: 'Biiftu Gamada',
-    submitted_at: '2025-12-19T14:15:00Z',
-  },
-  {
-    id: '3',
-    name: 'Harar Imports',
-    description: 'Specialty importers of Ethiopian and East African goods. Coffee, textiles, spices, and artisanal crafts direct from Oromia.',
-    category: 'Retail',
-    city: 'Washington',
-    state: 'DC',
-    address: '9012 Import Ave',
-    phone: '(202) 555-0123',
-    email: 'orders@hararimports.com',
-    website: 'https://hararimports.com',
-    submitted_by: 'Gemechu Bekele',
-    submitted_at: '2025-12-18T09:45:00Z',
-  },
-]
-
 export default function AdminPendingBusinessesPage() {
-  const [businesses, setBusinesses] = useState<PendingBusiness[]>(mockPendingBusinesses)
+  const [businesses, setBusinesses] = useState<PendingBusiness[]>([])
   const [selectedBusiness, setSelectedBusiness] = useState<PendingBusiness | null>(null)
   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false)
   const [rejectReason, setRejectReason] = useState('')
   const [isProcessing, setIsProcessing] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+
+  const allSelected = businesses.length > 0 && selectedIds.size === businesses.length
+  const someSelected = selectedIds.size > 0 && selectedIds.size < businesses.length
+
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(businesses.map(b => b.id)))
+    }
+  }
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
 
   const handleApprove = async (business: PendingBusiness) => {
     setIsProcessing(true)
@@ -103,6 +84,11 @@ export default function AdminPendingBusinessesPage() {
     await new Promise(resolve => setTimeout(resolve, 1000))
 
     setBusinesses(businesses.filter(b => b.id !== business.id))
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      next.delete(business.id)
+      return next
+    })
     toast.success(`${business.name} has been approved`, {
       description: 'The business owner will be notified.',
     })
@@ -122,6 +108,11 @@ export default function AdminPendingBusinessesPage() {
     await new Promise(resolve => setTimeout(resolve, 1000))
 
     setBusinesses(businesses.filter(b => b.id !== selectedBusiness.id))
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      next.delete(selectedBusiness.id)
+      return next
+    })
     toast.success(`${selectedBusiness.name} has been rejected`, {
       description: 'The business owner will be notified with the reason.',
     })
@@ -129,6 +120,22 @@ export default function AdminPendingBusinessesPage() {
     setIsRejectDialogOpen(false)
     setRejectReason('')
     setSelectedBusiness(null)
+  }
+
+  const handleRejectSelected = async () => {
+    if (selectedIds.size === 0) return
+
+    setIsProcessing(true)
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000))
+
+    const count = selectedIds.size
+    setBusinesses(prev => prev.filter(b => !selectedIds.has(b.id)))
+    setSelectedIds(new Set())
+    toast.success(`${count} business${count > 1 ? 'es' : ''} rejected`, {
+      description: 'The business owners will be notified.',
+    })
+    setIsProcessing(false)
   }
 
   const openPreview = (business: PendingBusiness) => {
@@ -174,17 +181,50 @@ export default function AdminPendingBusinessesPage() {
       {businesses.length === 0 ? (
         <Card className="bg-card/50 border-border/50">
           <CardContent className="py-16 text-center">
-            <CheckCircle className="w-16 h-16 mx-auto text-emerald-500 mb-4" />
-            <h3 className="text-xl font-semibold text-foreground mb-2">All caught up!</h3>
-            <p className="text-muted-foreground">No pending business submissions to review.</p>
+            <Building2 className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-xl font-semibold text-foreground mb-2">No pending businesses</h3>
+            <p className="text-muted-foreground">There are no business submissions to review at this time.</p>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-4">
+          {/* Bulk Actions Bar */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="select-all"
+                checked={allSelected ? true : someSelected ? 'indeterminate' : false}
+                onCheckedChange={toggleSelectAll}
+              />
+              <Label htmlFor="select-all" className="text-sm font-medium cursor-pointer">
+                Select All
+              </Label>
+            </div>
+            {selectedIds.size > 0 && (
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleRejectSelected}
+                disabled={isProcessing}
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                {isProcessing ? 'Rejecting...' : `Reject Selected (${selectedIds.size})`}
+              </Button>
+            )}
+          </div>
+
           {businesses.map((business) => (
             <Card key={business.id} className="bg-card/50 border-border/50">
               <CardContent className="p-6">
                 <div className="flex flex-col lg:flex-row lg:items-start gap-6">
+                  {/* Checkbox */}
+                  <div className="flex items-start pt-1">
+                    <Checkbox
+                      checked={selectedIds.has(business.id)}
+                      onCheckedChange={() => toggleSelect(business.id)}
+                    />
+                  </div>
+
                   {/* Business Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start gap-4">

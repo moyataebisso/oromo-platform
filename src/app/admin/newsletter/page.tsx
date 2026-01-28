@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Search, MoreHorizontal, Trash2, Mail, Users, TrendingUp, Download, Send } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -40,45 +41,6 @@ interface Subscriber {
   subscribed_at: string
 }
 
-// Mock data - in production, fetch from Supabase
-const mockSubscribers: Subscriber[] = [
-  {
-    id: '1',
-    email: 'ahmed@example.com',
-    status: 'active',
-    source: 'news',
-    subscribed_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: '2',
-    email: 'fatima@example.com',
-    status: 'active',
-    source: 'homepage',
-    subscribed_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: '3',
-    email: 'omar@example.com',
-    status: 'unsubscribed',
-    source: 'news',
-    subscribed_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: '4',
-    email: 'aisha@example.com',
-    status: 'active',
-    source: 'footer',
-    subscribed_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: '5',
-    email: 'mohammed@example.com',
-    status: 'bounced',
-    source: 'news',
-    subscribed_at: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-]
-
 const statusColors: Record<string, string> = {
   active: 'bg-green-500/10 text-green-400 border-green-500/20',
   unsubscribed: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
@@ -86,11 +48,13 @@ const statusColors: Record<string, string> = {
 }
 
 export default function AdminNewsletterPage() {
-  const [subscribers, setSubscribers] = useState<Subscriber[]>(mockSubscribers)
+  const [subscribers, setSubscribers] = useState<Subscriber[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [selectedSubscriber, setSelectedSubscriber] = useState<Subscriber | null>(null)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false)
 
   const filteredSubscribers = subscribers.filter(s => {
     const matchesSearch = s.email.toLowerCase().includes(searchQuery.toLowerCase())
@@ -102,6 +66,11 @@ export default function AdminNewsletterPage() {
     if (!selectedSubscriber) return
     // In production, this would be a Supabase delete
     setSubscribers(subscribers.filter(s => s.id !== selectedSubscriber.id))
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      next.delete(selectedSubscriber.id)
+      return next
+    })
     setIsDeleteDialogOpen(false)
     setSelectedSubscriber(null)
   }
@@ -110,6 +79,35 @@ export default function AdminNewsletterPage() {
     setSelectedSubscriber(subscriber)
     setIsDeleteDialogOpen(true)
   }
+
+  const handleBulkDelete = () => {
+    setSubscribers(subscribers.filter(s => !selectedIds.has(s.id)))
+    setSelectedIds(new Set())
+    setIsBulkDeleteDialogOpen(false)
+  }
+
+  const handleToggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(new Set(filteredSubscribers.map(s => s.id)))
+    } else {
+      setSelectedIds(new Set())
+    }
+  }
+
+  const isAllSelected = filteredSubscribers.length > 0 && filteredSubscribers.every(s => selectedIds.has(s.id))
+  const isSomeSelected = filteredSubscribers.some(s => selectedIds.has(s.id)) && !isAllSelected
 
   const handleExportCSV = () => {
     // Export active subscribers as CSV
@@ -147,6 +145,12 @@ export default function AdminNewsletterPage() {
           <p className="text-muted-foreground">Manage your email subscriber list</p>
         </div>
         <div className="flex gap-2">
+          {selectedIds.size > 0 && (
+            <Button variant="destructive" onClick={() => setIsBulkDeleteDialogOpen(true)}>
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete Selected ({selectedIds.size})
+            </Button>
+          )}
           <Button variant="outline" onClick={handleExportCSV}>
             <Download className="w-4 h-4 mr-2" />
             Export CSV
@@ -251,6 +255,13 @@ export default function AdminNewsletterPage() {
           <Table>
             <TableHeader>
               <TableRow className="border-border/50 hover:bg-transparent">
+                <TableHead className="w-12">
+                  <Checkbox
+                    checked={isAllSelected ? true : isSomeSelected ? 'indeterminate' : false}
+                    onCheckedChange={(checked) => handleSelectAll(checked === true)}
+                    aria-label="Select all subscribers"
+                  />
+                </TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Source</TableHead>
@@ -261,6 +272,13 @@ export default function AdminNewsletterPage() {
             <TableBody>
               {filteredSubscribers.map((subscriber) => (
                 <TableRow key={subscriber.id} className="border-border/50">
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedIds.has(subscriber.id)}
+                      onCheckedChange={() => handleToggleSelect(subscriber.id)}
+                      aria-label={`Select ${subscriber.email}`}
+                    />
+                  </TableCell>
                   <TableCell>
                     <p className="font-medium text-foreground">{subscriber.email}</p>
                   </TableCell>
@@ -294,7 +312,7 @@ export default function AdminNewsletterPage() {
               ))}
               {filteredSubscribers.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                     No subscribers found
                   </TableCell>
                 </TableRow>
@@ -317,6 +335,24 @@ export default function AdminNewsletterPage() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-red-500 hover:bg-red-600">
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <AlertDialog open={isBulkDeleteDialogOpen} onOpenChange={setIsBulkDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Selected Subscribers</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove {selectedIds.size} subscriber{selectedIds.size !== 1 ? 's' : ''} from your list? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleBulkDelete} className="bg-red-500 hover:bg-red-600">
+              Delete {selectedIds.size} Subscriber{selectedIds.size !== 1 ? 's' : ''}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

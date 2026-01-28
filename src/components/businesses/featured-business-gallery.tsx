@@ -12,18 +12,16 @@ interface FeaturedBusiness {
   slug: string
   logo_url: string | null
   category_icon?: string
+  external_url?: string
 }
 
-// Mock data - will be replaced with Supabase query
-const mockFeaturedBusinesses: FeaturedBusiness[] = [
-  { id: '1', name: 'Oromia Restaurant', slug: 'oromia-restaurant', logo_url: null, category_icon: '🍽️' },
-  { id: '2', name: 'Buna Coffee House', slug: 'buna-coffee-house', logo_url: null, category_icon: '☕' },
-  { id: '3', name: 'Oromo Market', slug: 'oromo-market', logo_url: null, category_icon: '🛒' },
-  { id: '4', name: 'Gadaa Legal', slug: 'gadaa-legal', logo_url: null, category_icon: '⚖️' },
-  { id: '5', name: 'Harar Beauty', slug: 'harar-beauty', logo_url: null, category_icon: '💇' },
-  { id: '6', name: 'Abbaa Realty', slug: 'abbaa-realty', logo_url: null, category_icon: '🏠' },
-  { id: '7', name: 'Qubee Learning', slug: 'qubee-learning', logo_url: null, category_icon: '📚' },
-  { id: '8', name: 'Finfinnee Clinic', slug: 'finfinnee-clinic', logo_url: null, category_icon: '🏥' },
+const featuredBusinesses: FeaturedBusiness[] = [
+  { id: '1', name: 'Adama Restaurant & Awash Bakery', slug: 'adama-restaurant', logo_url: null, category_icon: '🍽️', external_url: 'https://adamarestaurantmn.com' },
+  { id: '2', name: 'Glory Collective Studios', slug: 'glory-collective-studios', logo_url: null, category_icon: '🎬', external_url: 'https://www.peerspace.com/pages/listings/694ce7ba213483499e2c059e' },
+  { id: '3', name: 'OSFNA', slug: 'osfna', logo_url: null, category_icon: '⚽', external_url: 'https://www.osfna.org/' },
+  { id: '4', name: 'Khan Academy', slug: 'khan-academy', logo_url: null, category_icon: '📚', external_url: 'https://www.khanacademy.org/' },
+  { id: '5', name: 'Oromo Media Network', slug: 'omn', logo_url: null, category_icon: '📰', external_url: 'https://omn.today/' },
+  { id: '6', name: 'Oromo Platform', slug: 'oromo-platform', logo_url: null, category_icon: '🎓', external_url: 'https://oromo-platform.vercel.app/' },
 ]
 
 interface FeaturedBusinessGalleryProps {
@@ -32,7 +30,7 @@ interface FeaturedBusinessGalleryProps {
 }
 
 export const FeaturedBusinessGallery = ({
-  businesses = mockFeaturedBusinesses,
+  businesses = featuredBusinesses,
   className,
 }: FeaturedBusinessGalleryProps) => {
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -112,9 +110,11 @@ export const FeaturedBusinessGallery = ({
         style={{ scrollBehavior: 'auto' }}
       >
         {displayBusinesses.map((business, index) => (
-          <Link
+          <a
             key={`${business.id}-${index}`}
-            href={`/businesses/${business.slug}`}
+            href={business.external_url || `/businesses/${business.slug}`}
+            target={business.external_url ? '_blank' : undefined}
+            rel={business.external_url ? 'noopener noreferrer' : undefined}
             className="flex-shrink-0 group"
           >
             <div className="w-32 h-32 rounded-2xl bg-white dark:bg-slate-800 shadow-lg flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:shadow-xl border border-slate-100 dark:border-slate-700 animate-float"
@@ -133,7 +133,7 @@ export const FeaturedBusinessGallery = ({
             <p className="text-center mt-2 text-sm font-medium text-slate-600 dark:text-slate-400 truncate max-w-[128px]">
               {business.name}
             </p>
-          </Link>
+          </a>
         ))}
       </div>
 

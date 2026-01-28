@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { Search, MoreHorizontal, Eye, Edit, Trash2, CheckCircle, XCircle, Plus, BookOpen, Star, Clock, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
@@ -73,10 +74,15 @@ export default function AdminArticlesPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
 
+  // Selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false)
+
   // Dialog states
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false)
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null)
   const [isSaving, setIsSaving] = useState(false)
 
@@ -93,35 +99,35 @@ export default function AdminArticlesPage() {
   const supabase = createClient()
 
   // Fetch articles
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true)
+  const fetchData = useCallback(async () => {
+    setIsLoading(true)
 
-      // Fetch articles with relationships
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: articlesData } = await (supabase.from('wiki_articles') as any)
-        .select('*, category:categories(*), author:profiles(display_name, email)')
-        .order('created_at', { ascending: false })
+    // Fetch articles with relationships
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: articlesData } = await (supabase.from('wiki_articles') as any)
+      .select('*, category:categories(*), author:profiles(display_name, email)')
+      .order('created_at', { ascending: false })
 
-      // Fetch categories
-      const { data: categoriesData } = await supabase
-        .from('categories')
-        .select('id, name')
-        .order('name')
+    // Fetch categories
+    const { data: categoriesData } = await supabase
+      .from('categories')
+      .select('id, name')
+      .order('name')
 
-      if (articlesData) {
-        setArticles(articlesData as Article[])
-      }
-
-      if (categoriesData) {
-        setCategories(categoriesData)
-      }
-
-      setIsLoading(false)
+    if (articlesData) {
+      setArticles(articlesData as Article[])
     }
 
-    fetchData()
+    if (categoriesData) {
+      setCategories(categoriesData)
+    }
+
+    setIsLoading(false)
   }, [supabase])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
 
   const filteredArticles = articles.filter(article => {
     const matchesSearch = article.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -271,6 +277,48 @@ export default function AdminArticlesPage() {
     setSelectedArticle(null)
   }
 
+  // Selection handlers
+  const handleToggleSelectAll = (checked: boolean | 'indeterminate') => {
+    if (checked === true) {
+      setSelectedIds(new Set(filteredArticles.map(a => a.id)))
+    } else {
+      setSelectedIds(new Set())
+    }
+  }
+
+  const handleToggleSelectRow = (id: string, checked: boolean | 'indeterminate') => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (checked === true) {
+        next.add(id)
+      } else {
+        next.delete(id)
+      }
+      return next
+    })
+  }
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return
+    setIsBulkDeleting(true)
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase.from('wiki_articles') as any)
+      .delete()
+      .in('id', [...selectedIds])
+
+    if (!error) {
+      setSelectedIds(new Set())
+      setIsBulkDeleteDialogOpen(false)
+      await fetchData()
+    }
+
+    setIsBulkDeleting(false)
+  }
+
+  const isAllSelected = filteredArticles.length > 0 && filteredArticles.every(a => selectedIds.has(a.id))
+  const isSomeSelected = filteredArticles.some(a => selectedIds.has(a.id)) && !isAllSelected
+
   const publishedCount = articles.filter(a => a.status === 'published').length
   const draftCount = articles.filter(a => a.status === 'draft').length
   const featuredCount = articles.filter(a => a.is_featured).length
@@ -282,10 +330,21 @@ export default function AdminArticlesPage() {
           <h1 className="text-2xl font-bold text-foreground">Wiki Article Management</h1>
           <p className="text-muted-foreground">Manage and moderate wiki articles</p>
         </div>
-        <Button onClick={() => setIsAddDialogOpen(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          Add Article
-        </Button>
+        <div className="flex items-center gap-2">
+          {selectedIds.size > 0 && (
+            <Button
+              variant="destructive"
+              onClick={() => setIsBulkDeleteDialogOpen(true)}
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete Selected ({selectedIds.size})
+            </Button>
+          )}
+          <Button onClick={() => setIsAddDialogOpen(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Add Article
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -384,6 +443,13 @@ export default function AdminArticlesPage() {
             <Table>
               <TableHeader>
                 <TableRow className="border-border/50 hover:bg-transparent">
+                  <TableHead className="w-12">
+                    <Checkbox
+                      checked={isAllSelected ? true : isSomeSelected ? 'indeterminate' : false}
+                      onCheckedChange={handleToggleSelectAll}
+                      aria-label="Select all articles"
+                    />
+                  </TableHead>
                   <TableHead>Article</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead>Author</TableHead>
@@ -395,6 +461,13 @@ export default function AdminArticlesPage() {
               <TableBody>
                 {filteredArticles.map((article) => (
                   <TableRow key={article.id} className="border-border/50">
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedIds.has(article.id)}
+                        onCheckedChange={(checked) => handleToggleSelectRow(article.id, checked)}
+                        aria-label={`Select ${article.title}`}
+                      />
+                    </TableCell>
                     <TableCell>
                       <div>
                         <p className="font-medium text-foreground">{article.title}</p>
@@ -464,7 +537,7 @@ export default function AdminArticlesPage() {
                 ))}
                 {filteredArticles.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                       No articles found
                     </TableCell>
                   </TableRow>
@@ -649,6 +722,28 @@ export default function AdminArticlesPage() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteArticle} className="bg-red-500 hover:bg-red-600">
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <AlertDialog open={isBulkDeleteDialogOpen} onOpenChange={setIsBulkDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Selected Articles</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {selectedIds.size} selected article{selectedIds.size !== 1 ? 's' : ''}? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isBulkDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleBulkDelete}
+              className="bg-red-500 hover:bg-red-600"
+              disabled={isBulkDeleting}
+            >
+              {isBulkDeleting ? 'Deleting...' : `Delete ${selectedIds.size} Article${selectedIds.size !== 1 ? 's' : ''}`}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

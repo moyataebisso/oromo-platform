@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,15 +26,6 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
-const mockUsers = [
-  { id: '1', email: 'bekele@example.com', display_name: 'Bekele Abera', role: 'admin', status: 'active', created_at: '2024-01-15', avatar_url: null },
-  { id: '2', email: 'chaltu@example.com', display_name: 'Chaltu Bekele', role: 'user', status: 'active', created_at: '2024-02-20', avatar_url: null },
-  { id: '3', email: 'abdii@example.com', display_name: 'Abdii Tolessa', role: 'moderator', status: 'active', created_at: '2024-03-10', avatar_url: null },
-  { id: '4', email: 'lelise@example.com', display_name: 'Lelise Daba', role: 'user', status: 'suspended', created_at: '2024-03-15', avatar_url: null },
-  { id: '5', email: 'gurmesa@example.com', display_name: 'Gurmesa Kebede', role: 'user', status: 'active', created_at: '2024-04-01', avatar_url: null },
-  { id: '6', email: 'fayisa@example.com', display_name: 'Fayisa Gemechu', role: 'user', status: 'active', created_at: '2024-04-10', avatar_url: null },
-]
-
 const roleColors = {
   admin: 'bg-red-500/10 text-red-400 border-red-500/20',
   moderator: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
@@ -47,11 +39,13 @@ const statusColors = {
 }
 
 export default function AdminUsersPage() {
+  const [users, setUsers] = useState<any[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
-  const filteredUsers = mockUsers.filter(user => {
+  const filteredUsers = users.filter(user => {
     const matchesSearch = user.display_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          user.email.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesRole = roleFilter === 'all' || user.role === roleFilter
@@ -59,8 +53,37 @@ export default function AdminUsersPage() {
     return matchesSearch && matchesRole && matchesStatus
   })
 
-  const activeCount = mockUsers.filter(u => u.status === 'active').length
-  const suspendedCount = mockUsers.filter(u => u.status === 'suspended').length
+  const activeCount = users.filter(u => u.status === 'active').length
+  const suspendedCount = users.filter(u => u.status === 'suspended').length
+
+  const isAllSelected = filteredUsers.length > 0 && filteredUsers.every(u => selectedIds.has(u.id))
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const newSelected = new Set(selectedIds)
+      filteredUsers.forEach(u => newSelected.add(u.id))
+      setSelectedIds(newSelected)
+    } else {
+      const newSelected = new Set(selectedIds)
+      filteredUsers.forEach(u => newSelected.delete(u.id))
+      setSelectedIds(newSelected)
+    }
+  }
+
+  const handleSelectUser = (userId: string, checked: boolean) => {
+    const newSelected = new Set(selectedIds)
+    if (checked) {
+      newSelected.add(userId)
+    } else {
+      newSelected.delete(userId)
+    }
+    setSelectedIds(newSelected)
+  }
+
+  const handleDeleteSelected = () => {
+    setUsers(prev => prev.filter(u => !selectedIds.has(u.id)))
+    setSelectedIds(new Set())
+  }
 
   return (
     <div className="space-y-6">
@@ -84,7 +107,7 @@ export default function AdminUsersPage() {
                 <Users className="w-5 h-5 text-white" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-foreground">{mockUsers.length}</p>
+                <p className="text-2xl font-bold text-foreground">{users.length}</p>
                 <p className="text-sm text-muted-foreground">Total Users</p>
               </div>
             </div>
@@ -124,7 +147,7 @@ export default function AdminUsersPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">
-                  {mockUsers.filter(u => u.role === 'admin' || u.role === 'moderator').length}
+                  {users.filter(u => u.role === 'admin' || u.role === 'moderator').length}
                 </p>
                 <p className="text-sm text-muted-foreground">Admins/Mods</p>
               </div>
@@ -172,6 +195,21 @@ export default function AdminUsersPage() {
         </CardContent>
       </Card>
 
+      {/* Bulk Actions Bar */}
+      {selectedIds.size > 0 && (
+        <Card className="bg-card/50 border-border/50">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">{selectedIds.size} selected</p>
+              <Button variant="destructive" size="sm" onClick={handleDeleteSelected}>
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete Selected
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Users Table */}
       <Card className="bg-card/50 border-border/50">
         <CardHeader className="flex flex-row items-center justify-between">
@@ -181,6 +219,12 @@ export default function AdminUsersPage() {
           <Table>
             <TableHeader>
               <TableRow className="border-border/50 hover:bg-transparent">
+                <TableHead className="w-12">
+                  <Checkbox
+                    checked={isAllSelected}
+                    onCheckedChange={(checked) => handleSelectAll(checked === true)}
+                  />
+                </TableHead>
                 <TableHead>User</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Status</TableHead>
@@ -189,65 +233,79 @@ export default function AdminUsersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredUsers.map((user) => (
-                <TableRow key={user.id} className="border-border/50">
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar className="ring-2 ring-primary/20">
-                        <AvatarImage src={user.avatar_url || undefined} />
-                        <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-500 text-white">
-                          {user.display_name[0]}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium text-foreground">{user.display_name}</p>
-                        <p className="text-sm text-muted-foreground">{user.email}</p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={`border ${roleColors[user.role as keyof typeof roleColors]}`}>
-                      {user.role}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={`border ${statusColors[user.status as keyof typeof statusColors]}`}>
-                      {user.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {new Date(user.created_at).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreHorizontal className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
-                          <Mail className="w-4 h-4 mr-2" />
-                          Send Email
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Shield className="w-4 h-4 mr-2" />
-                          Change Role
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-amber-400">
-                          <Ban className="w-4 h-4 mr-2" />
-                          Suspend User
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-400">
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete User
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+              {filteredUsers.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    No users found
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                filteredUsers.map((user) => (
+                  <TableRow key={user.id} className="border-border/50">
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedIds.has(user.id)}
+                        onCheckedChange={(checked) => handleSelectUser(user.id, checked === true)}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar className="ring-2 ring-primary/20">
+                          <AvatarImage src={user.avatar_url || undefined} />
+                          <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-500 text-white">
+                            {user.display_name[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium text-foreground">{user.display_name}</p>
+                          <p className="text-sm text-muted-foreground">{user.email}</p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={`border ${roleColors[user.role as keyof typeof roleColors]}`}>
+                        {user.role}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={`border ${statusColors[user.status as keyof typeof statusColors]}`}>
+                        {user.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {new Date(user.created_at).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreHorizontal className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>
+                            <Mail className="w-4 h-4 mr-2" />
+                            Send Email
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <Shield className="w-4 h-4 mr-2" />
+                            Change Role
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-amber-400">
+                            <Ban className="w-4 h-4 mr-2" />
+                            Suspend User
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="text-red-400">
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Delete User
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Search, MoreHorizontal, Eye, Edit, Trash2, CheckCircle, Plus, Building2, MapPin, Star, ShieldCheck, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -62,14 +63,6 @@ interface Business {
   created_at: string
 }
 
-const mockBusinesses: Business[] = [
-  { id: '1', name: 'Oromo Coffee House', slug: 'oromo-coffee-house', description: 'Authentic Ethiopian coffee experience', category: 'Food & Beverage', city: 'Minneapolis', state: 'MN', phone: '(612) 555-0123', email: 'contact@oromocoffee.com', website: 'https://oromocoffee.com', status: 'approved', is_verified: true, is_featured: true, created_at: '2025-12-01' },
-  { id: '2', name: 'Gadaa Legal Services', slug: 'gadaa-legal-services', description: 'Immigration and family law specialists', category: 'Legal Services', city: 'Washington', state: 'DC', phone: '(202) 555-0456', email: 'info@gadaalegal.com', website: 'https://gadaalegal.com', status: 'approved', is_verified: true, is_featured: false, created_at: '2025-11-15' },
-  { id: '3', name: 'Oromo Tech Solutions', slug: 'oromo-tech-solutions', description: 'IT consulting and software development', category: 'Technology', city: 'Seattle', state: 'WA', phone: '(206) 555-0789', email: 'hello@oromotech.com', website: null, status: 'pending', is_verified: false, is_featured: false, created_at: '2025-12-20' },
-  { id: '4', name: 'Harar Market', slug: 'harar-market', description: 'Specialty African groceries and goods', category: 'Retail', city: 'Columbus', state: 'OH', phone: '(614) 555-0321', email: 'shop@hararmarket.com', website: 'https://hararmarket.com', status: 'approved', is_verified: false, is_featured: false, created_at: '2025-10-05' },
-  { id: '5', name: 'Oromia Travel Agency', slug: 'oromia-travel-agency', description: 'Travel services to Ethiopia and beyond', category: 'Travel', city: 'Atlanta', state: 'GA', phone: '(404) 555-0654', email: 'travel@oromiatravel.com', website: null, status: 'rejected', is_verified: false, is_featured: false, created_at: '2025-12-10' },
-]
-
 const statusColors = {
   pending: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
   approved: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
@@ -79,14 +72,16 @@ const statusColors = {
 const categories = ['Food & Beverage', 'Legal Services', 'Technology', 'Retail', 'Travel', 'Healthcare', 'Real Estate', 'Education', 'Finance', 'Other']
 
 export default function AdminBusinessesPage() {
-  const [businesses, setBusinesses] = useState<Business[]>(mockBusinesses)
+  const [businesses, setBusinesses] = useState<Business[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
   // Dialog states
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false)
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null)
   const [isSaving, setIsSaving] = useState(false)
 
@@ -169,9 +164,43 @@ export default function AdminBusinessesPage() {
   const handleDeleteBusiness = () => {
     if (!selectedBusiness) return
     setBusinesses(businesses.filter(biz => biz.id !== selectedBusiness.id))
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      next.delete(selectedBusiness.id)
+      return next
+    })
     setIsDeleteDialogOpen(false)
     setSelectedBusiness(null)
   }
+
+  const handleBulkDelete = () => {
+    setBusinesses(businesses.filter(biz => !selectedIds.has(biz.id)))
+    setSelectedIds(new Set())
+    setIsBulkDeleteDialogOpen(false)
+  }
+
+  const handleToggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(new Set(filteredBusinesses.map(biz => biz.id)))
+    } else {
+      setSelectedIds(new Set())
+    }
+  }
+
+  const isAllSelected = filteredBusinesses.length > 0 && filteredBusinesses.every(biz => selectedIds.has(biz.id))
+  const isSomeSelected = filteredBusinesses.some(biz => selectedIds.has(biz.id)) && !isAllSelected
 
   const openEditDialog = (business: Business) => {
     setSelectedBusiness(business)
@@ -225,10 +254,18 @@ export default function AdminBusinessesPage() {
           <h1 className="text-2xl font-bold text-foreground">Business Directory Management</h1>
           <p className="text-muted-foreground">Manage and verify business listings</p>
         </div>
-        <Button onClick={() => setIsAddDialogOpen(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          Add Business
-        </Button>
+        <div className="flex gap-2">
+          {selectedIds.size > 0 && (
+            <Button variant="destructive" onClick={() => setIsBulkDeleteDialogOpen(true)}>
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete Selected ({selectedIds.size})
+            </Button>
+          )}
+          <Button onClick={() => setIsAddDialogOpen(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Add Business
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -329,6 +366,13 @@ export default function AdminBusinessesPage() {
           <Table>
             <TableHeader>
               <TableRow className="border-border/50 hover:bg-transparent">
+                <TableHead className="w-12">
+                  <Checkbox
+                    checked={isAllSelected ? true : isSomeSelected ? 'indeterminate' : false}
+                    onCheckedChange={(checked) => handleSelectAll(checked === true)}
+                    aria-label="Select all businesses"
+                  />
+                </TableHead>
                 <TableHead>Business</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead>Location</TableHead>
@@ -341,6 +385,13 @@ export default function AdminBusinessesPage() {
             <TableBody>
               {filteredBusinesses.map((biz) => (
                 <TableRow key={biz.id} className="border-border/50">
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedIds.has(biz.id)}
+                      onCheckedChange={() => handleToggleSelect(biz.id)}
+                      aria-label={`Select ${biz.name}`}
+                    />
+                  </TableCell>
                   <TableCell>
                     <div>
                       <p className="font-medium text-foreground">{biz.name}</p>
@@ -413,7 +464,7 @@ export default function AdminBusinessesPage() {
               ))}
               {filteredBusinesses.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                     No businesses found
                   </TableCell>
                 </TableRow>
@@ -695,6 +746,24 @@ export default function AdminBusinessesPage() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteBusiness} className="bg-red-500 hover:bg-red-600">
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <AlertDialog open={isBulkDeleteDialogOpen} onOpenChange={setIsBulkDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Selected Businesses</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {selectedIds.size} selected business{selectedIds.size !== 1 ? 'es' : ''}? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleBulkDelete} className="bg-red-500 hover:bg-red-600">
+              Delete {selectedIds.size} Business{selectedIds.size !== 1 ? 'es' : ''}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

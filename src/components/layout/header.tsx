@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { Menu, X, User, LogOut, Settings, LayoutDashboard, ChevronDown, Building2 } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
+import { Menu, X, User, LogOut, Settings, LayoutDashboard, ChevronDown, Shield } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/shared/theme-toggle'
 import { LanguageToggle } from '@/components/translation'
@@ -18,6 +18,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
+import { createClient } from '@/lib/supabase/client'
+import type { User as SupabaseUser } from '@supabase/supabase-js'
 
 type AgeGroup = 'kids' | 'teens' | 'adults' | null
 
@@ -61,21 +63,29 @@ const navigationConfig: Record<string, NavItem[]> = {
   ],
 }
 
-// Mock user - in production, this would come from auth context/Supabase
-const mockUser = {
-  isLoggedIn: false,
-  name: 'Bekele Abera',
-  email: 'bekele@example.com',
-  avatar_url: null,
-  age_group: null as AgeGroup,
+interface UserState {
+  isLoggedIn: boolean
+  name: string
+  email: string
+  avatar_url: string | null
+  age_group: AgeGroup
+  role: string | null
 }
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [user] = useState(mockUser)
+  const [user, setUser] = useState<UserState>({
+    isLoggedIn: false,
+    name: '',
+    email: '',
+    avatar_url: null,
+    age_group: null,
+    role: null,
+  })
   const [isScrolled, setIsScrolled] = useState(false)
   const [mounted, setMounted] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
 
   const isHomePage = pathname === '/'
 
@@ -89,6 +99,74 @@ export const Header = () => {
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  // Fetch real Supabase auth session and profile
+  useEffect(() => {
+    const supabase = createClient()
+
+    const loadUser = async (authUser: SupabaseUser) => {
+      const metadata = authUser.user_metadata || {}
+
+      // Query the profiles table for role, display_name, avatar_url
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('display_name, avatar_url, role')
+        .eq('id', authUser.id)
+        .single()
+
+      const profile = profileData as { display_name: string | null; avatar_url: string | null; role: string | null } | null
+
+      setUser({
+        isLoggedIn: true,
+        name: profile?.display_name || metadata.display_name || metadata.full_name || authUser.email?.split('@')[0] || 'User',
+        email: authUser.email || '',
+        avatar_url: profile?.avatar_url || metadata.avatar_url || null,
+        age_group: (metadata.age_group as AgeGroup) || 'adults',
+        role: profile?.role || metadata.role || null,
+      })
+    }
+
+    const getUser = async () => {
+      const { data: { user: authUser } } = await supabase.auth.getUser()
+      if (authUser) {
+        await loadUser(authUser)
+      }
+    }
+
+    getUser()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        loadUser(session.user)
+      } else {
+        setUser({
+          isLoggedIn: false,
+          name: '',
+          email: '',
+          avatar_url: null,
+          age_group: null,
+          role: null,
+        })
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const handleLogout = async () => {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    setUser({
+      isLoggedIn: false,
+      name: '',
+      email: '',
+      avatar_url: null,
+      age_group: null,
+      role: null,
+    })
+    router.push('/')
+    router.refresh()
+  }
 
   // Get navigation based on user status
   const getNavigation = (): NavItem[] => {
@@ -266,10 +344,10 @@ export const Header = () => {
                       <Avatar className="h-8 w-8 ring-2 ring-primary/20">
                         <AvatarImage src={user.avatar_url || undefined} />
                         <AvatarFallback className="bg-gradient-to-br from-emerald-500 to-amber-500 text-white">
-                          {user.name[0]}
+                          {user.name?.[0] || 'U'}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="font-medium">{user.name.split(' ')[0]}</span>
+                      <span className="font-medium">{user.name?.split(' ')[0] || 'User'}</span>
                       <ChevronDown className="w-4 h-4" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -297,8 +375,22 @@ export const Header = () => {
                         Settings
                       </Link>
                     </DropdownMenuItem>
+                    {user.role === 'admin' && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                          <Link href="/admin" className="flex items-center gap-2">
+                            <Shield className="w-4 h-4" />
+                            Admin Panel
+                          </Link>
+                        </DropdownMenuItem>
+                      </>
+                    )}
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-destructive focus:text-destructive">
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive cursor-pointer"
+                      onClick={handleLogout}
+                    >
                       <LogOut className="w-4 h-4 mr-2" />
                       Log out
                     </DropdownMenuItem>
@@ -391,7 +483,24 @@ export const Header = () => {
                   >
                     Profile
                   </Link>
-                  <Button variant="outline" className="justify-start text-destructive mt-2">
+                  {user.role === 'admin' && (
+                    <Link
+                      href="/admin"
+                      className="px-4 py-3 text-lg font-medium text-foreground hover:text-primary hover:bg-accent rounded-xl transition-colors flex items-center gap-2"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <Shield className="w-5 h-5" />
+                      Admin Panel
+                    </Link>
+                  )}
+                  <Button
+                    variant="outline"
+                    className="justify-start text-destructive mt-2"
+                    onClick={() => {
+                      setIsMenuOpen(false)
+                      handleLogout()
+                    }}
+                  >
                     <LogOut className="w-4 h-4 mr-2" />
                     Log out
                   </Button>

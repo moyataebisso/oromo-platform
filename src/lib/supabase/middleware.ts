@@ -100,9 +100,18 @@ export const updateSession = async (request: NextRequest) => {
       }
     }
 
-    // Admin routes - check for admin role
+    // Admin routes - check for admin role in profiles table and user_metadata
     if (pathname.startsWith('/admin')) {
-      const role = user.user_metadata?.role as string | undefined
+      const metadataRole = user.user_metadata?.role as string | undefined
+
+      // Also check the profiles table for the role
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+      const role = profile?.role || metadataRole
       if (role !== 'admin') {
         return NextResponse.redirect(new URL('/', request.url))
       }

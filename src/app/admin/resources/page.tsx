@@ -34,76 +34,25 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Switch } from '@/components/ui/switch'
+import { Checkbox } from '@/components/ui/checkbox'
 import { resourceCategoryLabels, resourceCategoryColors } from '@/types/resources'
 
-// Sample resources data
-const sampleResources = [
-  {
-    id: '1',
-    name: 'Oromia Online',
-    description: 'Comprehensive Oromo language learning platform',
-    url: 'https://oromiaonline.org',
-    category: 'education',
-    is_featured: true,
-    is_approved: true,
-    order_index: 1,
-  },
-  {
-    id: '2',
-    name: 'Oromo Community Association',
-    description: 'National organization for Oromo community advocacy',
-    url: 'https://oromocommunity.org',
-    category: 'organization',
-    is_featured: true,
-    is_approved: true,
-    order_index: 2,
-  },
-  {
-    id: '3',
-    name: 'Oromo Sports Federation',
-    description: 'Promoting sports among Oromo youth worldwide',
-    url: 'https://oromosports.org',
-    category: 'sports',
-    is_featured: false,
-    is_approved: true,
-    order_index: 3,
-  },
-  {
-    id: '4',
-    name: 'ONN - Oromo News Network',
-    description: 'Breaking news and updates from the Oromo community',
-    url: 'https://onn.news',
-    category: 'news',
-    is_featured: true,
-    is_approved: true,
-    order_index: 4,
-  },
-  {
-    id: '5',
-    name: 'Oromo Health Initiative',
-    description: 'Health resources and support for the community',
-    url: 'https://oromohealth.org',
-    category: 'health',
-    is_featured: false,
-    is_approved: false,
-    order_index: 5,
-  },
-  {
-    id: '6',
-    name: 'Oromo Business Directory',
-    description: 'Directory of Oromo-owned businesses',
-    url: 'https://oromobusiness.com',
-    category: 'business',
-    is_featured: false,
-    is_approved: false,
-    order_index: 6,
-  },
-]
+interface Resource {
+  id: string
+  name: string
+  description: string
+  url: string
+  category: string
+  is_featured: boolean
+  is_approved: boolean
+  order_index: number
+}
 
 export default function AdminResourcesPage() {
-  const [resources, setResources] = useState(sampleResources)
+  const [resources, setResources] = useState<Resource[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [filterCategory, setFilterCategory] = useState<string>('all')
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
   const categories = ['all', 'education', 'organization', 'sports', 'news', 'health', 'business', 'government', 'legal', 'other']
 
@@ -128,7 +77,40 @@ export default function AdminResourcesPage() {
 
   const handleDelete = (id: string) => {
     setResources(resources.filter(resource => resource.id !== id))
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      next.delete(id)
+      return next
+    })
   }
+
+  const handleToggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(new Set(filteredResources.map(r => r.id)))
+    } else {
+      setSelectedIds(new Set())
+    }
+  }
+
+  const handleDeleteSelected = () => {
+    setResources(resources.filter(resource => !selectedIds.has(resource.id)))
+    setSelectedIds(new Set())
+  }
+
+  const isAllSelected = filteredResources.length > 0 && filteredResources.every(r => selectedIds.has(r.id))
+  const isSomeSelected = filteredResources.some(r => selectedIds.has(r.id)) && !isAllSelected
 
   const pendingCount = resources.filter(r => !r.is_approved).length
   const featuredCount = resources.filter(r => r.is_featured).length
@@ -141,12 +123,20 @@ export default function AdminResourcesPage() {
           <h1 className="text-2xl font-bold text-foreground">Resources Management</h1>
           <p className="text-muted-foreground">Manage trusted community resources and links</p>
         </div>
-        <Button variant="gradient" asChild>
-          <Link href="/admin/resources/new">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Resource
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          {selectedIds.size > 0 && (
+            <Button variant="destructive" onClick={handleDeleteSelected}>
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete Selected ({selectedIds.size})
+            </Button>
+          )}
+          <Button variant="gradient" asChild>
+            <Link href="/admin/resources/new">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Resource
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -256,91 +246,112 @@ export default function AdminResourcesPage() {
       {/* Resources Table */}
       <Card className="bg-card/50 border-border/50">
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-border/50 hover:bg-transparent">
-                <TableHead className="w-8"></TableHead>
-                <TableHead>Resource</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>URL</TableHead>
-                <TableHead>Featured</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredResources.map((resource) => (
-                <TableRow key={resource.id} className="border-border/50">
-                  <TableCell>
-                    <GripVertical className="w-4 h-4 text-muted-foreground cursor-grab" />
-                  </TableCell>
-                  <TableCell>
-                    <div>
-                      <p className="font-medium text-foreground">{resource.name}</p>
-                      <p className="text-sm text-muted-foreground line-clamp-1">{resource.description}</p>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={`border ${resourceCategoryColors[resource.category as keyof typeof resourceCategoryColors]}`}>
-                      {resourceCategoryLabels[resource.category as keyof typeof resourceCategoryLabels]}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <a
-                      href={resource.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1 text-sm text-primary hover:underline"
-                    >
-                      {new URL(resource.url).hostname}
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  </TableCell>
-                  <TableCell>
-                    <Switch
-                      checked={resource.is_featured}
-                      onCheckedChange={() => handleToggleFeatured(resource.id)}
+          {filteredResources.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 px-4">
+              <Link2 className="w-12 h-12 text-muted-foreground mb-4" />
+              <p className="text-lg font-medium text-muted-foreground">No resources found</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow className="border-border/50 hover:bg-transparent">
+                  <TableHead className="w-10">
+                    <Checkbox
+                      checked={isAllSelected ? true : isSomeSelected ? 'indeterminate' : false}
+                      onCheckedChange={(checked) => handleSelectAll(checked === true)}
+                      aria-label="Select all resources"
                     />
-                  </TableCell>
-                  <TableCell>
-                    <Switch
-                      checked={resource.is_approved}
-                      onCheckedChange={() => handleToggleApproved(resource.id)}
-                    />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreHorizontal className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild>
-                          <a href={resource.url} target="_blank" rel="noopener noreferrer">
-                            <Eye className="w-4 h-4 mr-2" />
-                            Visit
-                          </a>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Edit className="w-4 h-4 mr-2" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className="text-red-400"
-                          onClick={() => handleDelete(resource.id)}
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+                  </TableHead>
+                  <TableHead className="w-8"></TableHead>
+                  <TableHead>Resource</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>URL</TableHead>
+                  <TableHead>Featured</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredResources.map((resource) => (
+                  <TableRow key={resource.id} className="border-border/50">
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedIds.has(resource.id)}
+                        onCheckedChange={() => handleToggleSelect(resource.id)}
+                        aria-label={`Select ${resource.name}`}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <GripVertical className="w-4 h-4 text-muted-foreground cursor-grab" />
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium text-foreground">{resource.name}</p>
+                        <p className="text-sm text-muted-foreground line-clamp-1">{resource.description}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={`border ${resourceCategoryColors[resource.category as keyof typeof resourceCategoryColors]}`}>
+                        {resourceCategoryLabels[resource.category as keyof typeof resourceCategoryLabels]}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <a
+                        href={resource.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-sm text-primary hover:underline"
+                      >
+                        {new URL(resource.url).hostname}
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </TableCell>
+                    <TableCell>
+                      <Switch
+                        checked={resource.is_featured}
+                        onCheckedChange={() => handleToggleFeatured(resource.id)}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Switch
+                        checked={resource.is_approved}
+                        onCheckedChange={() => handleToggleApproved(resource.id)}
+                      />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreHorizontal className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem asChild>
+                            <a href={resource.url} target="_blank" rel="noopener noreferrer">
+                              <Eye className="w-4 h-4 mr-2" />
+                              Visit
+                            </a>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <Edit className="w-4 h-4 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            className="text-red-400"
+                            onClick={() => handleDelete(resource.id)}
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>

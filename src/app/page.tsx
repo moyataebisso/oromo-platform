@@ -118,8 +118,8 @@ const featuredCourses = [
 // Impact stats
 const stats = [
   { value: 40, suffix: 'M+', label: 'Oromo People We Serve', icon: Users },
-  { value: 500, suffix: '+', label: 'Educational Resources', icon: BookOpen },
-  { value: 10, suffix: 'K+', label: 'Active Learners', icon: GraduationCap },
+  { value: 50, suffix: '+', label: 'Educational Resources', icon: BookOpen },
+  { value: 100, suffix: '+', label: 'Active Users', icon: GraduationCap },
   { value: 50, suffix: '+', label: 'Countries Reached', icon: Globe },
 ]
 
@@ -586,7 +586,7 @@ export default function HomePage() {
               {featuredCourses.map((course, index) => (
                 <Link
                   key={course.id}
-                  href={`/academy/course/${course.id}`}
+                  href="/academy"
                   className={cn(
                     "group transition-all duration-500",
                     coursesRef.isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
@@ -645,82 +645,6 @@ export default function HomePage() {
                   <ArrowRight className="ml-2 w-4 h-4" />
                 </Link>
               </Button>
-            </div>
-          </div>
-        </section>
-
-        {/* Testimonials Section */}
-        <section className="py-24 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0f0f1a] via-[#16162a] to-[#0f0f1a]" />
-
-          <div
-            ref={testimonialsRef.ref}
-            className={cn(
-              "relative z-10 mx-auto max-w-7xl px-4 transition-all duration-1000",
-              testimonialsRef.isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"
-            )}
-          >
-            <div className="text-center mb-16">
-              <Badge className="mb-4 bg-pink-500/10 text-pink-400 hover:bg-pink-500/20">
-                Community Voices
-              </Badge>
-              <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-                Real Results from Real Learners
-              </h2>
-              <p className="text-xl text-slate-400 max-w-2xl mx-auto">
-                Hear from our community members who are learning, growing, and achieving their goals.
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-8">
-              {testimonials.map((testimonial, index) => (
-                <Card
-                  key={index}
-                  className={cn(
-                    "bg-card/50 backdrop-blur border-border/50 hover:border-primary/30 transition-all duration-300",
-                    testimonialsRef.isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-                  )}
-                  style={{ transitionDelay: `${index * 150}ms` }}
-                >
-                  <CardContent className="pt-8 pb-6 relative">
-                    {/* Quote icon */}
-                    <div className="absolute -top-4 left-6 w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-amber-500 flex items-center justify-center">
-                      <Quote className="w-5 h-5 text-white" />
-                    </div>
-
-                    {/* Rating */}
-                    <div className="flex gap-1 mb-4">
-                      {Array.from({ length: testimonial.rating }).map((_, i) => (
-                        <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
-                      ))}
-                    </div>
-
-                    <p className="text-slate-300 leading-relaxed mb-4">
-                      &ldquo;{testimonial.content}&rdquo;
-                    </p>
-
-                    {/* Impact stat */}
-                    <div className="text-sm text-emerald-400 font-medium mb-6">
-                      {testimonial.stat}
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                      <Avatar className="w-12 h-12 ring-2 ring-primary/20">
-                        <AvatarImage src={testimonial.avatar} />
-                        <AvatarFallback className="bg-gradient-to-br from-emerald-500 to-amber-500 text-white">
-                          {testimonial.name.split(' ').map(n => n[0]).join('')}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="font-semibold text-white">{testimonial.name}</div>
-                        <div className="text-sm text-slate-500">
-                          {testimonial.role} &bull; {testimonial.location}
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
             </div>
           </div>
         </section>
@@ -907,6 +831,82 @@ export default function HomePage() {
                 <CheckCircle2 className="w-5 h-5 text-emerald-400" />
                 <span>Safe for kids</span>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Testimonials Section */}
+        <section className="py-24 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0f0f1a] via-[#16162a] to-[#0f0f1a]" />
+
+          <div
+            ref={testimonialsRef.ref}
+            className={cn(
+              "relative z-10 mx-auto max-w-7xl px-4 transition-all duration-1000",
+              testimonialsRef.isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"
+            )}
+          >
+            <div className="text-center mb-16">
+              <Badge className="mb-4 bg-pink-500/10 text-pink-400 hover:bg-pink-500/20">
+                Community Voices
+              </Badge>
+              <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+                Real Results from Real Learners
+              </h2>
+              <p className="text-xl text-slate-400 max-w-2xl mx-auto">
+                Hear from our community members who are learning, growing, and achieving their goals.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8">
+              {testimonials.map((testimonial, index) => (
+                <Card
+                  key={index}
+                  className={cn(
+                    "bg-card/50 backdrop-blur border-border/50 hover:border-primary/30 transition-all duration-300",
+                    testimonialsRef.isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+                  )}
+                  style={{ transitionDelay: `${index * 150}ms` }}
+                >
+                  <CardContent className="pt-8 pb-6 relative">
+                    {/* Quote icon */}
+                    <div className="absolute -top-4 left-6 w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-amber-500 flex items-center justify-center">
+                      <Quote className="w-5 h-5 text-white" />
+                    </div>
+
+                    {/* Rating */}
+                    <div className="flex gap-1 mb-4">
+                      {Array.from({ length: testimonial.rating }).map((_, i) => (
+                        <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                      ))}
+                    </div>
+
+                    <p className="text-slate-300 leading-relaxed mb-4">
+                      &ldquo;{testimonial.content}&rdquo;
+                    </p>
+
+                    {/* Impact stat */}
+                    <div className="text-sm text-emerald-400 font-medium mb-6">
+                      {testimonial.stat}
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                      <Avatar className="w-12 h-12 ring-2 ring-primary/20">
+                        <AvatarImage src={testimonial.avatar} />
+                        <AvatarFallback className="bg-gradient-to-br from-emerald-500 to-amber-500 text-white">
+                          {testimonial.name.split(' ').map(n => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-semibold text-white">{testimonial.name}</div>
+                        <div className="text-sm text-slate-500">
+                          {testimonial.role} &bull; {testimonial.location}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </div>
         </section>

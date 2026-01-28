@@ -1,5 +1,9 @@
+'use client'
+
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Settings, BookOpen, Briefcase, FileText, Calendar, MapPin, Mail } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Settings, BookOpen, Briefcase, FileText, Calendar, MapPin, Mail, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -8,41 +12,89 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 import { ProfileCompletion } from '@/components/profile/profile-completion'
+import { createClient } from '@/lib/supabase/client'
 
-// Mock user data
-const mockUser = {
-  id: '1',
-  email: 'bekele@example.com',
-  display_name: 'Bekele Abera',
-  username: 'bekele_a',
-  bio: 'Passionate about preserving Oromo culture and language. Software engineer by profession, cultural advocate by heart.',
-  avatar_url: null,
-  location: 'Minneapolis, MN',
-  phone: null,
-  website: null,
-  linkedin_url: 'https://linkedin.com/in/bekele',
-  skills: ['Software Development', 'Afaan Oromoo'],
-  created_at: '2024-01-15',
-  role: 'user',
+interface ProfileData {
+  id: string
+  email: string
+  display_name: string | null
+  username: string | null
+  bio: string | null
+  avatar_url: string | null
+  role: string
+  created_at: string
+  location?: string | null
+  phone?: string | null
+  website?: string | null
+  linkedin_url?: string | null
+  skills?: string[] | null
 }
 
-const enrolledCourses = [
-  { id: '1', title: 'Introduction to Afaan Oromoo', progress: 75 },
-  { id: '2', title: 'Oromo History: From Ancient Times', progress: 45 },
-  { id: '3', title: 'Gadaa System Deep Dive', progress: 10 },
-]
-
-const savedJobs = [
-  { id: '1', title: 'Software Engineer', company: 'Oromo Tech Solutions' },
-  { id: '2', title: 'Community Coordinator', company: 'Oromo Community Center' },
-]
-
-const contributions = [
-  { id: '1', title: 'The Gadaa System: Ancient Democratic Governance', type: 'article', date: '2024-03-10' },
-  { id: '2', title: 'Corrected spelling in Qubee article', type: 'edit', date: '2024-03-15' },
-]
-
 export default function ProfilePage() {
+  const [profile, setProfile] = useState<ProfileData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (!user) {
+        router.push('/login')
+        return
+      }
+
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+
+      if (data) {
+        const profileRow = data as unknown as ProfileData
+        setProfile({
+          ...profileRow,
+          email: user.email || profileRow.email,
+        })
+      } else {
+        // Fallback: use auth user data if no profile row exists
+        setProfile({
+          id: user.id,
+          email: user.email || '',
+          display_name: user.user_metadata?.display_name || user.email?.split('@')[0] || 'User',
+          username: null,
+          bio: null,
+          avatar_url: user.user_metadata?.avatar_url || null,
+          role: 'user',
+          created_at: user.created_at,
+        })
+      }
+
+      setLoading(false)
+    }
+
+    loadProfile()
+  }, [router])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-1 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </main>
+        <Footer />
+      </div>
+    )
+  }
+
+  if (!profile) {
+    return null
+  }
+
+  const displayName = profile.display_name || profile.email.split('@')[0]
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -56,14 +108,19 @@ export default function ProfilePage() {
             <CardContent className="p-6">
               <div className="flex flex-col sm:flex-row items-start gap-6">
                 <Avatar className="w-24 h-24">
-                  <AvatarImage src={mockUser.avatar_url || undefined} />
-                  <AvatarFallback className="text-2xl">{mockUser.display_name[0]}</AvatarFallback>
+                  <AvatarImage src={profile.avatar_url || undefined} />
+                  <AvatarFallback className="text-2xl">{displayName[0]}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
                   <div className="flex items-start justify-between">
                     <div>
-                      <h1 className="text-2xl font-bold text-slate-900">{mockUser.display_name}</h1>
-                      <p className="text-slate-600">@{mockUser.username}</p>
+                      <h1 className="text-2xl font-bold text-slate-900">{displayName}</h1>
+                      {profile.username && (
+                        <p className="text-slate-600">@{profile.username}</p>
+                      )}
+                      {profile.role === 'admin' && (
+                        <Badge className="mt-1 bg-red-100 text-red-700">Admin</Badge>
+                      )}
                     </div>
                     <Button variant="outline" asChild>
                       <Link href="/profile/edit">
@@ -72,21 +129,23 @@ export default function ProfilePage() {
                       </Link>
                     </Button>
                   </div>
-                  <p className="mt-3 text-slate-700">{mockUser.bio}</p>
+                  {profile.bio && (
+                    <p className="mt-3 text-slate-700">{profile.bio}</p>
+                  )}
                   <div className="flex flex-wrap gap-4 mt-4 text-sm text-slate-600">
-                    {mockUser.location && (
+                    {profile.location && (
                       <div className="flex items-center gap-1">
                         <MapPin className="w-4 h-4" />
-                        {mockUser.location}
+                        {profile.location}
                       </div>
                     )}
                     <div className="flex items-center gap-1">
                       <Mail className="w-4 h-4" />
-                      {mockUser.email}
+                      {profile.email}
                     </div>
                     <div className="flex items-center gap-1">
                       <Calendar className="w-4 h-4" />
-                      Joined {new Date(mockUser.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                      Joined {new Date(profile.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                     </div>
                   </div>
                 </div>
@@ -111,26 +170,12 @@ export default function ProfilePage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {enrolledCourses.map((course) => (
-                      <div key={course.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
-                        <div>
-                          <h3 className="font-medium text-slate-900">{course.title}</h3>
-                          <p className="text-sm text-slate-600">{course.progress}% complete</p>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <div className="w-32 h-2 bg-slate-200 rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-blue-600 rounded-full"
-                              style={{ width: `${course.progress}%` }}
-                            />
-                          </div>
-                          <Button variant="outline" size="sm" asChild>
-                            <Link href={`/academy/course/${course.id}`}>Continue</Link>
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="text-center py-8 text-slate-500">
+                    <BookOpen className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+                    <p>No courses enrolled yet.</p>
+                    <Button variant="outline" size="sm" className="mt-3" asChild>
+                      <Link href="/academy">Browse Courses</Link>
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -145,18 +190,12 @@ export default function ProfilePage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {savedJobs.map((job) => (
-                      <div key={job.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
-                        <div>
-                          <h3 className="font-medium text-slate-900">{job.title}</h3>
-                          <p className="text-sm text-slate-600">{job.company}</p>
-                        </div>
-                        <Button variant="outline" size="sm" asChild>
-                          <Link href={`/careers/${job.id}`}>View</Link>
-                        </Button>
-                      </div>
-                    ))}
+                  <div className="text-center py-8 text-slate-500">
+                    <Briefcase className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+                    <p>No saved jobs yet.</p>
+                    <Button variant="outline" size="sm" className="mt-3" asChild>
+                      <Link href="/careers">Browse Jobs</Link>
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -171,19 +210,12 @@ export default function ProfilePage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {contributions.map((item) => (
-                      <div key={item.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
-                        <div>
-                          <h3 className="font-medium text-slate-900">{item.title}</h3>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge variant="outline" className="capitalize">{item.type}</Badge>
-                            <span className="text-sm text-slate-600">{new Date(item.date).toLocaleDateString()}</span>
-                          </div>
-                        </div>
-                        <Button variant="outline" size="sm">View</Button>
-                      </div>
-                    ))}
+                  <div className="text-center py-8 text-slate-500">
+                    <FileText className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+                    <p>No contributions yet.</p>
+                    <Button variant="outline" size="sm" className="mt-3" asChild>
+                      <Link href="/wiki">Explore Wiki</Link>
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -194,7 +226,7 @@ export default function ProfilePage() {
             {/* Sidebar with Profile Completion */}
             <div className="lg:col-span-1">
               <div className="sticky top-24">
-                <ProfileCompletion profile={mockUser} />
+                <ProfileCompletion profile={profile} />
               </div>
             </div>
           </div>

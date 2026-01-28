@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
@@ -79,6 +80,11 @@ export default function AdminJobsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+
+  // Selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false)
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false)
 
   // Dialog states
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
@@ -241,6 +247,46 @@ export default function AdminJobsPage() {
     }
   }
 
+  const handleToggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(new Set(filteredJobs.map(job => job.id)))
+    } else {
+      setSelectedIds(new Set())
+    }
+  }
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return
+    setIsBulkDeleting(true)
+
+    const idsArray = Array.from(selectedIds)
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase.from('jobs') as any)
+      .delete()
+      .in('id', idsArray)
+
+    if (!error) {
+      setJobs(prev => prev.filter(job => !selectedIds.has(job.id)))
+      setSelectedIds(new Set())
+      setIsBulkDeleteDialogOpen(false)
+    }
+
+    setIsBulkDeleting(false)
+  }
+
   const openEditDialog = (job: Job) => {
     setSelectedJob(job)
     setFormData({
@@ -394,6 +440,16 @@ export default function AdminJobsPage() {
       <Card className="bg-card/50 border-border/50">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Jobs ({filteredJobs.length})</CardTitle>
+          {selectedIds.size > 0 && (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setIsBulkDeleteDialogOpen(true)}
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete Selected ({selectedIds.size})
+            </Button>
+          )}
         </CardHeader>
         <CardContent className="p-0">
           {isLoading ? (
@@ -402,6 +458,13 @@ export default function AdminJobsPage() {
             <Table>
               <TableHeader>
                 <TableRow className="border-border/50 hover:bg-transparent">
+                  <TableHead className="w-12">
+                    <Checkbox
+                      checked={filteredJobs.length > 0 && filteredJobs.every(job => selectedIds.has(job.id))}
+                      onCheckedChange={(checked) => handleSelectAll(!!checked)}
+                      aria-label="Select all jobs"
+                    />
+                  </TableHead>
                   <TableHead>Job</TableHead>
                   <TableHead>Location</TableHead>
                   <TableHead>Type</TableHead>
@@ -414,6 +477,13 @@ export default function AdminJobsPage() {
               <TableBody>
                 {filteredJobs.map((job) => (
                   <TableRow key={job.id} className="border-border/50">
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedIds.has(job.id)}
+                        onCheckedChange={() => handleToggleSelect(job.id)}
+                        aria-label={`Select ${job.title}`}
+                      />
+                    </TableCell>
                     <TableCell>
                       <div>
                         <p className="font-medium text-foreground">{job.title}</p>
@@ -493,7 +563,7 @@ export default function AdminJobsPage() {
                 ))}
                 {filteredJobs.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                       No jobs found
                     </TableCell>
                   </TableRow>
@@ -749,6 +819,28 @@ export default function AdminJobsPage() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteJob} className="bg-red-500 hover:bg-red-600">
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <AlertDialog open={isBulkDeleteDialogOpen} onOpenChange={setIsBulkDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Selected Jobs</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {selectedIds.size} selected job{selectedIds.size !== 1 ? 's' : ''}? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isBulkDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleBulkDelete}
+              className="bg-red-500 hover:bg-red-600"
+              disabled={isBulkDeleting}
+            >
+              {isBulkDeleting ? 'Deleting...' : `Delete ${selectedIds.size} Job${selectedIds.size !== 1 ? 's' : ''}`}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

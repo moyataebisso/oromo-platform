@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { Search, MoreHorizontal, Eye, Edit, Trash2, CheckCircle, Plus, GraduationCap, BookOpen, Users, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -83,8 +84,12 @@ export default function AdminCoursesPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false)
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
   const [isSaving, setIsSaving] = useState(false)
+
+  // Selection state for bulk actions
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
   // Form state
   const [formData, setFormData] = useState({
@@ -99,48 +104,48 @@ export default function AdminCoursesPage() {
   const supabase = createClient()
 
   // Fetch courses and categories
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true)
+  const fetchData = useCallback(async () => {
+    setIsLoading(true)
 
-      // Fetch courses with category
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: coursesData } = await (supabase
-        .from('courses')
-        .select('*, category:categories(*)')
-        .order('created_at', { ascending: false }) as any)
+    // Fetch courses with category
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: coursesData } = await (supabase
+      .from('courses')
+      .select('*, category:categories(*)')
+      .order('created_at', { ascending: false }) as any)
 
-      // Fetch categories
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: categoriesData } = await (supabase
-        .from('categories')
-        .select('*')
-        .order('name') as any)
+    // Fetch categories
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: categoriesData } = await (supabase
+      .from('categories')
+      .select('*')
+      .order('name') as any)
 
-      // Fetch lesson counts for each course
-      if (coursesData) {
-        const coursesWithCounts = await Promise.all(
-          (coursesData as Course[]).map(async (course: Course) => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const { count } = await (supabase
-              .from('lessons')
-              .select('*', { count: 'exact', head: true })
-              .eq('course_id', course.id) as any)
-            return { ...course, lessons_count: count || 0 }
-          })
-        )
-        setCourses(coursesWithCounts as Course[])
-      }
-
-      if (categoriesData) {
-        setCategories(categoriesData)
-      }
-
-      setIsLoading(false)
+    // Fetch lesson counts for each course
+    if (coursesData) {
+      const coursesWithCounts = await Promise.all(
+        (coursesData as Course[]).map(async (course: Course) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { count } = await (supabase
+            .from('lessons')
+            .select('*', { count: 'exact', head: true })
+            .eq('course_id', course.id) as any)
+          return { ...course, lessons_count: count || 0 }
+        })
+      )
+      setCourses(coursesWithCounts as Course[])
     }
 
-    fetchData()
+    if (categoriesData) {
+      setCategories(categoriesData)
+    }
+
+    setIsLoading(false)
   }, [supabase])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
 
   const filteredCourses = courses.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -241,6 +246,48 @@ export default function AdminCoursesPage() {
     }
   }
 
+  // Selection handlers
+  const handleToggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
+
+  const handleToggleSelectAll = () => {
+    if (selectedIds.size === filteredCourses.length && filteredCourses.length > 0) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(filteredCourses.map(c => c.id)))
+    }
+  }
+
+  const isAllSelected = filteredCourses.length > 0 && selectedIds.size === filteredCourses.length
+  const isSomeSelected = selectedIds.size > 0 && selectedIds.size < filteredCourses.length
+
+  // Bulk delete handler
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return
+
+    const idsArray = Array.from(selectedIds)
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase.from('courses') as any)
+      .delete()
+      .in('id', idsArray)
+
+    if (!error) {
+      setSelectedIds(new Set())
+      setIsBulkDeleteDialogOpen(false)
+      await fetchData()
+    }
+  }
+
   const openEditDialog = (course: Course) => {
     setSelectedCourse(course)
     setFormData({
@@ -281,10 +328,21 @@ export default function AdminCoursesPage() {
           <h1 className="text-2xl font-bold text-foreground">Course Management</h1>
           <p className="text-muted-foreground">Manage and moderate course content</p>
         </div>
-        <Button onClick={() => setIsAddDialogOpen(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          Add Course
-        </Button>
+        <div className="flex items-center gap-2">
+          {selectedIds.size > 0 && (
+            <Button
+              variant="destructive"
+              onClick={() => setIsBulkDeleteDialogOpen(true)}
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete Selected ({selectedIds.size})
+            </Button>
+          )}
+          <Button onClick={() => setIsAddDialogOpen(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Add Course
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -382,6 +440,13 @@ export default function AdminCoursesPage() {
             <Table>
               <TableHeader>
                 <TableRow className="border-border/50 hover:bg-transparent">
+                  <TableHead className="w-12">
+                    <Checkbox
+                      checked={isAllSelected ? true : isSomeSelected ? 'indeterminate' : false}
+                      onCheckedChange={handleToggleSelectAll}
+                      aria-label="Select all courses"
+                    />
+                  </TableHead>
                   <TableHead>Course</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead>Difficulty</TableHead>
@@ -393,6 +458,13 @@ export default function AdminCoursesPage() {
               <TableBody>
                 {filteredCourses.map((course) => (
                   <TableRow key={course.id} className="border-border/50">
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedIds.has(course.id)}
+                        onCheckedChange={() => handleToggleSelect(course.id)}
+                        aria-label={`Select ${course.title}`}
+                      />
+                    </TableCell>
                     <TableCell>
                       <div>
                         <p className="font-medium text-foreground">{course.title}</p>
@@ -449,7 +521,7 @@ export default function AdminCoursesPage() {
                 ))}
                 {filteredCourses.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                       No courses found
                     </TableCell>
                   </TableRow>
@@ -634,6 +706,24 @@ export default function AdminCoursesPage() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteCourse} className="bg-red-500 hover:bg-red-600">
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <AlertDialog open={isBulkDeleteDialogOpen} onOpenChange={setIsBulkDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Selected Courses</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {selectedIds.size} selected course{selectedIds.size !== 1 ? 's' : ''}? This action cannot be undone and will also delete all lessons associated with these courses.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleBulkDelete} className="bg-red-500 hover:bg-red-600">
+              Delete {selectedIds.size} Course{selectedIds.size !== 1 ? 's' : ''}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

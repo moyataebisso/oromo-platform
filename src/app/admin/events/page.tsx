@@ -37,81 +37,28 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Switch } from '@/components/ui/switch'
+import { Checkbox } from '@/components/ui/checkbox'
 import { eventCategoryLabels, eventCategoryColors } from '@/types/events'
 
-// Sample events data
-const sampleEvents = [
-  {
-    id: '1',
-    title: 'Oromo Cultural Festival 2026',
-    category: 'cultural',
-    city: 'Washington',
-    state: 'DC',
-    start_date: '2026-03-15',
-    is_virtual: false,
-    is_featured: true,
-    is_approved: true,
-    attendee_count: 458,
-    organizer_name: 'Oromo Community Association',
-  },
-  {
-    id: '2',
-    title: 'Afaan Oromoo Language Workshop',
-    category: 'educational',
-    city: null,
-    state: null,
-    start_date: '2026-01-20',
-    is_virtual: true,
-    is_featured: true,
-    is_approved: true,
-    attendee_count: 124,
-    organizer_name: 'Oromo Language Institute',
-  },
-  {
-    id: '3',
-    title: 'Oromo Youth Sports Tournament',
-    category: 'sports',
-    city: 'Minneapolis',
-    state: 'MN',
-    start_date: '2026-02-08',
-    is_virtual: false,
-    is_featured: false,
-    is_approved: true,
-    attendee_count: 89,
-    organizer_name: 'Oromo Youth Sports Association',
-  },
-  {
-    id: '4',
-    title: 'Oromo Business Networking Event',
-    category: 'professional',
-    city: 'Atlanta',
-    state: 'GA',
-    start_date: '2026-01-25',
-    is_virtual: false,
-    is_featured: true,
-    is_approved: false,
-    attendee_count: 156,
-    organizer_name: 'Oromo Business Network',
-  },
-  {
-    id: '5',
-    title: 'Community Prayer & Celebration',
-    category: 'religious',
-    city: 'Columbus',
-    state: 'OH',
-    start_date: '2026-01-12',
-    is_virtual: false,
-    is_featured: false,
-    is_approved: true,
-    attendee_count: 67,
-    organizer_name: 'Oromo Faith Community',
-  },
-]
+interface Event {
+  id: string
+  title: string
+  category: string
+  city: string | null
+  state: string | null
+  start_date: string
+  is_virtual: boolean
+  is_featured: boolean
+  is_approved: boolean
+  attendee_count: number
+  organizer_name: string
+}
 
 export default function AdminEventsPage() {
-  const [events, setEvents] = useState(sampleEvents)
+  const [events, setEvents] = useState<Event[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [filterStatus, setFilterStatus] = useState<'all' | 'approved' | 'pending'>('all')
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
   const filteredEvents = events.filter(event => {
     const matchesSearch = event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -121,6 +68,36 @@ export default function AdminEventsPage() {
       (filterStatus === 'pending' && !event.is_approved)
     return matchesSearch && matchesStatus
   })
+
+  const isAllSelected = filteredEvents.length > 0 && filteredEvents.every(event => selectedIds.has(event.id))
+  const isSomeSelected = filteredEvents.some(event => selectedIds.has(event.id))
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const newSelected = new Set(selectedIds)
+      filteredEvents.forEach(event => newSelected.add(event.id))
+      setSelectedIds(newSelected)
+    } else {
+      const newSelected = new Set(selectedIds)
+      filteredEvents.forEach(event => newSelected.delete(event.id))
+      setSelectedIds(newSelected)
+    }
+  }
+
+  const handleSelectOne = (id: string, checked: boolean) => {
+    const newSelected = new Set(selectedIds)
+    if (checked) {
+      newSelected.add(id)
+    } else {
+      newSelected.delete(id)
+    }
+    setSelectedIds(newSelected)
+  }
+
+  const handleDeleteSelected = () => {
+    setEvents(events.filter(event => !selectedIds.has(event.id)))
+    setSelectedIds(new Set())
+  }
 
   const handleToggleApproved = (id: string) => {
     setEvents(events.map(event =>
@@ -136,6 +113,11 @@ export default function AdminEventsPage() {
 
   const handleDelete = (id: string) => {
     setEvents(events.filter(event => event.id !== id))
+    setSelectedIds(prev => {
+      const newSelected = new Set(prev)
+      newSelected.delete(id)
+      return newSelected
+    })
   }
 
   const pendingCount = events.filter(e => !e.is_approved).length
@@ -149,12 +131,24 @@ export default function AdminEventsPage() {
           <h1 className="text-2xl font-bold text-foreground">Events Management</h1>
           <p className="text-muted-foreground">Manage community events and submissions</p>
         </div>
-        <Button variant="gradient" asChild>
-          <Link href="/admin/events/new">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Event
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          {selectedIds.size > 0 && (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleDeleteSelected}
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete Selected ({selectedIds.size})
+            </Button>
+          )}
+          <Button variant="gradient" asChild>
+            <Link href="/admin/events/new">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Event
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -259,96 +253,118 @@ export default function AdminEventsPage() {
       {/* Events Table */}
       <Card className="bg-card/50 border-border/50">
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-border/50 hover:bg-transparent">
-                <TableHead>Event</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>RSVPs</TableHead>
-                <TableHead>Featured</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredEvents.map((event) => (
-                <TableRow key={event.id} className="border-border/50">
-                  <TableCell>
-                    <div>
-                      <p className="font-medium text-foreground">{event.title}</p>
-                      <p className="text-sm text-muted-foreground">{event.organizer_name}</p>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={`border ${eventCategoryColors[event.category as keyof typeof eventCategoryColors]}`}>
-                      {eventCategoryLabels[event.category as keyof typeof eventCategoryLabels]}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {event.is_virtual ? (
-                      <Badge variant="outline">Virtual</Badge>
-                    ) : (
-                      <span className="text-sm text-muted-foreground">
-                        {event.city}, {event.state}
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {new Date(event.start_date).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1 text-muted-foreground">
-                      <Users className="w-4 h-4" />
-                      {event.attendee_count}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Switch
-                      checked={event.is_featured}
-                      onCheckedChange={() => handleToggleFeatured(event.id)}
+          {filteredEvents.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <Calendar className="w-12 h-12 text-muted-foreground/50 mb-4" />
+              <p className="text-lg font-medium text-muted-foreground">No events found</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow className="border-border/50 hover:bg-transparent">
+                  <TableHead className="w-12">
+                    <Checkbox
+                      checked={isAllSelected}
+                      onCheckedChange={(checked) => handleSelectAll(checked === true)}
+                      aria-label="Select all events"
+                      {...(isSomeSelected && !isAllSelected ? { 'data-state': 'indeterminate' } : {})}
                     />
-                  </TableCell>
-                  <TableCell>
-                    <Switch
-                      checked={event.is_approved}
-                      onCheckedChange={() => handleToggleApproved(event.id)}
-                    />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreHorizontal className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild>
-                          <Link href={`/events/${event.id}`}>
-                            <Eye className="w-4 h-4 mr-2" />
-                            View
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Edit className="w-4 h-4 mr-2" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className="text-red-400"
-                          onClick={() => handleDelete(event.id)}
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+                  </TableHead>
+                  <TableHead>Event</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>RSVPs</TableHead>
+                  <TableHead>Featured</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredEvents.map((event) => (
+                  <TableRow key={event.id} className="border-border/50">
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedIds.has(event.id)}
+                        onCheckedChange={(checked) => handleSelectOne(event.id, checked === true)}
+                        aria-label={`Select ${event.title}`}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium text-foreground">{event.title}</p>
+                        <p className="text-sm text-muted-foreground">{event.organizer_name}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={`border ${eventCategoryColors[event.category as keyof typeof eventCategoryColors]}`}>
+                        {eventCategoryLabels[event.category as keyof typeof eventCategoryLabels]}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {event.is_virtual ? (
+                        <Badge variant="outline">Virtual</Badge>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">
+                          {event.city}, {event.state}
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {new Date(event.start_date).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1 text-muted-foreground">
+                        <Users className="w-4 h-4" />
+                        {event.attendee_count}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Switch
+                        checked={event.is_featured}
+                        onCheckedChange={() => handleToggleFeatured(event.id)}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Switch
+                        checked={event.is_approved}
+                        onCheckedChange={() => handleToggleApproved(event.id)}
+                      />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreHorizontal className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem asChild>
+                            <Link href={`/events/${event.id}`}>
+                              <Eye className="w-4 h-4 mr-2" />
+                              View
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <Edit className="w-4 h-4 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            className="text-red-400"
+                            onClick={() => handleDelete(event.id)}
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>

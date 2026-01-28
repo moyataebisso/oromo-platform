@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import {
   BookOpen,
   Briefcase,
@@ -15,6 +16,7 @@ import {
   Target,
   Calendar,
   Bell,
+  Loader2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -24,76 +26,61 @@ import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
+import { createClient } from '@/lib/supabase/client'
 
-// Mock user data
-const userData = {
-  name: 'Bekele Abera',
-  email: 'bekele@example.com',
-  avatar: null,
-  memberSince: 'January 2024',
-  streak: 7,
-  totalPoints: 1250,
+interface UserData {
+  name: string
+  email: string
+  avatar: string | null
+  memberSince: string
 }
-
-const enrolledCourses = [
-  {
-    id: '1',
-    title: 'Introduction to Afaan Oromoo',
-    progress: 75,
-    lessonsCompleted: 9,
-    totalLessons: 12,
-    lastAccessed: '2 hours ago',
-  },
-  {
-    id: '2',
-    title: 'Oromo History: From Ancient Times',
-    progress: 45,
-    lessonsCompleted: 4,
-    totalLessons: 8,
-    lastAccessed: '1 day ago',
-  },
-  {
-    id: '3',
-    title: 'Gadaa System: Democratic Governance',
-    progress: 10,
-    lessonsCompleted: 1,
-    totalLessons: 10,
-    lastAccessed: '3 days ago',
-  },
-]
-
-const savedJobs = [
-  {
-    id: '1',
-    title: 'Software Engineer',
-    company: 'Oromo Tech Solutions',
-    location: 'Minneapolis, MN',
-    savedDate: '2 days ago',
-  },
-  {
-    id: '2',
-    title: 'Community Outreach Coordinator',
-    company: 'Oromo Community Center',
-    location: 'Washington, DC',
-    savedDate: '5 days ago',
-  },
-]
-
-const recentActivity = [
-  { type: 'lesson', action: 'Completed lesson "Basic Greetings"', time: '2 hours ago', icon: BookOpen },
-  { type: 'quiz', action: 'Scored 95% on quiz', time: '3 hours ago', icon: Award },
-  { type: 'job', action: 'Saved job "Software Engineer"', time: '2 days ago', icon: Briefcase },
-  { type: 'article', action: 'Read "Gadaa System Overview"', time: '4 days ago', icon: FileText },
-]
-
-const notifications = [
-  { title: 'New course available!', message: 'Check out "Advanced Afaan Oromoo"', time: '1 hour ago', unread: true },
-  { title: 'Continue learning', message: 'You\'re 3 lessons away from completing your course', time: '1 day ago', unread: true },
-  { title: 'Job alert', message: '5 new jobs match your preferences', time: '2 days ago', unread: false },
-]
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState('overview')
+  const [userData, setUserData] = useState<UserData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
+
+  useEffect(() => {
+    const loadUser = async () => {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (!user) {
+        router.push('/login')
+        return
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('display_name, avatar_url, created_at')
+        .eq('id', user.id)
+        .single() as { data: { display_name: string | null; avatar_url: string | null; created_at: string } | null }
+
+      setUserData({
+        name: profile?.display_name || user.user_metadata?.display_name || user.email?.split('@')[0] || 'User',
+        email: user.email || '',
+        avatar: profile?.avatar_url || user.user_metadata?.avatar_url || null,
+        memberSince: new Date(profile?.created_at || user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+      })
+
+      setLoading(false)
+    }
+
+    loadUser()
+  }, [router])
+
+  if (loading || !userData) {
+    return (
+      <div className="min-h-screen flex flex-col bg-slate-50">
+        <Header />
+        <main className="flex-1 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </main>
+        <Footer />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
@@ -115,7 +102,7 @@ export default function DashboardPage() {
                   Welcome back, {userData.name.split(' ')[0]}!
                 </h1>
                 <p className="text-slate-600">
-                  Keep up the great work! You&apos;re on a {userData.streak}-day learning streak.
+                  Member since {userData.memberSince}
                 </p>
               </div>
             </div>
@@ -126,12 +113,6 @@ export default function DashboardPage() {
                   Continue Learning
                 </Link>
               </Button>
-              <Button variant="outline" className="relative">
-                <Bell className="w-4 h-4" />
-                <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center">
-                  2
-                </span>
-              </Button>
             </div>
           </div>
 
@@ -141,8 +122,8 @@ export default function DashboardPage() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-blue-100 text-sm">Courses Enrolled</p>
-                    <p className="text-3xl font-bold">{enrolledCourses.length}</p>
+                    <p className="text-blue-100 text-sm">Courses</p>
+                    <p className="text-3xl font-bold">0</p>
                   </div>
                   <BookOpen className="w-10 h-10 text-blue-200" />
                 </div>
@@ -153,7 +134,7 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-emerald-100 text-sm">Jobs Saved</p>
-                    <p className="text-3xl font-bold">{savedJobs.length}</p>
+                    <p className="text-3xl font-bold">0</p>
                   </div>
                   <Briefcase className="w-10 h-10 text-emerald-200" />
                 </div>
@@ -164,7 +145,7 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-amber-100 text-sm">Learning Streak</p>
-                    <p className="text-3xl font-bold">{userData.streak} days</p>
+                    <p className="text-3xl font-bold">0 days</p>
                   </div>
                   <TrendingUp className="w-10 h-10 text-amber-200" />
                 </div>
@@ -175,7 +156,7 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-purple-100 text-sm">Total Points</p>
-                    <p className="text-3xl font-bold">{userData.totalPoints}</p>
+                    <p className="text-3xl font-bold">0</p>
                   </div>
                   <Award className="w-10 h-10 text-purple-200" />
                 </div>
@@ -209,36 +190,20 @@ export default function DashboardPage() {
                         </Button>
                       </div>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      {enrolledCourses.slice(0, 2).map((course) => (
-                        <div key={course.id} className="flex items-center gap-4 p-4 bg-slate-50 rounded-lg">
-                          <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
-                            <BookOpen className="w-6 h-6 text-blue-600" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-slate-900 truncate">{course.title}</h4>
-                            <div className="flex items-center gap-2 mt-1">
-                              <Progress value={course.progress} className="h-2 flex-1" />
-                              <span className="text-sm text-slate-500">{course.progress}%</span>
-                            </div>
-                            <p className="text-xs text-slate-500 mt-1">
-                              {course.lessonsCompleted}/{course.totalLessons} lessons
-                            </p>
-                          </div>
-                          <Button size="sm" asChild>
-                            <Link href={`/academy/${course.id}`}>
-                              <Play className="w-4 h-4" />
-                            </Link>
-                          </Button>
-                        </div>
-                      ))}
+                    <CardContent>
+                      <div className="text-center py-8 text-slate-500">
+                        <BookOpen className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+                        <p>No courses started yet.</p>
+                        <Button variant="outline" size="sm" className="mt-3" asChild>
+                          <Link href="/academy">Browse Courses</Link>
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 </div>
 
-                {/* Quick Actions & Notifications */}
+                {/* Quick Actions */}
                 <div className="space-y-6">
-                  {/* Quick Actions */}
                   <Card>
                     <CardHeader className="pb-2">
                       <CardTitle className="text-base">Quick Actions</CardTitle>
@@ -270,32 +235,6 @@ export default function DashboardPage() {
                       </Button>
                     </CardContent>
                   </Card>
-
-                  {/* Notifications */}
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-base">Notifications</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      {notifications.slice(0, 3).map((notif, index) => (
-                        <div
-                          key={index}
-                          className={`p-3 rounded-lg ${notif.unread ? 'bg-blue-50' : 'bg-slate-50'}`}
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <div>
-                              <p className="font-medium text-sm text-slate-900">{notif.title}</p>
-                              <p className="text-xs text-slate-600">{notif.message}</p>
-                            </div>
-                            {notif.unread && (
-                              <span className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-1" />
-                            )}
-                          </div>
-                          <p className="text-xs text-slate-400 mt-1">{notif.time}</p>
-                        </div>
-                      ))}
-                    </CardContent>
-                  </Card>
                 </div>
               </div>
             </TabsContent>
@@ -307,36 +246,14 @@ export default function DashboardPage() {
                   <CardTitle>My Enrolled Courses</CardTitle>
                   <CardDescription>Track your progress across all enrolled courses</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  {enrolledCourses.map((course) => (
-                    <div key={course.id} className="flex items-center gap-4 p-4 border rounded-lg hover:bg-slate-50 transition-colors">
-                      <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center flex-shrink-0">
-                        <BookOpen className="w-8 h-8 text-blue-600" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-slate-900">{course.title}</h4>
-                        <div className="flex items-center gap-4 mt-2">
-                          <div className="flex-1">
-                            <Progress value={course.progress} className="h-2" />
-                          </div>
-                          <span className="text-sm font-medium text-slate-700">{course.progress}%</span>
-                        </div>
-                        <div className="flex items-center gap-4 mt-2 text-sm text-slate-500">
-                          <span>{course.lessonsCompleted}/{course.totalLessons} lessons</span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            Last accessed {course.lastAccessed}
-                          </span>
-                        </div>
-                      </div>
-                      <Button asChild>
-                        <Link href={`/academy/${course.id}`}>
-                          Continue
-                          <ChevronRight className="w-4 h-4 ml-1" />
-                        </Link>
-                      </Button>
-                    </div>
-                  ))}
+                <CardContent>
+                  <div className="text-center py-8 text-slate-500">
+                    <BookOpen className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+                    <p>No courses enrolled yet.</p>
+                    <Button variant="outline" size="sm" className="mt-3" asChild>
+                      <Link href="/academy">Browse Courses</Link>
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -357,31 +274,14 @@ export default function DashboardPage() {
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  {savedJobs.map((job) => (
-                    <div key={job.id} className="flex items-center gap-4 p-4 border rounded-lg hover:bg-slate-50 transition-colors">
-                      <div className="w-12 h-12 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                        <Briefcase className="w-6 h-6 text-emerald-600" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-slate-900">{job.title}</h4>
-                        <p className="text-sm text-slate-600">{job.company}</p>
-                        <p className="text-sm text-slate-500">{job.location}</p>
-                      </div>
-                      <div className="text-right">
-                        <Badge variant="secondary" className="mb-2">
-                          <Bookmark className="w-3 h-3 mr-1" />
-                          Saved
-                        </Badge>
-                        <p className="text-xs text-slate-500">{job.savedDate}</p>
-                      </div>
-                      <Button asChild>
-                        <Link href={`/careers/${job.id}`}>
-                          View
-                        </Link>
-                      </Button>
-                    </div>
-                  ))}
+                <CardContent>
+                  <div className="text-center py-8 text-slate-500">
+                    <Briefcase className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+                    <p>No saved jobs yet.</p>
+                    <Button variant="outline" size="sm" className="mt-3" asChild>
+                      <Link href="/careers">Browse Jobs</Link>
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -394,28 +294,9 @@ export default function DashboardPage() {
                   <CardDescription>Your learning and engagement history</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {recentActivity.map((activity, index) => (
-                      <div key={index} className="flex items-center gap-4 p-3 hover:bg-slate-50 rounded-lg transition-colors">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                          activity.type === 'lesson' ? 'bg-blue-100' :
-                          activity.type === 'quiz' ? 'bg-amber-100' :
-                          activity.type === 'job' ? 'bg-emerald-100' :
-                          'bg-purple-100'
-                        }`}>
-                          <activity.icon className={`w-5 h-5 ${
-                            activity.type === 'lesson' ? 'text-blue-600' :
-                            activity.type === 'quiz' ? 'text-amber-600' :
-                            activity.type === 'job' ? 'text-emerald-600' :
-                            'text-purple-600'
-                          }`} />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-slate-900">{activity.action}</p>
-                          <p className="text-sm text-slate-500">{activity.time}</p>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="text-center py-8 text-slate-500">
+                    <Clock className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+                    <p>No recent activity.</p>
                   </div>
                 </CardContent>
               </Card>

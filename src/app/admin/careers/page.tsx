@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -67,51 +68,7 @@ const categoryColors: Record<string, string> = {
   legal: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
 }
 
-// Mock data - in production, fetch from Supabase
-const mockCareers: Career[] = [
-  {
-    id: '1',
-    title: 'Software Developer',
-    slug: 'software-developer',
-    category: 'technology',
-    description: 'Design, develop, and maintain software applications.',
-    salary_min: 70000,
-    salary_max: 150000,
-    job_outlook: '+22%',
-    education_required: "Bachelor's degree in Computer Science or related field",
-    skills_needed: 'JavaScript, Python, Problem Solving, Communication',
-    is_published: true,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    title: 'Registered Nurse',
-    slug: 'registered-nurse',
-    category: 'healthcare',
-    description: 'Provide and coordinate patient care in various healthcare settings.',
-    salary_min: 60000,
-    salary_max: 110000,
-    job_outlook: '+6%',
-    education_required: 'BSN or Associate Degree in Nursing',
-    skills_needed: 'Patient Care, Critical Thinking, Communication, Empathy',
-    is_published: true,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: '3',
-    title: 'Financial Analyst',
-    slug: 'financial-analyst',
-    category: 'business',
-    description: 'Analyze financial data and provide investment recommendations.',
-    salary_min: 65000,
-    salary_max: 120000,
-    job_outlook: '+9%',
-    education_required: "Bachelor's degree in Finance, Economics, or Accounting",
-    skills_needed: 'Excel, Financial Modeling, Analysis, Communication',
-    is_published: false,
-    created_at: new Date().toISOString(),
-  },
-]
+const initialCareers: Career[] = []
 
 const categories = [
   { value: 'technology', label: 'Technology' },
@@ -124,14 +81,18 @@ const categories = [
 ]
 
 export default function AdminCareersPage() {
-  const [careers, setCareers] = useState<Career[]>(mockCareers)
+  const [careers, setCareers] = useState<Career[]>(initialCareers)
   const [searchQuery, setSearchQuery] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('all')
+
+  // Selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
   // Dialog states
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false)
   const [selectedCareer, setSelectedCareer] = useState<Career | null>(null)
   const [isSaving, setIsSaving] = useState(false)
 
@@ -185,6 +146,11 @@ export default function AdminCareersPage() {
     if (!selectedCareer) return
     // In production, this would be a Supabase delete
     setCareers(careers.filter(c => c.id !== selectedCareer.id))
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      next.delete(selectedCareer.id)
+      return next
+    })
     setIsDeleteDialogOpen(false)
     setSelectedCareer(null)
   }
@@ -194,6 +160,42 @@ export default function AdminCareersPage() {
     setCareers(careers.map(c =>
       c.id === career.id ? { ...c, is_published: !c.is_published } : c
     ))
+  }
+
+  const handleBulkDelete = () => {
+    setCareers(careers.filter(c => !selectedIds.has(c.id)))
+    setSelectedIds(new Set())
+    setIsBulkDeleteDialogOpen(false)
+  }
+
+  const toggleSelectOne = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
+
+  const isAllSelected = filteredCareers.length > 0 && filteredCareers.every(c => selectedIds.has(c.id))
+
+  const toggleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedIds(prev => {
+        const next = new Set(prev)
+        filteredCareers.forEach(c => next.delete(c.id))
+        return next
+      })
+    } else {
+      setSelectedIds(prev => {
+        const next = new Set(prev)
+        filteredCareers.forEach(c => next.add(c.id))
+        return next
+      })
+    }
   }
 
   const openEditDialog = (career: Career) => {
@@ -251,10 +253,21 @@ export default function AdminCareersPage() {
           <h1 className="text-2xl font-bold text-foreground">Careers Management</h1>
           <p className="text-muted-foreground">Manage career profiles and information</p>
         </div>
-        <Button onClick={() => setIsAddDialogOpen(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          Add Career
-        </Button>
+        <div className="flex items-center gap-2">
+          {selectedIds.size > 0 && (
+            <Button
+              variant="destructive"
+              onClick={() => setIsBulkDeleteDialogOpen(true)}
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete Selected ({selectedIds.size})
+            </Button>
+          )}
+          <Button onClick={() => setIsAddDialogOpen(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Add Career
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -350,6 +363,13 @@ export default function AdminCareersPage() {
           <Table>
             <TableHeader>
               <TableRow className="border-border/50 hover:bg-transparent">
+                <TableHead className="w-12">
+                  <Checkbox
+                    checked={isAllSelected}
+                    onCheckedChange={toggleSelectAll}
+                    aria-label="Select all"
+                  />
+                </TableHead>
                 <TableHead>Career</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead>Salary Range</TableHead>
@@ -361,6 +381,13 @@ export default function AdminCareersPage() {
             <TableBody>
               {filteredCareers.map((career) => (
                 <TableRow key={career.id} className="border-border/50">
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedIds.has(career.id)}
+                      onCheckedChange={() => toggleSelectOne(career.id)}
+                      aria-label={`Select ${career.title}`}
+                    />
+                  </TableCell>
                   <TableCell>
                     <div>
                       <p className="font-medium text-foreground">{career.title}</p>
@@ -423,8 +450,8 @@ export default function AdminCareersPage() {
               ))}
               {filteredCareers.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                    No careers found
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    No career profiles found
                   </TableCell>
                 </TableRow>
               )}
@@ -570,6 +597,24 @@ export default function AdminCareersPage() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteCareer} className="bg-red-500 hover:bg-red-600">
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <AlertDialog open={isBulkDeleteDialogOpen} onOpenChange={setIsBulkDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Selected Careers</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {selectedIds.size} selected career{selectedIds.size === 1 ? '' : 's'}? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleBulkDelete} className="bg-red-500 hover:bg-red-600">
+              Delete {selectedIds.size} Career{selectedIds.size === 1 ? '' : 's'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

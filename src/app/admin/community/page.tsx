@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -62,20 +63,9 @@ interface Comment {
   created_at: string
 }
 
-const mockPosts: Post[] = [
-  { id: '1', content: 'Just attended an amazing Oromo cultural event in DC! The traditional dances and music were incredible. Feeling so connected to our heritage.', author: { name: 'Bekele Ayana', avatar: null }, likes: 45, comments: 12, status: 'active', is_pinned: true, is_reported: false, created_at: '2026-01-08' },
-  { id: '2', content: 'Looking for Oromo language tutors in the Minneapolis area. My kids are eager to learn Afaan Oromoo. Any recommendations?', author: { name: 'Chaltu Megersa', avatar: null }, likes: 23, comments: 8, status: 'active', is_pinned: false, is_reported: false, created_at: '2026-01-07' },
-  { id: '3', content: 'Spam post with inappropriate content that was reported by users', author: { name: 'Unknown User', avatar: null }, likes: 0, comments: 0, status: 'pending', is_pinned: false, is_reported: true, created_at: '2026-01-06' },
-  { id: '4', content: 'Great networking session at the Oromo Business Summit today. Met so many inspiring entrepreneurs from our community!', author: { name: 'Abdii Tolessa', avatar: null }, likes: 67, comments: 15, status: 'active', is_pinned: false, is_reported: false, created_at: '2026-01-05' },
-  { id: '5', content: 'Hidden post due to community guidelines violation', author: { name: 'Test User', avatar: null }, likes: 2, comments: 1, status: 'hidden', is_pinned: false, is_reported: true, created_at: '2026-01-04' },
-]
+const initialPosts: Post[] = []
 
-const mockComments: Comment[] = [
-  { id: '1', content: 'This is so inspiring! I wish I could have attended.', author: { name: 'Lelise Daba', avatar: null }, post_title: 'Cultural event post', status: 'active', is_reported: false, created_at: '2026-01-08' },
-  { id: '2', content: 'I recommend the Oromo Language Academy - they have great tutors!', author: { name: 'Gurmesa Kedir', avatar: null }, post_title: 'Language tutors post', status: 'active', is_reported: false, created_at: '2026-01-07' },
-  { id: '3', content: 'Inappropriate comment flagged by community', author: { name: 'Anonymous', avatar: null }, post_title: 'Business Summit post', status: 'pending', is_reported: true, created_at: '2026-01-06' },
-  { id: '4', content: 'Great event! Looking forward to next year.', author: { name: 'Hirut Abebe', avatar: null }, post_title: 'Cultural event post', status: 'active', is_reported: false, created_at: '2026-01-05' },
-]
+const initialComments: Comment[] = []
 
 const statusColors = {
   active: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
@@ -84,14 +74,18 @@ const statusColors = {
 }
 
 export default function AdminCommunityPage() {
-  const [posts, setPosts] = useState<Post[]>(mockPosts)
-  const [comments, setComments] = useState<Comment[]>(mockComments)
+  const [posts, setPosts] = useState<Post[]>(initialPosts)
+  const [comments, setComments] = useState<Comment[]>(initialComments)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [activeTab, setActiveTab] = useState('posts')
 
+  // Selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+
   // Dialog states
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false)
   const [selectedPost, setSelectedPost] = useState<Post | null>(null)
   const [selectedComment, setSelectedComment] = useState<Comment | null>(null)
 
@@ -166,6 +160,49 @@ export default function AdminCommunityPage() {
     setSelectedPost(null)
     setIsDeleteDialogOpen(true)
   }
+
+  // Selection handlers
+  const handleToggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
+
+  const handleSelectAllPosts = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(new Set(filteredPosts.map(p => p.id)))
+    } else {
+      setSelectedIds(new Set())
+    }
+  }
+
+  const handleSelectAllComments = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(new Set(filteredComments.map(c => c.id)))
+    } else {
+      setSelectedIds(new Set())
+    }
+  }
+
+  const handleBulkDelete = () => {
+    if (activeTab === 'posts') {
+      setPosts(posts.filter(post => !selectedIds.has(post.id)))
+    } else {
+      setComments(comments.filter(comment => !selectedIds.has(comment.id)))
+    }
+    setSelectedIds(new Set())
+    setIsBulkDeleteDialogOpen(false)
+  }
+
+  const isAllPostsSelected = filteredPosts.length > 0 && filteredPosts.every(p => selectedIds.has(p.id))
+  const isAllCommentsSelected = filteredComments.length > 0 && filteredComments.every(c => selectedIds.has(c.id))
+  const hasSelection = selectedIds.size > 0
 
   const activePostsCount = posts.filter(p => p.status === 'active').length
   const pendingPostsCount = posts.filter(p => p.status === 'pending').length
@@ -274,7 +311,7 @@ export default function AdminCommunityPage() {
       </Card>
 
       {/* Tabs for Posts and Comments */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={(value) => { setActiveTab(value); setSelectedIds(new Set()); }}>
         <TabsList>
           <TabsTrigger value="posts">Posts ({filteredPosts.length})</TabsTrigger>
           <TabsTrigger value="comments">Comments ({filteredComments.length})</TabsTrigger>
@@ -282,13 +319,30 @@ export default function AdminCommunityPage() {
 
         <TabsContent value="posts">
           <Card className="bg-card/50 border-border/50">
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Posts</CardTitle>
+              {hasSelection && activeTab === 'posts' && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setIsBulkDeleteDialogOpen(true)}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete Selected ({selectedIds.size})
+                </Button>
+              )}
             </CardHeader>
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
                   <TableRow className="border-border/50 hover:bg-transparent">
+                    <TableHead className="w-12">
+                      <Checkbox
+                        checked={isAllPostsSelected}
+                        onCheckedChange={(checked) => handleSelectAllPosts(checked === true)}
+                        aria-label="Select all posts"
+                      />
+                    </TableHead>
                     <TableHead>Content</TableHead>
                     <TableHead>Author</TableHead>
                     <TableHead>Engagement</TableHead>
@@ -299,6 +353,13 @@ export default function AdminCommunityPage() {
                 <TableBody>
                   {filteredPosts.map((post) => (
                     <TableRow key={post.id} className="border-border/50">
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedIds.has(post.id)}
+                          onCheckedChange={() => handleToggleSelect(post.id)}
+                          aria-label={`Select post by ${post.author.name}`}
+                        />
+                      </TableCell>
                       <TableCell className="max-w-md">
                         <div className="flex items-start gap-2">
                           {post.is_pinned && <Pin className="w-4 h-4 text-purple-400 flex-shrink-0 mt-1" />}
@@ -373,7 +434,7 @@ export default function AdminCommunityPage() {
                   ))}
                   {filteredPosts.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                         No posts found
                       </TableCell>
                     </TableRow>
@@ -386,13 +447,30 @@ export default function AdminCommunityPage() {
 
         <TabsContent value="comments">
           <Card className="bg-card/50 border-border/50">
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Comments</CardTitle>
+              {hasSelection && activeTab === 'comments' && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setIsBulkDeleteDialogOpen(true)}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete Selected ({selectedIds.size})
+                </Button>
+              )}
             </CardHeader>
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
                   <TableRow className="border-border/50 hover:bg-transparent">
+                    <TableHead className="w-12">
+                      <Checkbox
+                        checked={isAllCommentsSelected}
+                        onCheckedChange={(checked) => handleSelectAllComments(checked === true)}
+                        aria-label="Select all comments"
+                      />
+                    </TableHead>
                     <TableHead>Comment</TableHead>
                     <TableHead>Author</TableHead>
                     <TableHead>Post</TableHead>
@@ -403,6 +481,13 @@ export default function AdminCommunityPage() {
                 <TableBody>
                   {filteredComments.map((comment) => (
                     <TableRow key={comment.id} className="border-border/50">
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedIds.has(comment.id)}
+                          onCheckedChange={() => handleToggleSelect(comment.id)}
+                          aria-label={`Select comment by ${comment.author.name}`}
+                        />
+                      </TableCell>
                       <TableCell className="max-w-md">
                         <div className="flex items-start gap-2">
                           {comment.is_reported && <Flag className="w-4 h-4 text-red-400 flex-shrink-0 mt-1" />}
@@ -460,7 +545,7 @@ export default function AdminCommunityPage() {
                   ))}
                   {filteredComments.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                         No comments found
                       </TableCell>
                     </TableRow>
@@ -488,6 +573,27 @@ export default function AdminCommunityPage() {
               className="bg-red-500 hover:bg-red-600"
             >
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <AlertDialog open={isBulkDeleteDialogOpen} onOpenChange={setIsBulkDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Selected {activeTab === 'posts' ? 'Posts' : 'Comments'}</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {selectedIds.size} selected {activeTab === 'posts' ? (selectedIds.size === 1 ? 'post' : 'posts') : (selectedIds.size === 1 ? 'comment' : 'comments')}? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleBulkDelete}
+              className="bg-red-500 hover:bg-red-600"
+            >
+              Delete {selectedIds.size} {activeTab === 'posts' ? (selectedIds.size === 1 ? 'Post' : 'Posts') : (selectedIds.size === 1 ? 'Comment' : 'Comments')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
