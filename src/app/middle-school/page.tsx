@@ -41,22 +41,24 @@ export default function MiddleSchoolHome() {
 
   const getCategoryIcon = (category: string) => {
     const icons: Record<string, React.ReactNode> = {
-      'test-prep': <Target className="w-12 h-12 text-white" />,
+      'test_prep': <Target className="w-12 h-12 text-white" />,
       'math': <Brain className="w-12 h-12 text-white" />,
       'reading': <BookOpen className="w-12 h-12 text-white" />,
-      'science': <Rocket className="w-12 h-12 text-white" />,
-      'study-skills': <Brain className="w-12 h-12 text-white" />,
+      'writing': <BookOpen className="w-12 h-12 text-white" />,
+      'oromo': <Star className="w-12 h-12 text-white" />,
+      'study_skills': <Brain className="w-12 h-12 text-white" />,
     }
     return icons[category] || <BookOpen className="w-12 h-12 text-white" />
   }
 
   const getCategoryGradient = (category: string) => {
     const gradients: Record<string, string> = {
-      'test-prep': 'from-red-500 to-orange-500',
+      'test_prep': 'from-red-500 to-orange-500',
       'math': 'from-blue-500 to-cyan-500',
       'reading': 'from-green-500 to-emerald-500',
-      'science': 'from-purple-500 to-pink-500',
-      'study-skills': 'from-cyan-500 to-teal-500',
+      'writing': 'from-emerald-500 to-teal-500',
+      'oromo': 'from-orange-500 to-amber-500',
+      'study_skills': 'from-cyan-500 to-teal-500',
     }
     return gradients[category] || 'from-blue-500 to-purple-500'
   }
@@ -98,7 +100,7 @@ export default function MiddleSchoolHome() {
         <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-8 text-center">What do you want to do?</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Link
-            href="/middle-school/courses?category=test-prep"
+            href="/middle-school/courses?category=test_prep"
             className="bg-gradient-to-br from-red-500 to-orange-500 rounded-2xl p-6 text-white hover:scale-105 transition-transform shadow-lg"
           >
             <Target className="w-10 h-10 mb-4" />
@@ -164,7 +166,7 @@ export default function MiddleSchoolHome() {
                   </div>
                   <div className="p-4">
                     <span className="text-xs text-blue-600 dark:text-blue-400 font-medium uppercase">
-                      {course.course_category?.replace('-', ' ')}
+                      {course.course_category?.replace('_', ' ')}
                     </span>
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mt-1">{course.title}</h3>
                     <p className="text-gray-600 dark:text-gray-400 text-sm mt-1 line-clamp-2">{course.description}</p>

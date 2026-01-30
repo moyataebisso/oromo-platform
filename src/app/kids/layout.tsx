@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Menu, X, Star, Home, Play, Trophy, Lock } from 'lucide-react'
+import { Menu, X, Star, Home, Play, Trophy, Lock, BookOpen } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { AgeGateModal, hasCompletedAgeGate, getStoredAgeGroup, type UserAgeGroup } from '@/components/kids/age-gate-modal'
@@ -135,6 +135,13 @@ function KidsLayoutInner({ children }: { children: React.ReactNode }) {
                 Home
               </Link>
               <Link
+                href="/kids/courses"
+                className="flex items-center gap-2 px-5 py-3 bg-white/20 hover:bg-white/30 rounded-full text-white font-semibold text-lg transition-all"
+              >
+                <BookOpen className="w-5 h-5" />
+                Courses
+              </Link>
+              <Link
                 href="/kids/watch"
                 className="flex items-center gap-2 px-5 py-3 bg-white/20 hover:bg-white/30 rounded-full text-white font-semibold text-lg transition-all"
               >
@@ -201,6 +208,14 @@ function KidsLayoutInner({ children }: { children: React.ReactNode }) {
               >
                 <Home className="w-6 h-6" />
                 Home
+              </Link>
+              <Link
+                href="/kids/courses"
+                className="flex items-center gap-3 px-4 py-3 text-lg font-semibold text-white hover:bg-white/20 rounded-lg transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <BookOpen className="w-6 h-6" />
+                Courses
               </Link>
               <Link
                 href="/kids/watch"

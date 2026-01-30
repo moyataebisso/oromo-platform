@@ -107,6 +107,18 @@ export default function MiddleSchoolCourseDetailPage() {
         if (lessonsError) {
           console.error('Lessons query error:', lessonsError.message || lessonsError)
         }
+
+        // Debug: Log lesson data to check slugs
+        console.log('=== LESSONS DEBUG ===')
+        console.log('Course slug:', slug)
+        console.log('Lessons found:', lessonsData?.length || 0)
+        lessonsData?.forEach((l: Lesson) => {
+          const lessonUrl = `/middle-school/courses/${slug}/lessons/${l.slug}`
+          console.log(`  Lesson: "${l.title}"`)
+          console.log(`    slug: "${l.slug}"`)
+          console.log(`    URL would be: ${lessonUrl}`)
+        })
+
         setLessons((lessonsData || []) as Lesson[])
 
         // Fetch completed lessons for current user
@@ -272,7 +284,7 @@ export default function MiddleSchoolCourseDetailPage() {
                 className="bg-white text-blue-700 hover:bg-white/90"
                 asChild
               >
-                <Link href={`/middle-school/courses/${course.slug}/lessons/${nextLesson.slug}`}>
+                <Link href={`/middle-school/courses/${course.slug}/lessons/${nextLesson.slug || nextLesson.id}`}>
                   <Play className="w-5 h-5 mr-2" />
                   {completedCount > 0 ? 'Continue Learning' : 'Start Course'}
                 </Link>
@@ -297,11 +309,13 @@ export default function MiddleSchoolCourseDetailPage() {
               {lessons.map((lesson, index) => {
                 const isCompleted = completedLessons.includes(lesson.id)
                 const isNext = nextLesson?.id === lesson.id
+                // Use slug if available, otherwise fallback to ID
+                const lessonIdentifier = lesson.slug || lesson.id
 
                 return (
                   <Link
                     key={lesson.id}
-                    href={`/middle-school/courses/${course.slug}/lessons/${lesson.slug}`}
+                    href={`/middle-school/courses/${course.slug}/lessons/${lessonIdentifier}`}
                   >
                     <Card
                       className={cn(

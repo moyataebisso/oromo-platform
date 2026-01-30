@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { toast } from 'sonner'
 import { FlashcardGame } from '@/components/teens/FlashcardGame'
 import { QuizGame } from '@/components/teens/QuizGame'
 import { MatchingGame } from '@/components/teens/MatchingGame'
@@ -116,6 +117,7 @@ export default function LessonPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isCompleted, setIsCompleted] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const [activeTab, setActiveTab] = useState<'learn' | 'flashcards' | 'quiz' | 'match'>('learn')
   const supabase = createClient()
 
@@ -263,11 +265,27 @@ export default function LessonPage() {
       return
     }
 
+    setIsSaving(true)
+
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const sb = supabase as any
 
-      await sb.from('teen_progress').upsert(
+      console.log('=== SAVING PROGRESS ===')
+      console.log('User ID:', session.user.id)
+      console.log('Lesson ID:', lesson.id)
+      console.log('Course ID:', course.id)
+      console.log('Data being sent:', {
+        user_id: session.user.id,
+        lesson_id: lesson.id,
+        course_id: course.id,
+        activity_type: 'lesson',
+        completed: true,
+        completed_at: new Date().toISOString(),
+        xp_earned: lesson.xp_reward,
+      })
+
+      const { data, error: upsertError } = await sb.from('teen_progress').upsert(
         {
           user_id: session.user.id,
           course_id: course.id,
@@ -280,7 +298,20 @@ export default function LessonPage() {
         { onConflict: 'user_id,lesson_id,activity_type' }
       )
 
+      console.log('Upsert response:', { data, error: upsertError })
+
+      if (upsertError) {
+        console.error('Error saving progress:', JSON.stringify(upsertError, null, 2))
+        console.error('Error code:', upsertError?.code)
+        console.error('Error message:', upsertError?.message)
+        console.error('Error details:', upsertError?.details)
+        toast.error('Failed to save progress. Please try again.')
+        setIsSaving(false)
+        return
+      }
+
       setIsCompleted(true)
+      toast.success(`Lesson complete! +${lesson.xp_reward} XP`)
 
       // Try to increment XP
       try {
@@ -293,6 +324,9 @@ export default function LessonPage() {
       }
     } catch (err) {
       console.error('Error marking complete:', err)
+      toast.error('Failed to save progress. Please try again.')
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -571,9 +605,19 @@ export default function LessonPage() {
                     size="lg"
                     className="w-full bg-green-600 hover:bg-green-700"
                     onClick={handleMarkComplete}
+                    disabled={isSaving}
                   >
-                    <CheckCircle2 className="w-5 h-5 mr-2" />
-                    Mark as Complete (+{lesson.xp_reward} XP)
+                    {isSaving ? (
+                      <>
+                        <div className="w-5 h-5 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-5 h-5 mr-2" />
+                        Mark as Complete (+{lesson.xp_reward} XP)
+                      </>
+                    )}
                   </Button>
                 </div>
               )}

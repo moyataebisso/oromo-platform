@@ -32,13 +32,12 @@ function MiddleSchoolCoursesContent() {
 
   const categories = [
     { slug: 'all', name: 'All Courses', icon: '📚' },
-    { slug: 'test-prep', name: 'Test Prep', icon: '📝' },
+    { slug: 'test_prep', name: 'Test Prep', icon: '📝' },
     { slug: 'math', name: 'Math', icon: '🔢' },
     { slug: 'reading', name: 'Reading', icon: '📖' },
-    { slug: 'science', name: 'Science', icon: '🔬' },
-    { slug: 'social-studies', name: 'Social Studies', icon: '🌍' },
+    { slug: 'writing', name: 'Writing', icon: '✍️' },
     { slug: 'oromo', name: 'Oromo', icon: '🇪🇹' },
-    { slug: 'study-skills', name: 'Study Skills', icon: '💡' },
+    { slug: 'study_skills', name: 'Study Skills', icon: '💡' },
   ]
 
   useEffect(() => {
@@ -75,13 +74,12 @@ function MiddleSchoolCoursesContent() {
 
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
-      'test-prep': 'bg-red-500/20 text-red-600 dark:text-red-400',
+      'test_prep': 'bg-red-500/20 text-red-600 dark:text-red-400',
       'math': 'bg-blue-500/20 text-blue-600 dark:text-blue-400',
       'reading': 'bg-green-500/20 text-green-600 dark:text-green-400',
-      'science': 'bg-purple-500/20 text-purple-600 dark:text-purple-400',
-      'social-studies': 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400',
+      'writing': 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400',
       'oromo': 'bg-orange-500/20 text-orange-600 dark:text-orange-400',
-      'study-skills': 'bg-cyan-500/20 text-cyan-600 dark:text-cyan-400',
+      'study_skills': 'bg-cyan-500/20 text-cyan-600 dark:text-cyan-400',
     }
     return colors[category] || 'bg-gray-500/20 text-gray-600 dark:text-gray-400'
   }
@@ -174,7 +172,7 @@ function MiddleSchoolCoursesContent() {
               <div className="p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(course.course_category)}`}>
-                    {course.course_category?.replace('-', ' ')}
+                    {course.course_category?.replace('_', ' ')}
                   </span>
                   <span className="text-xs text-gray-500 dark:text-gray-500 capitalize">{course.difficulty}</span>
                 </div>
