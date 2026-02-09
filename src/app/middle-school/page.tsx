@@ -17,7 +17,7 @@ export default async function MiddleSchoolHome() {
   const supabase = await createClient()
 
   // Fetch featured courses with lesson count
-  const { data: coursesData } = await supabase
+  const { data: featuredData, error: featuredError } = await supabase
     .from('middle_school_courses')
     .select(`
       id,
@@ -33,6 +33,32 @@ export default async function MiddleSchoolHome() {
     .eq('is_featured', true)
     .order('order_index')
     .limit(3)
+
+  // Debug: log any errors
+  if (featuredError) console.error('Error fetching featured courses:', featuredError)
+
+  // Fallback: if no featured courses, get any published courses
+  let coursesData = featuredData
+  if (!featuredData || featuredData.length === 0) {
+    const { data: fallbackData, error: fallbackError } = await supabase
+      .from('middle_school_courses')
+      .select(`
+        id,
+        title,
+        slug,
+        description,
+        course_category,
+        xp_reward,
+        estimated_hours,
+        middle_school_lessons(count)
+      `)
+      .eq('is_published', true)
+      .order('order_index')
+      .limit(3)
+
+    if (fallbackError) console.error('Error fetching fallback courses:', fallbackError)
+    coursesData = fallbackData
+  }
 
   // Transform data to include lesson count
   const featuredCourses: FeaturedCourse[] = (coursesData || []).map((course: {

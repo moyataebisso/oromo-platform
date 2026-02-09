@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, useMemo, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Search, BookOpen, Clock, Star } from 'lucide-react'
@@ -28,7 +28,8 @@ function MiddleSchoolCoursesContent() {
   const [loading, setLoading] = useState(true)
 
   const searchParams = useSearchParams()
-  const supabase = createClient()
+  // Memoize the Supabase client to prevent recreation on every render
+  const supabase = useMemo(() => createClient(), [])
 
   const categories = [
     { slug: 'all', name: 'All Courses', icon: '📚' },
@@ -40,29 +41,34 @@ function MiddleSchoolCoursesContent() {
     { slug: 'study_skills', name: 'Study Skills', icon: '💡' },
   ]
 
+  // Sync category from URL params on mount and when URL changes
   useEffect(() => {
     const categoryParam = searchParams.get('category')
-    if (categoryParam) {
+    if (categoryParam && categories.some(c => c.slug === categoryParam)) {
       setSelectedCategory(categoryParam)
     }
+  }, [searchParams])
 
+  // Fetch courses once on mount
+  useEffect(() => {
     async function fetchCourses() {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const sb = supabase as any
-
-      const { data } = await sb
+      const { data, error } = await supabase
         .from('middle_school_courses')
         .select('*')
         .eq('is_published', true)
         .order('is_featured', { ascending: false })
         .order('order_index')
 
+      if (error) {
+        console.error('Error fetching courses:', error)
+      }
+
       setCourses(data || [])
       setLoading(false)
     }
 
     fetchCourses()
-  }, [supabase, searchParams])
+  }, [supabase])
 
   const filteredCourses = courses.filter(course => {
     const matchesCategory = selectedCategory === 'all' || course.course_category === selectedCategory
