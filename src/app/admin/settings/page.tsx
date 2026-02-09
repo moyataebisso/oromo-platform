@@ -35,7 +35,7 @@ export default function AdminSettingsPage() {
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="siteName">Site Name</Label>
-              <Input id="siteName" defaultValue="ODDA" />
+              <Input id="siteName" defaultValue="Odda Academy" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="supportEmail">Support Email</Label>

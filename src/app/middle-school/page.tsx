@@ -1,43 +1,59 @@
-'use client'
-
-import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { BookOpen, Briefcase, Trophy, Target, Star, Rocket, Brain, Gamepad2, Clock } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
+import { createClient } from '@/lib/supabase/server'
 
 interface FeaturedCourse {
   id: string
   title: string
   slug: string
-  description: string
+  description: string | null
   course_category: string
   xp_reward: number
+  estimated_hours: number | null
+  lesson_count: number
 }
 
-export default function MiddleSchoolHome() {
-  const [featuredCourses, setFeaturedCourses] = useState<FeaturedCourse[]>([])
-  const [loading, setLoading] = useState(true)
+export default async function MiddleSchoolHome() {
+  const supabase = await createClient()
 
-  const supabase = createClient()
+  // Fetch featured courses with lesson count
+  const { data: coursesData } = await supabase
+    .from('middle_school_courses')
+    .select(`
+      id,
+      title,
+      slug,
+      description,
+      course_category,
+      xp_reward,
+      estimated_hours,
+      middle_school_lessons(count)
+    `)
+    .eq('is_published', true)
+    .eq('is_featured', true)
+    .order('order_index')
+    .limit(3)
 
-  useEffect(() => {
-    async function fetchFeaturedCourses() {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const sb = supabase as any
-
-      const { data } = await sb
-        .from('middle_school_courses')
-        .select('id, title, slug, description, course_category, xp_reward')
-        .eq('is_published', true)
-        .eq('is_featured', true)
-        .limit(3)
-
-      setFeaturedCourses(data || [])
-      setLoading(false)
-    }
-
-    fetchFeaturedCourses()
-  }, [supabase])
+  // Transform data to include lesson count
+  const featuredCourses: FeaturedCourse[] = (coursesData || []).map((course: {
+    id: string
+    title: string
+    slug: string
+    description: string | null
+    course_category: string
+    xp_reward: number
+    estimated_hours: number | null
+    middle_school_lessons: { count: number }[]
+  }) => ({
+    id: course.id,
+    title: course.title,
+    slug: course.slug,
+    description: course.description,
+    course_category: course.course_category,
+    xp_reward: course.xp_reward,
+    estimated_hours: course.estimated_hours,
+    lesson_count: course.middle_school_lessons?.[0]?.count || 0
+  }))
 
   const getCategoryIcon = (category: string) => {
     const icons: Record<string, React.ReactNode> = {
@@ -63,6 +79,18 @@ export default function MiddleSchoolHome() {
     return gradients[category] || 'from-blue-500 to-purple-500'
   }
 
+  const getCategoryBadgeColor = (category: string) => {
+    const colors: Record<string, string> = {
+      'test_prep': 'text-red-600 dark:text-red-400',
+      'math': 'text-blue-600 dark:text-blue-400',
+      'reading': 'text-green-600 dark:text-green-400',
+      'writing': 'text-emerald-600 dark:text-emerald-400',
+      'oromo': 'text-orange-600 dark:text-orange-400',
+      'study_skills': 'text-cyan-600 dark:text-cyan-400',
+    }
+    return colors[category] || 'text-blue-600 dark:text-blue-400'
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-gray-900">
       {/* Hero Section */}
@@ -73,7 +101,7 @@ export default function MiddleSchoolHome() {
             Grades 6-8
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            Welcome to ODDA Middle School!
+            Welcome to Odda Academy Middle School!
           </h1>
           <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
             Prepare for success with test prep, fun courses, and career exploration made just for you.
@@ -147,13 +175,7 @@ export default function MiddleSchoolHome() {
             </Link>
           </div>
 
-          {loading ? (
-            <div className="grid md:grid-cols-3 gap-6">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="bg-gray-100 dark:bg-gray-700 rounded-xl h-64 animate-pulse" />
-              ))}
-            </div>
-          ) : featuredCourses.length > 0 ? (
+          {featuredCourses.length > 0 ? (
             <div className="grid md:grid-cols-3 gap-6">
               {featuredCourses.map(course => (
                 <Link
@@ -165,18 +187,29 @@ export default function MiddleSchoolHome() {
                     {getCategoryIcon(course.course_category)}
                   </div>
                   <div className="p-4">
-                    <span className="text-xs text-blue-600 dark:text-blue-400 font-medium uppercase">
+                    <span className={`text-xs font-medium uppercase ${getCategoryBadgeColor(course.course_category)}`}>
                       {course.course_category?.replace('_', ' ')}
                     </span>
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mt-1">{course.title}</h3>
                     <p className="text-gray-600 dark:text-gray-400 text-sm mt-1 line-clamp-2">{course.description}</p>
                     <div className="mt-4 flex items-center justify-between">
+                      <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+                        {course.lesson_count > 0 && (
+                          <span className="flex items-center gap-1">
+                            <BookOpen className="w-4 h-4" />
+                            {course.lesson_count} lessons
+                          </span>
+                        )}
+                        {course.estimated_hours && (
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-4 h-4" />
+                            {course.estimated_hours}h
+                          </span>
+                        )}
+                      </div>
                       <span className="text-yellow-600 dark:text-yellow-400 text-sm flex items-center gap-1">
                         <Star className="w-4 h-4" />
                         {course.xp_reward} XP
-                      </span>
-                      <span className="text-sm text-blue-600 dark:text-blue-400 font-medium">
-                        Start Course
                       </span>
                     </div>
                   </div>
@@ -184,51 +217,25 @@ export default function MiddleSchoolHome() {
               ))}
             </div>
           ) : (
-            <div className="grid md:grid-cols-3 gap-6">
-              {/* Placeholder courses when database is empty */}
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-xl overflow-hidden shadow-sm">
-                <div className="h-32 bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center">
-                  <Target className="w-12 h-12 text-white" />
-                </div>
-                <div className="p-4">
-                  <span className="text-xs text-red-600 dark:text-red-400 font-medium">TEST PREP</span>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mt-1">MCA Math Prep</h3>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">Master Minnesota&apos;s MCA Math test</p>
-                  <div className="mt-4 text-sm text-gray-500">Coming Soon</div>
-                </div>
-              </div>
-
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-xl overflow-hidden shadow-sm">
-                <div className="h-32 bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-                  <BookOpen className="w-12 h-12 text-white" />
-                </div>
-                <div className="p-4">
-                  <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">READING</span>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mt-1">MCA Reading Prep</h3>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">Reading comprehension strategies</p>
-                  <div className="mt-4 text-sm text-gray-500">Coming Soon</div>
-                </div>
-              </div>
-
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-xl overflow-hidden shadow-sm">
-                <div className="h-32 bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
-                  <Brain className="w-12 h-12 text-white" />
-                </div>
-                <div className="p-4">
-                  <span className="text-xs text-green-600 dark:text-green-400 font-medium">STUDY SKILLS</span>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mt-1">Study Skills 101</h3>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">Learn how to study effectively</p>
-                  <div className="mt-4 text-sm text-gray-500">Coming Soon</div>
-                </div>
-              </div>
+            <div className="text-center py-8">
+              <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
+                New courses are being added soon!
+              </p>
+              <Link
+                href="/middle-school/courses"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors"
+              >
+                Browse All Courses
+              </Link>
             </div>
           )}
         </div>
       </div>
 
-      {/* Why ODDA Section */}
+      {/* Why Odda Academy Section */}
       <div className="max-w-6xl mx-auto px-4 py-12">
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-8 text-center">Why Learn with ODDA?</h2>
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-8 text-center">Why Learn with Odda Academy?</h2>
         <div className="grid md:grid-cols-3 gap-6">
           <div className="bg-white dark:bg-gray-800 rounded-xl p-6 text-center shadow-sm">
             <div className="w-16 h-16 bg-blue-500/10 dark:bg-blue-600/20 rounded-full flex items-center justify-center mx-auto mb-4">

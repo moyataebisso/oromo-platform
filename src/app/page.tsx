@@ -499,7 +499,7 @@ export default function HomePage() {
                 Why Choose Us
               </Badge>
               <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-                Why ODDA Works
+                Why Odda Academy Works
               </h2>
               <p className="text-xl text-slate-400 max-w-2xl mx-auto">
                 Our platform is designed with proven learning methods and community feedback.

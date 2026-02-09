@@ -51,7 +51,7 @@ export const BusinessActions = ({ business, className, variant = 'full' }: Busin
   const handleShare = async () => {
     const shareData = {
       title: business.name,
-      text: `Check out ${business.name} on ODDA Business Directory`,
+      text: `Check out ${business.name} on Odda Academy Business Directory`,
       url: window.location.href,
     }
 

@@ -94,7 +94,7 @@ Key Responsibilities:
     bonus_amount: 1500,
     bonus_currency: 'USD',
     bonus_type: 'cash',
-    bonus_description: 'Plus $500 in ODDA points',
+    bonus_description: 'Plus $500 in Odda Academy points',
     probation_days: 90,
     is_active: true
   }

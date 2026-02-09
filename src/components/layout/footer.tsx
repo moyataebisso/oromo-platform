@@ -117,7 +117,7 @@ export const Footer = () => {
               <OdaaLogo size="md" showText={true} />
             </Link>
             <p className="mt-4 text-sm text-slate-400 max-w-xs">
-              ODDA - Empowering the global Oromo community through education, careers, and cultural preservation.
+              Odda Academy - Empowering the global Oromo community through education, careers, and cultural preservation.
             </p>
             {/* Social Links */}
             <div className="flex gap-3 mt-6">
@@ -199,7 +199,7 @@ export const Footer = () => {
         {/* Copyright */}
         <div className="mt-12 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-slate-400 flex items-center gap-2">
-            &copy; {currentYear} ODDA - Oromo Digital Diaspora Association. Made with <Heart className="w-4 h-4 text-red-500 fill-red-500" /> for the Oromo community.
+            &copy; {currentYear} Odda Academy - Oromo Digital Diaspora Association. Made with <Heart className="w-4 h-4 text-red-500 fill-red-500" /> for the Oromo community.
           </p>
           <div className="flex gap-6 text-sm text-slate-400">
             <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>

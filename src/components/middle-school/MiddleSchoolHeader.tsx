@@ -30,7 +30,7 @@ export default function MiddleSchoolHeader() {
           {/* Logo */}
           <Link href="/middle-school" className="flex items-center gap-2">
             <span className="text-2xl">🌟</span>
-            <span className="font-bold text-slate-900 dark:text-white">ODDA</span>
+            <span className="font-bold text-slate-900 dark:text-white">Odda Academy</span>
             <span className="px-2 py-0.5 bg-blue-600 text-white text-xs rounded-full">Middle School</span>
           </Link>
 

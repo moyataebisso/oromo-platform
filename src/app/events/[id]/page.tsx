@@ -107,12 +107,12 @@ export async function generateMetadata({ params }: EventDetailPageProps): Promis
 
   if (!event) {
     return {
-      title: 'Event Not Found | ODDA',
+      title: 'Event Not Found | Odda Academy',
     }
   }
 
   return {
-    title: `${event.title} | ODDA`,
+    title: `${event.title} | Odda Academy`,
     description: event.description?.slice(0, 160),
   }
 }

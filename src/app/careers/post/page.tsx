@@ -133,7 +133,7 @@ export default function PostJobPage() {
                   <Label htmlFor="company_name">Company Name *</Label>
                   <Input
                     id="company_name"
-                    placeholder="e.g. ODDA Tech Solutions"
+                    placeholder="e.g. Odda Academy Tech Solutions"
                     {...register('company_name')}
                     disabled={isLoading}
                   />
@@ -310,7 +310,7 @@ export default function PostJobPage() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="cash">Cash</SelectItem>
-                            <SelectItem value="odda_points">ODDA Points</SelectItem>
+                            <SelectItem value="odda_points">Odda Academy Points</SelectItem>
                             <SelectItem value="gift_card">Gift Card</SelectItem>
                             <SelectItem value="other">Other</SelectItem>
                           </SelectContent>
@@ -322,7 +322,7 @@ export default function PostJobPage() {
                         <Label htmlFor="referral_bonus_description">Additional Bonus Details (Optional)</Label>
                         <Textarea
                           id="referral_bonus_description"
-                          placeholder="e.g. Plus company swag, or additional ODDA points"
+                          placeholder="e.g. Plus company swag, or additional Odda Academy points"
                           rows={2}
                           {...register('referral_bonus_description')}
                           disabled={isLoading}

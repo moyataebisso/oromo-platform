@@ -397,7 +397,7 @@ export default function TeensLayout({
               <Link href="/help" className="hover:text-slate-900 dark:hover:text-white">Help</Link>
             </div>
             <p className="text-sm text-slate-500 dark:text-gray-500">
-              &copy; {new Date().getFullYear()} ODDA
+              &copy; {new Date().getFullYear()} Odda Academy
             </p>
           </div>
         </div>

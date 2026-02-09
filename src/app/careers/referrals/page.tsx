@@ -105,7 +105,7 @@ export default async function ReferralsPage() {
       step: 4,
       icon: Gift,
       title: 'Get Rewarded',
-      description: 'Receive cash, ODDA points, or other rewards directly to your account.'
+      description: 'Receive cash, Odda Academy points, or other rewards directly to your account.'
     }
   ]
 
@@ -124,7 +124,7 @@ export default async function ReferralsPage() {
           <div className="max-w-7xl mx-auto px-4 text-center">
             <Badge variant="secondary" className="mb-4">
               <Users className="w-4 h-4 mr-1" />
-              ODDA Referral Network
+              Odda Academy Referral Network
             </Badge>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-4">
               Help Your Community Find Jobs

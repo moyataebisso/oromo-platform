@@ -6,7 +6,7 @@ import { EventFilters } from '@/components/events/event-filters'
 import { Event } from '@/types/events'
 
 export const metadata: Metadata = {
-  title: 'Community Events | ODDA',
+  title: 'Community Events | Odda Academy',
   description: 'Discover and connect with the Oromo community through events worldwide.',
 }
 

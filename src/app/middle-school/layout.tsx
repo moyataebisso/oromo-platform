@@ -3,7 +3,7 @@ import MiddleSchoolHeader from '@/components/middle-school/MiddleSchoolHeader'
 import { Footer } from '@/components/layout/footer'
 
 export const metadata: Metadata = {
-  title: 'ODDA Middle School | Learning for Grades 6-8',
+  title: 'Odda Academy Middle School | Learning for Grades 6-8',
   description: 'Educational resources, test prep, and career exploration for middle school students.',
 }
 

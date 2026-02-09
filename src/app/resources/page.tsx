@@ -26,7 +26,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 
 export const metadata: Metadata = {
-  title: 'Learning Resources | ODDA',
+  title: 'Learning Resources | Odda Academy',
   description: 'Curated educational resources including Khan Academy, IXL, Coursera, and more to support your learning journey.',
 }
 
@@ -366,7 +366,7 @@ const resourceCategories: ResourceCategory[] = [
     color: 'from-emerald-500 to-cyan-500',
     resources: [
       {
-        name: 'ODDA Academy',
+        name: 'Odda Academy',
         description: 'Our own courses on Afaan Oromo, Oromo history, and culture. Made for our community.',
         url: '/academy',
         icon: <GraduationCap className="w-8 h-8 text-emerald-400" />,

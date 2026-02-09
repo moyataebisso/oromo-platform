@@ -112,7 +112,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   if (!business) {
     return {
-      title: 'Business Not Found | ODDA',
+      title: 'Business Not Found | Odda Academy',
     }
   }
 
