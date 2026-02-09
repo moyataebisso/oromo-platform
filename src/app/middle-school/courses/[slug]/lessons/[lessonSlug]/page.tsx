@@ -517,17 +517,23 @@ export default function MiddleSchoolLessonPage() {
                         components={{
                           table: ({ children, ...props }) => (
                             <div className="overflow-x-auto my-6">
-                              <table className="min-w-full border-collapse" {...props}>{children}</table>
+                              <table className="min-w-full border-collapse rounded-lg overflow-hidden shadow-sm" {...props}>{children}</table>
                             </div>
                           ),
                           thead: ({ children, ...props }) => (
-                            <thead className="bg-gray-100 dark:bg-gray-700" {...props}>{children}</thead>
+                            <thead className="bg-blue-600 dark:bg-blue-700 text-white" {...props}>{children}</thead>
+                          ),
+                          tbody: ({ children, ...props }) => (
+                            <tbody className="bg-white dark:bg-gray-800" {...props}>{children}</tbody>
+                          ),
+                          tr: ({ children, ...props }) => (
+                            <tr className="border-b border-gray-200 dark:border-gray-700 even:bg-gray-50 dark:even:bg-gray-700/50" {...props}>{children}</tr>
                           ),
                           th: ({ children, ...props }) => (
-                            <th className="text-left p-3 border border-gray-200 dark:border-gray-600 font-semibold text-slate-900 dark:text-white" {...props}>{children}</th>
+                            <th className="text-left px-4 py-3 font-semibold text-lg" {...props}>{children}</th>
                           ),
                           td: ({ children, ...props }) => (
-                            <td className="p-3 border border-gray-200 dark:border-gray-600 text-slate-700 dark:text-gray-300" {...props}>{children}</td>
+                            <td className="px-4 py-3 text-slate-700 dark:text-gray-300 text-lg" {...props}>{children}</td>
                           ),
                           h1: ({ children, ...props }) => (
                             <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mt-8 mb-4 pb-2 border-b border-gray-200 dark:border-gray-700" {...props}>{children}</h1>

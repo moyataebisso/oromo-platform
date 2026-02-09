@@ -285,34 +285,63 @@ export default function KidsLessonPage() {
                 remarkPlugins={[remarkGfm]}
                 components={{
                   h1: ({ children, ...props }) => (
-                    <h1 className="text-2xl md:text-3xl font-bold text-slate-800 mt-6 mb-4" {...props}>{children}</h1>
+                    <h1 className="text-2xl md:text-3xl font-bold text-purple-600 mt-6 mb-4" {...props}>{children}</h1>
                   ),
                   h2: ({ children, ...props }) => (
-                    <h2 className="text-xl md:text-2xl font-bold text-purple-600 mt-6 mb-3" {...props}>{children}</h2>
+                    <h2 className="text-xl md:text-2xl font-bold text-blue-600 mt-6 mb-3" {...props}>{children}</h2>
                   ),
                   h3: ({ children, ...props }) => (
-                    <h3 className="text-lg md:text-xl font-bold text-slate-700 mt-4 mb-2" {...props}>{children}</h3>
+                    <h3 className="text-lg md:text-xl font-bold text-green-600 mt-4 mb-2" {...props}>{children}</h3>
                   ),
                   p: ({ children, ...props }) => (
-                    <p className="text-lg text-slate-700 mb-4 leading-relaxed" {...props}>{children}</p>
+                    <p className="text-lg md:text-xl text-slate-700 mb-4 leading-relaxed" {...props}>{children}</p>
                   ),
                   ul: ({ children, ...props }) => (
-                    <ul className="list-disc list-outside ml-6 text-lg text-slate-700 mb-4 space-y-2" {...props}>{children}</ul>
+                    <ul className="list-disc list-outside ml-6 text-lg md:text-xl text-slate-700 mb-4 space-y-2" {...props}>{children}</ul>
                   ),
                   ol: ({ children, ...props }) => (
-                    <ol className="list-decimal list-outside ml-6 text-lg text-slate-700 mb-4 space-y-2" {...props}>{children}</ol>
+                    <ol className="list-decimal list-outside ml-6 text-lg md:text-xl text-slate-700 mb-4 space-y-2" {...props}>{children}</ol>
                   ),
                   li: ({ children, ...props }) => (
-                    <li className="text-slate-700" {...props}>{children}</li>
+                    <li className="text-slate-700 text-lg md:text-xl" {...props}>{children}</li>
                   ),
                   strong: ({ children, ...props }) => (
                     <strong className="text-slate-900 font-bold" {...props}>{children}</strong>
                   ),
                   blockquote: ({ children, ...props }) => (
-                    <blockquote className="border-l-4 border-purple-400 pl-4 py-1 my-4 bg-purple-50 rounded-r-lg text-slate-600" {...props}>{children}</blockquote>
+                    <blockquote className="border-l-4 border-purple-400 pl-4 py-2 my-4 bg-purple-50 rounded-r-lg text-slate-600 text-lg" {...props}>{children}</blockquote>
                   ),
                   a: ({ children, href, ...props }) => (
                     <a href={href} className="text-blue-600 underline hover:text-blue-700" {...props}>{children}</a>
+                  ),
+                  // Table components for kid-friendly styling
+                  table: ({ children, ...props }) => (
+                    <div className="overflow-x-auto my-6">
+                      <table className="min-w-full border-collapse rounded-xl overflow-hidden shadow-md text-lg" {...props}>{children}</table>
+                    </div>
+                  ),
+                  thead: ({ children, ...props }) => (
+                    <thead className="bg-gradient-to-r from-purple-500 to-pink-500 text-white" {...props}>{children}</thead>
+                  ),
+                  tbody: ({ children, ...props }) => (
+                    <tbody className="bg-white" {...props}>{children}</tbody>
+                  ),
+                  tr: ({ children, ...props }) => (
+                    <tr className="border-b border-purple-100 even:bg-purple-50" {...props}>{children}</tr>
+                  ),
+                  th: ({ children, ...props }) => (
+                    <th className="px-4 py-3 text-left font-bold text-lg" {...props}>{children}</th>
+                  ),
+                  td: ({ children, ...props }) => (
+                    <td className="px-4 py-3 text-lg" {...props}>{children}</td>
+                  ),
+                  // Code blocks for any inline code
+                  code: ({ children, ...props }) => (
+                    <code className="bg-purple-100 text-purple-700 px-2 py-1 rounded-md text-base font-mono" {...props}>{children}</code>
+                  ),
+                  // Horizontal rule
+                  hr: ({ ...props }) => (
+                    <hr className="my-6 border-t-2 border-purple-200" {...props} />
                   ),
                 }}
               >
