@@ -1,150 +1,170 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-// Note: rss-parser needs to be installed: npm install rss-parser
-// import Parser from 'rss-parser'
+import Parser from 'rss-parser'
 
-// const parser = new Parser()
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
-const RELEVANT_KEYWORDS = [
-  'oromo', 'oromia', 'ethiopia', 'ethiopian', 'addis ababa',
-  'abiy ahmed', 'horn of africa', 'east africa', 'irreecha', 'gadaa',
-  'amhara', 'tigray', 'african union', 'omo', 'harar'
-]
-
-function isRelevant(title: string, content: string): boolean {
-  const text = (title + ' ' + content).toLowerCase()
-  return RELEVANT_KEYWORDS.some(keyword => text.includes(keyword))
-}
+const parser = new Parser({
+  customFields: {
+    item: ['media:content', 'media:thumbnail', 'enclosure']
+  }
+})
 
 function generateSlug(title: string): string {
   return title
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)/g, '')
-    .substring(0, 80) + '-' + Date.now()
+    .substring(0, 100)
 }
 
-export async function POST(request: NextRequest) {
-  // Verify API key
+function extractImageUrl(item: Record<string, unknown>): string | null {
+  // Try various common RSS image fields
+  const mediaContent = item['media:content'] as Record<string, Record<string, string>> | undefined
+  const mediaThumbnail = item['media:thumbnail'] as Record<string, Record<string, string>> | undefined
+  const enclosure = item.enclosure as { url?: string; type?: string } | undefined
+
+  if (mediaContent?.$?.url) return mediaContent.$.url
+  if (mediaThumbnail?.$?.url) return mediaThumbnail.$.url
+  if (enclosure?.url && enclosure.type?.startsWith('image')) return enclosure.url
+
+  // Try to extract from content
+  const content = (item.content || item['content:encoded'] || '') as string
+  const imgMatch = content.match(/<img[^>]+src="([^">]+)"/)
+  if (imgMatch) return imgMatch[1]
+
+  return null
+}
+
+export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
-  if (authHeader !== 'Bearer ' + process.env.NEWS_FETCH_API_KEY) {
+  const cronSecret = process.env.CRON_SECRET
+
+  // Verify cron secret for automated calls
+  const { searchParams } = new URL(request.url)
+  const isManual = searchParams.get('manual') === 'true'
+
+  if (cronSecret && authHeader !== `Bearer ${cronSecret}` && !isManual) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // Use service role key for server-side operations
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
+  const newsType = searchParams.get('type') || 'all' // 'world', 'oromo', or 'all'
 
-  // Fetch active news sources
-  const { data: sources } = await supabase
-    .from('news_sources')
-    .select('*')
-    .eq('is_active', true)
+  try {
+    // Get active sources
+    let query = supabase
+      .from('news_sources')
+      .select('*')
+      .eq('is_active', true)
+      .eq('auto_publish', true)
 
-  if (!sources || sources.length === 0) {
-    return NextResponse.json({ error: 'No active sources' }, { status: 400 })
-  }
-
-  let totalFetched = 0
-  const results: Array<{ source: string; fetched?: number; error?: string }> = []
-
-  // Note: Full RSS parsing requires rss-parser package
-  // For now, this is a placeholder that shows the structure
-  // To enable: npm install rss-parser, then uncomment the Parser import and usage
-
-  for (const source of sources) {
-    const feedUrl = source.rss_url || source.url
-    if (!feedUrl) {
-      results.push({ source: source.name, error: 'No RSS URL configured' })
-      continue
+    if (newsType !== 'all') {
+      query = query.eq('news_type', newsType)
     }
 
-    try {
-      // Placeholder: In production, uncomment below and use actual RSS parsing
-      /*
-      const feed = await parser.parseURL(feedUrl)
-      let articlesAdded = 0
+    const { data: sources, error: sourcesError } = await query
 
-      for (const item of feed.items.slice(0, 10)) {
-        const title = item.title || ''
-        const content = item.contentSnippet || item.content || ''
+    if (sourcesError) throw sourcesError
+    if (!sources || sources.length === 0) {
+      return NextResponse.json({ message: 'No active sources found', fetched: 0 })
+    }
 
-        if (!isRelevant(title, content)) continue
+    let totalFetched = 0
+    let totalErrors = 0
+    const results: Array<{ title?: string; source: string; error?: string }> = []
 
-        // Check for duplicates
-        const { data: existing } = await supabase
-          .from('news_articles')
-          .select('id')
-          .ilike('title', '%' + title.substring(0, 50) + '%')
-          .limit(1)
+    for (const source of sources) {
+      if (!source.rss_url) continue
 
-        if (existing && existing.length > 0) continue
+      try {
+        const feed = await parser.parseURL(source.rss_url)
 
-        const { error } = await supabase.from('news_articles').insert({
-          title: title,
-          slug: generateSlug(title),
-          summary: content.substring(0, 300),
-          content: '# ' + title + '\n\n' + content + '\n\n*Source: [' + source.name + '](' + item.link + ')*',
-          source: source.name,
-          source_url: item.link,
-          image_url: item.enclosure?.url || null,
-          category: source.category || 'breaking',
-          author: item.creator || source.name,
-          published_at: item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString(),
-          is_published: source.auto_publish || false,
-          is_featured: false
-        })
+        for (const item of feed.items.slice(0, 10)) { // Limit to 10 per source
+          if (!item.title) continue
 
-        if (!error) articlesAdded++
+          const slug = generateSlug(item.title) + '-' + Date.now().toString(36)
+          const imageUrl = extractImageUrl(item as unknown as Record<string, unknown>)
+
+          // Check if article already exists (by source_url)
+          if (item.link) {
+            const { data: existing } = await supabase
+              .from('news_articles')
+              .select('id')
+              .eq('source_url', item.link)
+              .single()
+
+            if (existing) continue // Skip duplicates
+          }
+
+          const itemAny = item as unknown as Record<string, unknown>
+          const article = {
+            title: item.title.substring(0, 255),
+            slug,
+            summary: item.contentSnippet?.substring(0, 500) || (item.content as string | undefined)?.substring(0, 500) || null,
+            content: item.content || itemAny['content:encoded'] || null,
+            source: source.name,
+            source_url: item.link || null,
+            image_url: imageUrl,
+            category: source.category || 'breaking',
+            author: item.creator || itemAny.author as string || source.name,
+            published_at: item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString(),
+            is_featured: false,
+            is_published: true,
+            news_type: source.news_type || 'oromo',
+            view_count: 0
+          }
+
+          const { error: insertError } = await supabase
+            .from('news_articles')
+            .insert(article)
+
+          if (!insertError) {
+            totalFetched++
+            results.push({ title: article.title, source: source.name })
+          }
+        }
+
+        // Update last_fetched_at
+        await supabase
+          .from('news_sources')
+          .update({ last_fetched_at: new Date().toISOString() })
+          .eq('id', source.id)
+
+      } catch (feedError) {
+        console.error(`Error fetching ${source.name}:`, feedError)
+        totalErrors++
+        results.push({ source: source.name, error: feedError instanceof Error ? feedError.message : 'Unknown error' })
       }
-
-      // Update last fetched timestamp
-      await supabase
-        .from('news_sources')
-        .update({ last_fetched_at: new Date().toISOString() })
-        .eq('id', source.id)
-
-      // Log the fetch
-      await supabase.from('news_fetch_logs').insert({
-        source_id: source.id,
-        articles_fetched: articlesAdded,
-        status: 'success'
-      })
-
-      totalFetched += articlesAdded
-      results.push({ source: source.name, fetched: articlesAdded })
-      */
-
-      // Temporary placeholder response
-      results.push({
-        source: source.name,
-        error: 'RSS parsing not enabled. Install rss-parser: npm install rss-parser'
-      })
-
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-
-      // Log the error
-      await supabase.from('news_fetch_logs').insert({
-        source_id: source.id,
-        articles_fetched: 0,
-        status: 'error',
-        error_message: errorMessage
-      })
-
-      results.push({ source: source.name, error: errorMessage })
     }
-  }
 
-  return NextResponse.json({
-    success: true,
-    totalFetched,
-    results,
-    note: 'To enable RSS fetching, install rss-parser: npm install rss-parser'
-  })
+    // Log the fetch
+    await supabase
+      .from('news_fetch_logs')
+      .insert({
+        sources_count: sources.length,
+        articles_fetched: totalFetched,
+        errors_count: totalErrors,
+        news_type: newsType
+      })
+
+    return NextResponse.json({
+      success: true,
+      message: `Fetched ${totalFetched} new articles from ${sources.length} sources`,
+      fetched: totalFetched,
+      errors: totalErrors,
+      results
+    })
+
+  } catch (error) {
+    console.error('News fetch error:', error)
+    return NextResponse.json({ error: 'Failed to fetch news' }, { status: 500 })
+  }
 }
 
-// Keep these exports for reference - they show isRelevant and generateSlug are used
-export { isRelevant, generateSlug }
+// Keep POST for backwards compatibility
+export async function POST(request: NextRequest) {
+  return GET(request)
+}

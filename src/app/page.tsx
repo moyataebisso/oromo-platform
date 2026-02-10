@@ -350,7 +350,7 @@ export default function HomePage() {
               <Button
                 size="lg"
                 variant="outline"
-                className="h-14 px-8 text-lg border-white/20 text-white hover:bg-white/10 hover:border-white/30 transition-all duration-300"
+                className="h-14 px-8 text-lg bg-white text-gray-900 border-white hover:bg-gray-100 transition-all duration-300"
                 asChild
               >
                 <Link href="/parent-dashboard">
@@ -462,7 +462,7 @@ export default function HomePage() {
                     <CardContent>
                       <ul className="space-y-2 mb-6">
                         {grade.features.map((feature) => (
-                          <li key={feature} className="flex items-center gap-2 text-slate-400">
+                          <li key={feature} className="flex items-center gap-2 text-white">
                             <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
                             <span>{feature}</span>
                           </li>

@@ -1,9 +1,8 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Sparkles, ArrowRight, Building2, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 
@@ -22,9 +21,9 @@ interface FeaturedBusinessGalleryProps {
 export const FeaturedBusinessGallery = ({
   className,
 }: FeaturedBusinessGalleryProps) => {
-  const scrollRef = useRef<HTMLDivElement>(null)
   const [businesses, setBusinesses] = useState<FeaturedBusiness[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isPaused, setIsPaused] = useState(false)
 
   // Fetch featured partners from database
   useEffect(() => {
@@ -55,48 +54,11 @@ export const FeaturedBusinessGallery = ({
     fetchPartners()
   }, [])
 
-  // Auto-scroll animation
-  useEffect(() => {
-    const scrollContainer = scrollRef.current
-    if (!scrollContainer) return
-
-    let animationId: number
-    let isPaused = false
-    let position = 0
-    const speed = 0.5 // pixels per frame
-
-    const animate = () => {
-      if (!isPaused && scrollContainer) {
-        position += speed
-        const maxScroll = scrollContainer.scrollWidth / 2
-        if (position >= maxScroll) {
-          position = 0
-        }
-        scrollContainer.scrollLeft = position
-      }
-      animationId = requestAnimationFrame(animate)
-    }
-
-    animationId = requestAnimationFrame(animate)
-
-    const handleMouseEnter = () => { isPaused = true }
-    const handleMouseLeave = () => { isPaused = false }
-
-    scrollContainer.addEventListener('mouseenter', handleMouseEnter)
-    scrollContainer.addEventListener('mouseleave', handleMouseLeave)
-
-    return () => {
-      cancelAnimationFrame(animationId)
-      scrollContainer?.removeEventListener('mouseenter', handleMouseEnter)
-      scrollContainer?.removeEventListener('mouseleave', handleMouseLeave)
-    }
-  }, [])
-
   // Show loading state
   if (isLoading) {
     return (
-      <section className={cn('py-16 bg-slate-50 dark:bg-slate-900/50 overflow-hidden', className)}>
-        <div className="mx-auto max-w-7xl px-4 flex items-center justify-center">
+      <section className={cn('py-16 bg-[#0f0f1a] overflow-hidden', className)}>
+        <div className="mx-auto max-w-7xl px-4 flex items-center justify-center min-h-[200px]">
           <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
         </div>
       </section>
@@ -106,92 +68,128 @@ export const FeaturedBusinessGallery = ({
   // Don't render section if no partners
   if (businesses.length === 0) return null
 
-  // Double the businesses for seamless infinite scroll
-  const displayBusinesses = [...businesses, ...businesses]
+  // Duplicate partners for seamless infinite scroll
+  const duplicatedPartners = [...businesses, ...businesses]
 
   return (
-    <section className={cn('py-16 bg-slate-50 dark:bg-slate-900/50 overflow-hidden', className)}>
-      <div className="mx-auto max-w-7xl px-4 mb-8">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-white" />
+    <section className={cn('py-16 bg-[#0f0f1a] overflow-hidden', className)}>
+      <div className="mx-auto max-w-7xl px-4">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/25">
+              <Sparkles className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+              <h2 className="text-2xl font-bold text-white">
                 Featured Partners
               </h2>
-              <p className="text-slate-600 dark:text-slate-400">
+              <p className="text-slate-400">
                 Trusted by Oromo organizations worldwide
               </p>
             </div>
           </div>
-          <Button variant="ghost" asChild className="hidden sm:flex">
-            <Link href="/businesses">
-              View All Businesses
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Link>
-          </Button>
+
+          <Link
+            href="/businesses"
+            className="hidden sm:flex items-center gap-2 text-blue-400 hover:text-blue-300 font-medium transition-colors hover:gap-3"
+          >
+            View All Businesses
+            <ArrowRight className="w-4 h-4" />
+          </Link>
         </div>
       </div>
 
-      {/* Scrolling Gallery */}
-      <div
-        ref={scrollRef}
-        className="flex gap-6 overflow-x-hidden"
-        style={{ scrollBehavior: 'auto' }}
-      >
-        {displayBusinesses.map((business, index) => (
-          <a
-            key={`${business.id}-${index}`}
-            href={business.website || `/businesses/${business.slug}`}
-            target={business.website ? '_blank' : undefined}
-            rel={business.website ? 'noopener noreferrer' : undefined}
-            className="flex-shrink-0 group"
+      {/* Scrolling Carousel */}
+      <div className="relative">
+        {/* Gradient fade on edges */}
+        <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-[#0f0f1a] to-transparent z-10 pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-[#0f0f1a] to-transparent z-10 pointer-events-none" />
+
+        {/* Scrolling container */}
+        <div
+          className="overflow-hidden"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+        >
+          <div
+            className={cn(
+              "flex gap-6 py-4",
+              isPaused ? "animate-scroll-paused" : "animate-scroll"
+            )}
+            style={{ width: 'max-content' }}
           >
-            <div className="w-32 h-32 rounded-2xl bg-white dark:bg-slate-800 shadow-lg flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:shadow-xl border border-slate-100 dark:border-slate-700 animate-float"
-              style={{ animationDelay: `${index * 0.2}s` }}
-            >
-              {business.logo_url ? (
-                <img
-                  src={business.logo_url}
-                  alt={business.name}
-                  className="w-20 h-20 object-contain rounded-lg"
-                />
-              ) : (
-                <div className="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-                  <Building2 className="w-10 h-10 text-gray-400" />
+            {duplicatedPartners.map((partner, index) => (
+              <a
+                key={`${partner.id}-${index}`}
+                href={partner.website || `/businesses/${partner.slug}`}
+                target={partner.website ? '_blank' : undefined}
+                rel={partner.website ? 'noopener noreferrer' : undefined}
+                className="group flex flex-col items-center p-6 bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-blue-300 hover:-translate-y-1 min-w-[160px] flex-shrink-0"
+              >
+                {/* Logo container */}
+                <div className="w-20 h-20 mb-4 rounded-xl overflow-hidden bg-gray-50 flex items-center justify-center p-3 group-hover:scale-105 transition-transform">
+                  {partner.logo_url ? (
+                    <img
+                      src={partner.logo_url}
+                      alt={partner.name}
+                      className="w-full h-full object-contain"
+                      onError={(e) => {
+                        const target = e.currentTarget
+                        target.style.display = 'none'
+                        const fallback = target.nextElementSibling as HTMLElement
+                        if (fallback) fallback.classList.remove('hidden')
+                      }}
+                    />
+                  ) : null}
+                  {/* Fallback icon */}
+                  <div className={cn(
+                    "w-full h-full bg-gradient-to-br from-blue-100 to-indigo-100 rounded-lg flex items-center justify-center",
+                    partner.logo_url ? "hidden" : ""
+                  )}>
+                    <Building2 className="w-10 h-10 text-blue-500" />
+                  </div>
                 </div>
-              )}
-            </div>
-            <p className="text-center mt-2 text-sm font-medium text-slate-600 dark:text-slate-400 truncate max-w-[128px]">
-              {business.name}
-            </p>
-          </a>
-        ))}
+
+                {/* Partner name */}
+                <p className="text-sm font-semibold text-gray-800 text-center line-clamp-2 group-hover:text-blue-600 transition-colors">
+                  {partner.name}
+                </p>
+              </a>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Mobile CTA */}
       <div className="mx-auto max-w-7xl px-4 mt-8 sm:hidden">
-        <Button variant="outline" asChild className="w-full">
-          <Link href="/businesses">
-            View All Businesses
-            <ArrowRight className="w-4 h-4 ml-2" />
-          </Link>
-        </Button>
+        <Link
+          href="/businesses"
+          className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-white/10 backdrop-blur border border-white/20 rounded-xl text-white font-medium hover:bg-white/20 transition-colors"
+        >
+          View All Businesses
+          <ArrowRight className="w-4 h-4" />
+        </Link>
       </div>
 
-      <style jsx global>{`
-        @keyframes float {
-          0%, 100% {
-            transform: translateY(0);
+      {/* CSS Animation */}
+      <style jsx>{`
+        @keyframes scroll {
+          0% {
+            transform: translateX(0);
           }
-          50% {
-            transform: translateY(-8px);
+          100% {
+            transform: translateX(-50%);
           }
         }
-        .animate-float {
-          animation: float 3s ease-in-out infinite;
+
+        .animate-scroll {
+          animation: scroll 30s linear infinite;
+        }
+
+        .animate-scroll-paused {
+          animation: scroll 30s linear infinite;
+          animation-play-state: paused;
         }
       `}</style>
     </section>
