@@ -1,39 +1,59 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { Sparkles, ArrowRight } from 'lucide-react'
+import { Sparkles, ArrowRight, Building2, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { createClient } from '@/lib/supabase/client'
 
 interface FeaturedBusiness {
   id: string
   name: string
   slug: string
   logo_url: string | null
-  category_icon?: string
-  external_url?: string
+  website?: string | null
 }
 
-const featuredBusinesses: FeaturedBusiness[] = [
-  { id: '1', name: 'Adama Restaurant & Awash Bakery', slug: 'adama-restaurant', logo_url: null, category_icon: '🍽️', external_url: 'https://adamarestaurantmn.com' },
-  { id: '2', name: 'Glory Collective Studios', slug: 'glory-collective-studios', logo_url: null, category_icon: '🎬', external_url: 'https://www.peerspace.com/pages/listings/694ce7ba213483499e2c059e' },
-  { id: '3', name: 'OSFNA', slug: 'osfna', logo_url: null, category_icon: '⚽', external_url: 'https://www.osfna.org/' },
-  { id: '4', name: 'Khan Academy', slug: 'khan-academy', logo_url: null, category_icon: '📚', external_url: 'https://www.khanacademy.org/' },
-  { id: '5', name: 'Oromo Media Network', slug: 'omn', logo_url: null, category_icon: '📰', external_url: 'https://omn.today/' },
-  { id: '6', name: 'Oromo Platform', slug: 'oromo-platform', logo_url: null, category_icon: '🎓', external_url: 'https://oromo-platform.vercel.app/' },
-]
-
 interface FeaturedBusinessGalleryProps {
-  businesses?: FeaturedBusiness[]
   className?: string
 }
 
 export const FeaturedBusinessGallery = ({
-  businesses = featuredBusinesses,
   className,
 }: FeaturedBusinessGalleryProps) => {
   const scrollRef = useRef<HTMLDivElement>(null)
+  const [businesses, setBusinesses] = useState<FeaturedBusiness[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Fetch featured partners from database
+  useEffect(() => {
+    const fetchPartners = async () => {
+      try {
+        const supabase = createClient()
+        const { data, error } = await supabase
+          .from('businesses')
+          .select('id, name, slug, logo_url, website')
+          .or('is_featured.eq.true,show_on_homepage.eq.true')
+          .in('status', ['active', 'approved'])
+          .order('name')
+
+        if (error) {
+          console.error('Error fetching partners:', error)
+          setBusinesses([])
+        } else {
+          setBusinesses(data || [])
+        }
+      } catch (err) {
+        console.error('Error fetching partners:', err)
+        setBusinesses([])
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchPartners()
+  }, [])
 
   // Auto-scroll animation
   useEffect(() => {
@@ -72,6 +92,18 @@ export const FeaturedBusinessGallery = ({
     }
   }, [])
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <section className={cn('py-16 bg-slate-50 dark:bg-slate-900/50 overflow-hidden', className)}>
+        <div className="mx-auto max-w-7xl px-4 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+        </div>
+      </section>
+    )
+  }
+
+  // Don't render section if no partners
   if (businesses.length === 0) return null
 
   // Double the businesses for seamless infinite scroll
@@ -90,7 +122,7 @@ export const FeaturedBusinessGallery = ({
                 Featured Partners
               </h2>
               <p className="text-slate-600 dark:text-slate-400">
-                Trusted by Oromo businesses across America
+                Trusted by Oromo organizations worldwide
               </p>
             </div>
           </div>
@@ -112,9 +144,9 @@ export const FeaturedBusinessGallery = ({
         {displayBusinesses.map((business, index) => (
           <a
             key={`${business.id}-${index}`}
-            href={business.external_url || `/businesses/${business.slug}`}
-            target={business.external_url ? '_blank' : undefined}
-            rel={business.external_url ? 'noopener noreferrer' : undefined}
+            href={business.website || `/businesses/${business.slug}`}
+            target={business.website ? '_blank' : undefined}
+            rel={business.website ? 'noopener noreferrer' : undefined}
             className="flex-shrink-0 group"
           >
             <div className="w-32 h-32 rounded-2xl bg-white dark:bg-slate-800 shadow-lg flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:shadow-xl border border-slate-100 dark:border-slate-700 animate-float"
@@ -127,7 +159,9 @@ export const FeaturedBusinessGallery = ({
                   className="w-20 h-20 object-contain rounded-lg"
                 />
               ) : (
-                <span className="text-5xl">{business.category_icon || '🏪'}</span>
+                <div className="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                  <Building2 className="w-10 h-10 text-gray-400" />
+                </div>
               )}
             </div>
             <p className="text-center mt-2 text-sm font-medium text-slate-600 dark:text-slate-400 truncate max-w-[128px]">

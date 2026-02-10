@@ -53,6 +53,7 @@ const sidebarLinks = [
   { name: 'Majors Guide', href: '/admin/majors', icon: GraduationCap, badge: '32' },
   { name: 'Jobs', href: '/admin/jobs', icon: Briefcase, badge: '156' },
   { name: 'Businesses', href: '/admin/businesses', icon: Building2, badge: '89' },
+  { name: 'Featured Partners', href: '/admin/partners', icon: Building2 },
   { name: 'Wiki Articles', href: '/admin/articles', icon: BookOpen, badge: '312' },
   { name: 'Community', href: '/admin/community', icon: MessageSquare, badge: '45' },
   { name: 'Events', href: '/admin/events', icon: Calendar, badge: '24' },
