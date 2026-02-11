@@ -4,6 +4,8 @@ import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { EventFilters } from '@/components/events/event-filters'
 import { Event } from '@/types/events'
+import { Header } from '@/components/layout/header'
+import { Footer } from '@/components/layout/footer'
 
 export const metadata: Metadata = {
   title: 'Community Events | Odda Academy',
@@ -243,37 +245,43 @@ export default function EventsPage() {
   const events = sampleEvents
 
   return (
-    <main className="min-h-screen bg-background">
-      {/* Submit Event CTA */}
-      <div className="fixed bottom-6 right-6 z-50">
-        <Button variant="gradient" size="lg" asChild className="shadow-xl">
-          <Link href="/events/submit">
-            <Plus className="w-5 h-5 mr-2" />
-            Submit Event
-          </Link>
-        </Button>
-      </div>
+    <>
+      <Header />
 
-      <EventFilters events={events} />
-
-      {/* Submit Event Section */}
-      <section className="py-16 bg-gradient-to-b from-background to-indigo-900/20">
-        <div className="mx-auto max-w-3xl px-4 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
-            Have an Event to Share?
-          </h2>
-          <p className="text-muted-foreground mb-8">
-            Help grow our community by submitting your event. Whether it's a local gathering
-            or a global virtual meetup, we want to help you spread the word.
-          </p>
-          <Button variant="gradient" size="lg" asChild>
+      <main className="min-h-screen bg-background">
+        {/* Submit Event CTA */}
+        <div className="fixed bottom-6 right-6 z-50">
+          <Button variant="gradient" size="lg" asChild className="shadow-xl">
             <Link href="/events/submit">
               <Plus className="w-5 h-5 mr-2" />
-              Submit Your Event
+              Submit Event
             </Link>
           </Button>
         </div>
-      </section>
-    </main>
+
+        <EventFilters events={events} />
+
+        {/* Submit Event Section */}
+        <section className="py-16 bg-gradient-to-b from-background to-indigo-900/20">
+          <div className="mx-auto max-w-3xl px-4 text-center">
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
+              Have an Event to Share?
+            </h2>
+            <p className="text-muted-foreground mb-8">
+              Help grow our community by submitting your event. Whether it's a local gathering
+              or a global virtual meetup, we want to help you spread the word.
+            </p>
+            <Button variant="gradient" size="lg" asChild>
+              <Link href="/events/submit">
+                <Plus className="w-5 h-5 mr-2" />
+                Submit Your Event
+              </Link>
+            </Button>
+          </div>
+        </section>
+      </main>
+
+      <Footer />
+    </>
   )
 }

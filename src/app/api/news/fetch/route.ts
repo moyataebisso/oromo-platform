@@ -9,7 +9,14 @@ const supabase = createClient(
 
 const parser = new Parser({
   customFields: {
-    item: ['media:content', 'media:thumbnail', 'enclosure']
+    item: [
+      ['media:content', 'media:content', { keepArray: true }],
+      ['media:thumbnail', 'media:thumbnail'],
+      ['enclosure', 'enclosure'],
+      ['content:encoded', 'content:encoded'],
+      ['dc:creator', 'creator'],
+      ['itunes:image', 'itunes:image'],
+    ]
   }
 })
 
@@ -23,20 +30,106 @@ function generateSlug(title: string): string {
 
 function extractImageUrl(item: Record<string, unknown>): string | null {
   // Try various common RSS image fields
-  const mediaContent = item['media:content'] as Record<string, Record<string, string>> | undefined
-  const mediaThumbnail = item['media:thumbnail'] as Record<string, Record<string, string>> | undefined
+
+  // 1. Media content (most common)
+  const mediaContent = item['media:content']
+  if (mediaContent) {
+    if (Array.isArray(mediaContent)) {
+      const img = mediaContent.find((m: Record<string, unknown>) => {
+        const attrs = m.$ as Record<string, string> | undefined
+        return attrs?.medium === 'image' || attrs?.url
+      })
+      const imgAttrs = img?.$ as Record<string, string> | undefined
+      if (imgAttrs?.url) return imgAttrs.url
+    } else {
+      const attrs = (mediaContent as Record<string, unknown>).$ as Record<string, string> | undefined
+      if (attrs?.url) return attrs.url
+    }
+  }
+
+  // 2. Media thumbnail
+  const mediaThumbnail = item['media:thumbnail'] as Record<string, unknown> | undefined
+  if (mediaThumbnail) {
+    const attrs = mediaThumbnail.$ as Record<string, string> | undefined
+    if (attrs?.url) return attrs.url
+    if (typeof mediaThumbnail.url === 'string') return mediaThumbnail.url
+  }
+
+  // 3. Enclosure (podcasts and some news feeds)
   const enclosure = item.enclosure as { url?: string; type?: string } | undefined
+  if (enclosure?.url) {
+    if (enclosure.type?.startsWith('image')) return enclosure.url
+  }
 
-  if (mediaContent?.$?.url) return mediaContent.$.url
-  if (mediaThumbnail?.$?.url) return mediaThumbnail.$.url
-  if (enclosure?.url && enclosure.type?.startsWith('image')) return enclosure.url
+  // 4. Image field directly
+  const imageField = item.image as { url?: string } | string | undefined
+  if (imageField) {
+    if (typeof imageField === 'string') return imageField
+    if (imageField.url) return imageField.url
+  }
 
-  // Try to extract from content
-  const content = (item.content || item['content:encoded'] || '') as string
-  const imgMatch = content.match(/<img[^>]+src="([^">]+)"/)
-  if (imgMatch) return imgMatch[1]
+  // 5. itunes:image (podcasts)
+  const itunesImage = item['itunes:image'] as Record<string, unknown> | undefined
+  if (itunesImage) {
+    const attrs = itunesImage.$ as Record<string, string> | undefined
+    if (attrs?.href) return attrs.href
+  }
+
+  // 6. Extract from content/description HTML
+  const content = (item.content || item['content:encoded'] || item.description || '') as string
+
+  // Look for img tags
+  const imgMatch = content.match(/<img[^>]+src=["']([^"']+)["']/i)
+  if (imgMatch && imgMatch[1]) {
+    // Skip base64 images and tracking pixels
+    if (!imgMatch[1].startsWith('data:') && !imgMatch[1].includes('tracking')) {
+      return imgMatch[1]
+    }
+  }
+
+  // Look for og:image in content
+  const ogMatch = content.match(/og:image["'\s]+content=["']([^"']+)["']/i)
+  if (ogMatch && ogMatch[1]) return ogMatch[1]
+
+  // 7. For Google News, try to extract from the link
+  const link = item.link as string | undefined
+  if (link && link.includes('news.google.com')) {
+    // Google News doesn't provide images directly in RSS
+    return null
+  }
 
   return null
+}
+
+function decodeHTMLEntities(text: string): string {
+  if (!text) return ''
+
+  const entities: Record<string, string> = {
+    '&amp;': '&',
+    '&lt;': '<',
+    '&gt;': '>',
+    '&quot;': '"',
+    '&#39;': "'",
+    '&apos;': "'",
+    '&#x27;': "'",
+    '&nbsp;': ' ',
+  }
+
+  // Replace named entities
+  let decoded = text
+  for (const [entity, char] of Object.entries(entities)) {
+    decoded = decoded.replace(new RegExp(entity, 'g'), char)
+  }
+
+  // Replace numeric entities like &#xFC; or &#252;
+  decoded = decoded.replace(/&#x([0-9a-fA-F]+);/g, (_, hex) =>
+    String.fromCharCode(parseInt(hex, 16))
+  )
+  decoded = decoded.replace(/&#(\d+);/g, (_, dec) =>
+    String.fromCharCode(parseInt(dec, 10))
+  )
+
+  return decoded
 }
 
 export async function GET(request: NextRequest) {
@@ -100,16 +193,20 @@ export async function GET(request: NextRequest) {
           }
 
           const itemAny = item as unknown as Record<string, unknown>
+          const decodedTitle = decodeHTMLEntities(item.title)
+          const rawSummary = item.contentSnippet || (item.content as string | undefined) || ''
+          const rawContent = (item.content || itemAny['content:encoded'] || '') as string
+
           const article = {
-            title: item.title.substring(0, 255),
+            title: decodedTitle.substring(0, 255),
             slug,
-            summary: item.contentSnippet?.substring(0, 500) || (item.content as string | undefined)?.substring(0, 500) || null,
-            content: item.content || itemAny['content:encoded'] || null,
+            summary: decodeHTMLEntities(rawSummary).substring(0, 500) || null,
+            content: decodeHTMLEntities(rawContent) || null,
             source: source.name,
             source_url: item.link || null,
             image_url: imageUrl,
             category: source.category || 'breaking',
-            author: item.creator || itemAny.author as string || source.name,
+            author: decodeHTMLEntities(item.creator || itemAny.author as string || source.name),
             published_at: item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString(),
             is_featured: false,
             is_published: true,

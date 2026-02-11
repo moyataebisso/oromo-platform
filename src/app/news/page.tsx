@@ -8,6 +8,7 @@ import {
   Newspaper, RefreshCw
 } from 'lucide-react'
 import { Header } from '@/components/layout/header'
+import { Footer } from '@/components/layout/footer'
 
 interface NewsArticle {
   id: string
@@ -25,6 +26,26 @@ interface Category {
   id: string
   name: string
   slug: string
+}
+
+// Placeholder images based on category
+const getCategoryPlaceholder = (category: string, newsType: string): string => {
+  const placeholders: Record<string, string> = {
+    breaking: 'https://images.unsplash.com/photo-1495020689067-958852a7765e?w=800&q=80',
+    politics: 'https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?w=800&q=80',
+    culture: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800&q=80',
+    sports: 'https://images.unsplash.com/photo-1461896836934- voices-of-color?w=800&q=80',
+    business: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80',
+    education: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&q=80',
+    diaspora: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=80',
+    community: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=800&q=80',
+    world: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80',
+    technology: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80',
+    health: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&q=80',
+    entertainment: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&q=80',
+  }
+  // Return category-specific or news type fallback
+  return placeholders[category.toLowerCase()] || placeholders[newsType] || placeholders.breaking
 }
 
 export default function NewsPage() {
@@ -170,17 +191,14 @@ export default function NewsPage() {
               className="block relative rounded-2xl overflow-hidden mb-8 group"
             >
               <div className="aspect-[21/9] bg-gray-800">
-                {featuredArticle.image_url ? (
-                  <img
-                    src={featuredArticle.image_url}
-                    alt={featuredArticle.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center">
-                    <Newspaper className="w-20 h-20 text-gray-600" />
-                  </div>
-                )}
+                <img
+                  src={featuredArticle.image_url || getCategoryPlaceholder(featuredArticle.category, activeTab)}
+                  alt={featuredArticle.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  onError={(e) => {
+                    e.currentTarget.src = getCategoryPlaceholder(featuredArticle.category, activeTab)
+                  }}
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
               </div>
 
@@ -278,17 +296,14 @@ export default function NewsPage() {
                       className="bg-gray-800 rounded-xl overflow-hidden group hover:bg-gray-750 transition"
                     >
                       <div className="aspect-video bg-gray-700 relative overflow-hidden">
-                        {article.image_url ? (
-                          <img
-                            src={article.image_url}
-                            alt={article.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Newspaper className="w-12 h-12 text-gray-600" />
-                          </div>
-                        )}
+                        <img
+                          src={article.image_url || getCategoryPlaceholder(article.category, activeTab)}
+                          alt={article.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          onError={(e) => {
+                            e.currentTarget.src = getCategoryPlaceholder(article.category, activeTab)
+                          }}
+                        />
                         <span className={`absolute top-3 left-3 px-2 py-1 rounded text-xs font-medium ${
                           activeTab === 'oromo' ? 'bg-green-500' : 'bg-blue-500'
                         } text-white`}>
@@ -344,6 +359,9 @@ export default function NewsPage() {
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <Footer />
     </>
   )
 }
