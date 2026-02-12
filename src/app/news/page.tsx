@@ -28,24 +28,110 @@ interface Category {
   slug: string
 }
 
-// Placeholder images based on category
-const getCategoryPlaceholder = (category: string, newsType: string): string => {
-  const placeholders: Record<string, string> = {
-    breaking: 'https://images.unsplash.com/photo-1495020689067-958852a7765e?w=800&q=80',
-    politics: 'https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?w=800&q=80',
-    culture: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800&q=80',
-    sports: 'https://images.unsplash.com/photo-1461896836934- voices-of-color?w=800&q=80',
-    business: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80',
-    education: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&q=80',
-    diaspora: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=80',
-    community: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=800&q=80',
-    world: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80',
-    technology: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80',
-    health: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&q=80',
-    entertainment: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&q=80',
-  }
-  // Return category-specific or news type fallback
-  return placeholders[category.toLowerCase()] || placeholders[newsType] || placeholders.breaking
+// Decode HTML entities in text (for titles with encoded characters like &#xFC;)
+const decodeHTMLEntities = (text: string): string => {
+  if (!text) return ''
+  return text
+    .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(parseInt(dec, 10)))
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+}
+
+// Placeholder images based on category - multiple options per category for variety
+const placeholderSets: Record<string, string[]> = {
+  breaking: [
+    'https://images.unsplash.com/photo-1495020689067-958852a7765e?w=800&q=80',
+    'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&q=80',
+    'https://images.unsplash.com/photo-1586339949916-3e9457bef6d3?w=800&q=80',
+    'https://images.unsplash.com/photo-1557992260-ec58e38d363c?w=800&q=80',
+  ],
+  politics: [
+    'https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?w=800&q=80',
+    'https://images.unsplash.com/photo-1555848962-6e79363ec58f?w=800&q=80',
+    'https://images.unsplash.com/photo-1541872703-74c5e44368f9?w=800&q=80',
+    'https://images.unsplash.com/photo-1575320181282-9afab399332c?w=800&q=80',
+  ],
+  culture: [
+    'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800&q=80',
+    'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&q=80',
+    'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&q=80',
+    'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800&q=80',
+  ],
+  sports: [
+    'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&q=80',
+    'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800&q=80',
+    'https://images.unsplash.com/photo-1461896836934-28f606d9a220?w=800&q=80',
+    'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800&q=80',
+  ],
+  business: [
+    'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80',
+    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80',
+    'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&q=80',
+    'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80',
+  ],
+  education: [
+    'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&q=80',
+    'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&q=80',
+    'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=800&q=80',
+    'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800&q=80',
+  ],
+  diaspora: [
+    'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=80',
+    'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?w=800&q=80',
+    'https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?w=800&q=80',
+    'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=800&q=80',
+  ],
+  community: [
+    'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=800&q=80',
+    'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?w=800&q=80',
+    'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=800&q=80',
+    'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=800&q=80',
+  ],
+  world: [
+    'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80',
+    'https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?w=800&q=80',
+    'https://images.unsplash.com/photo-1521295121783-8a321d551ad2?w=800&q=80',
+    'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=800&q=80',
+  ],
+  technology: [
+    'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80',
+    'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&q=80',
+    'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=800&q=80',
+    'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&q=80',
+  ],
+  health: [
+    'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&q=80',
+    'https://images.unsplash.com/photo-1538108149393-fbbd81895907?w=800&q=80',
+    'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=800&q=80',
+    'https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?w=800&q=80',
+  ],
+  entertainment: [
+    'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&q=80',
+    'https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=800&q=80',
+    'https://images.unsplash.com/photo-1598387993441-a364f854c3e1?w=800&q=80',
+    'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=800&q=80',
+  ],
+}
+
+// Generate a consistent but varied placeholder based on article properties
+const getArticlePlaceholder = (article: NewsArticle): string => {
+  const category = article.category.toLowerCase()
+  const imageSet = placeholderSets[category] || placeholderSets.breaking
+
+  // Use the article ID or title to consistently pick an image
+  // This ensures the same article always gets the same placeholder
+  const hash = article.id ?
+    article.id.charCodeAt(0) + article.id.charCodeAt(article.id.length - 1) :
+    article.title.length
+
+  const index = hash % imageSet.length
+  return imageSet[index]
 }
 
 export default function NewsPage() {
@@ -192,11 +278,11 @@ export default function NewsPage() {
             >
               <div className="aspect-[21/9] bg-gray-800">
                 <img
-                  src={featuredArticle.image_url || getCategoryPlaceholder(featuredArticle.category, activeTab)}
-                  alt={featuredArticle.title}
+                  src={featuredArticle.image_url || getArticlePlaceholder(featuredArticle)}
+                  alt={decodeHTMLEntities(featuredArticle.title)}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   onError={(e) => {
-                    e.currentTarget.src = getCategoryPlaceholder(featuredArticle.category, activeTab)
+                    e.currentTarget.src = getArticlePlaceholder(featuredArticle)
                   }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
@@ -209,11 +295,11 @@ export default function NewsPage() {
                   {featuredArticle.category}
                 </span>
                 <h2 className="text-3xl font-bold text-white mb-3 group-hover:text-blue-400 transition">
-                  {featuredArticle.title}
+                  {decodeHTMLEntities(featuredArticle.title)}
                 </h2>
                 {featuredArticle.summary && (
                   <p className="text-gray-300 text-lg mb-4 line-clamp-2">
-                    {featuredArticle.summary}
+                    {decodeHTMLEntities(featuredArticle.summary)}
                   </p>
                 )}
                 <div className="flex items-center gap-4 text-gray-400 text-sm">
@@ -297,11 +383,11 @@ export default function NewsPage() {
                     >
                       <div className="aspect-video bg-gray-700 relative overflow-hidden">
                         <img
-                          src={article.image_url || getCategoryPlaceholder(article.category, activeTab)}
-                          alt={article.title}
+                          src={article.image_url || getArticlePlaceholder(article)}
+                          alt={decodeHTMLEntities(article.title)}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           onError={(e) => {
-                            e.currentTarget.src = getCategoryPlaceholder(article.category, activeTab)
+                            e.currentTarget.src = getArticlePlaceholder(article)
                           }}
                         />
                         <span className={`absolute top-3 left-3 px-2 py-1 rounded text-xs font-medium ${
@@ -312,7 +398,7 @@ export default function NewsPage() {
                       </div>
                       <div className="p-4">
                         <h3 className="font-semibold text-white mb-2 line-clamp-2 group-hover:text-blue-400 transition">
-                          {article.title}
+                          {decodeHTMLEntities(article.title)}
                         </h3>
                         <div className="flex items-center gap-2 text-gray-400 text-sm">
                           <span>{article.source}</span>

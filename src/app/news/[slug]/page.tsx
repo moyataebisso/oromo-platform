@@ -14,6 +14,21 @@ interface ArticlePageProps {
   params: Promise<{ slug: string }>
 }
 
+// Decode HTML entities in text (for titles with encoded characters like &#xFC;)
+const decodeHTMLEntities = (text: string): string => {
+  if (!text) return ''
+  return text
+    .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(parseInt(dec, 10)))
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+}
+
 interface Article {
   id: string
   title: string
@@ -78,7 +93,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         <div className="relative h-[400px] md:h-[500px]">
           <Image
             src={article.image_url}
-            alt={article.title}
+            alt={decodeHTMLEntities(article.title)}
             fill
             className="object-cover"
             priority
@@ -106,7 +121,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
               {/* Title */}
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6">
-                {article.title}
+                {decodeHTMLEntities(article.title)}
               </h1>
 
               {/* Meta */}
@@ -132,23 +147,24 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
               {/* Share Buttons */}
               <div className="mb-8">
-                <ShareButtons url={articleUrl} title={article.title} />
+                <ShareButtons url={articleUrl} title={decodeHTMLEntities(article.title)} />
               </div>
 
               {/* Content */}
               <div className="prose prose-invert prose-lg max-w-none">
                 {article.content.split('\n').map((paragraph: string, index: number) => {
-                  if (paragraph.startsWith('# ')) {
-                    return <h2 key={index} className="text-2xl font-bold text-white mt-8 mb-4">{paragraph.slice(2)}</h2>
+                  const decoded = decodeHTMLEntities(paragraph)
+                  if (decoded.startsWith('# ')) {
+                    return <h2 key={index} className="text-2xl font-bold text-white mt-8 mb-4">{decoded.slice(2)}</h2>
                   }
-                  if (paragraph.startsWith('## ')) {
-                    return <h3 key={index} className="text-xl font-semibold text-white mt-6 mb-3">{paragraph.slice(3)}</h3>
+                  if (decoded.startsWith('## ')) {
+                    return <h3 key={index} className="text-xl font-semibold text-white mt-6 mb-3">{decoded.slice(3)}</h3>
                   }
-                  if (paragraph.startsWith('*') && paragraph.endsWith('*')) {
-                    return <p key={index} className="text-slate-400 italic">{paragraph.slice(1, -1)}</p>
+                  if (decoded.startsWith('*') && decoded.endsWith('*')) {
+                    return <p key={index} className="text-slate-400 italic">{decoded.slice(1, -1)}</p>
                   }
-                  if (paragraph.trim()) {
-                    return <p key={index} className="text-slate-300 mb-4 leading-relaxed">{paragraph}</p>
+                  if (decoded.trim()) {
+                    return <p key={index} className="text-slate-300 mb-4 leading-relaxed">{decoded}</p>
                   }
                   return null
                 })}
@@ -157,7 +173,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               {/* Bottom Share Buttons */}
               <div className="mt-12 pt-8 border-t border-slate-700">
                 <p className="text-slate-400 mb-4">Share this article</p>
-                <ShareButtons url={articleUrl} title={article.title} />
+                <ShareButtons url={articleUrl} title={decodeHTMLEntities(article.title)} />
               </div>
             </div>
           </article>
