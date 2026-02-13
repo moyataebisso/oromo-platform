@@ -41,10 +41,10 @@ interface BusinessFiltersProps {
 const CITIES = [
   'All Cities',
   'Minneapolis, MN',
-  'Washington, DC',
-  'Seattle, WA',
-  'Atlanta, GA',
-  'Dallas, TX',
+  'Saint Paul, MN',
+  'Columbia Heights, MN',
+  'Bloomington, MN',
+  'Burnsville, MN',
 ]
 
 const DISTANCE_OPTIONS = [
