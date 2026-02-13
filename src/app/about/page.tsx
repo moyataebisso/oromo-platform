@@ -165,7 +165,7 @@ export default function AboutPage() {
               <p className="text-slate-300 mb-6">
                 ODDA Academy is created and maintained by{' '}
                 <a
-                  href="https://arsitechnology.com"
+                  href="https://www.arsitechgroup.com"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-400 hover:text-blue-300 font-semibold"

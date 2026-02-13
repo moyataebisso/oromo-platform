@@ -205,7 +205,7 @@ export const Footer = () => {
             <p className="text-xs text-slate-500 mt-1">
               Created by{' '}
               <a
-                href="https://arsitechnology.com"
+                href="https://www.arsitechgroup.com"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-slate-400 hover:text-white transition-colors"

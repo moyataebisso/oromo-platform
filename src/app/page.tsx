@@ -312,17 +312,9 @@ export default function HomePage() {
               heroRef.isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"
             )}
           >
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/20 backdrop-blur border border-green-500/30 mb-8 animate-fade-in">
-              <span className="text-lg">🌳</span>
-              <span className="text-sm font-medium text-green-300">
-                ODDA means "Tree" in Oromo
-              </span>
-            </div>
-
             {/* Main headline */}
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-tight">
-              <span className="text-white">Climb the </span>
+              <span className="bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">Climb the </span>
               <br />
               <span className="bg-gradient-to-r from-green-400 via-emerald-400 to-teal-400 bg-clip-text text-transparent">
                 Tree of Knowledge
