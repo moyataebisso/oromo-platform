@@ -20,8 +20,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Odda Academy - Oromo Digital Diaspora Association",
-  description: "A comprehensive community platform for the Oromo diaspora - Academy, Careers, and Wiki",
+  title: "ODDA Academy - Climb the Tree of Knowledge",
+  description: "Free, world-class education for the Oromo community. ODDA means Tree in Oromo — grow your knowledge of language, culture, and career skills.",
 };
 
 export default function RootLayout({

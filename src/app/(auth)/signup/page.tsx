@@ -95,8 +95,10 @@ export default function SignupPage() {
     return (
       <Card className="w-full">
         <CardHeader className="text-center">
-          <Link href="/" className="text-2xl font-bold text-slate-900 mb-2 inline-block">
-            Oromo
+          <Link href="/" className="text-2xl font-bold mb-2 inline-block">
+            <span className="bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 bg-clip-text text-transparent">
+              ODDA
+            </span>
           </Link>
           <CardTitle className="text-xl text-green-600">Check your email</CardTitle>
           <CardDescription>
@@ -125,12 +127,14 @@ export default function SignupPage() {
   return (
     <Card className="w-full">
       <CardHeader className="text-center">
-        <Link href="/" className="text-2xl font-bold text-slate-900 mb-2 inline-block">
-          Oromo
+        <Link href="/" className="text-2xl font-bold mb-2 inline-block">
+          <span className="bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 bg-clip-text text-transparent">
+            ODDA
+          </span>
         </Link>
         <CardTitle className="text-xl">Create an account</CardTitle>
         <CardDescription>
-          Join the Oromo community today
+          Plant your roots and start growing with ODDA Academy
         </CardDescription>
       </CardHeader>
       <CardContent>

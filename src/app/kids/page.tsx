@@ -165,12 +165,12 @@ export default function KidsHomePage() {
 
         {/* Welcome Section */}
         <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-200 rounded-full mb-4">
-            <Sparkles className="w-5 h-5 text-yellow-600" />
-            <span className="font-semibold text-yellow-800">Let&apos;s Learn Oromo!</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-200 rounded-full mb-4">
+            <span className="text-xl">🌳</span>
+            <span className="font-semibold text-green-800">Welcome to ODDA!</span>
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-slate-800 mb-4">
-            Welcome! 👋
+            Let&apos;s Grow and Learn! 🌱
           </h1>
           <p className="text-xl text-slate-600">
             What do you want to learn today?

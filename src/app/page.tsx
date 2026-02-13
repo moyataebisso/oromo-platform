@@ -313,26 +313,26 @@ export default function HomePage() {
             )}
           >
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 backdrop-blur border border-white/10 mb-8 animate-fade-in">
-              <Sparkles className="w-4 h-4 text-amber-400" />
-              <span className="text-sm font-medium text-white/80">
-                Trusted by 10,000+ Oromo learners worldwide
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/20 backdrop-blur border border-green-500/30 mb-8 animate-fade-in">
+              <span className="text-lg">🌳</span>
+              <span className="text-sm font-medium text-green-300">
+                ODDA means "Tree" in Oromo
               </span>
             </div>
 
             {/* Main headline */}
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-tight">
-              <span className="text-white">Learn Anything.</span>
+              <span className="text-white">Climb the </span>
               <br />
-              <span className="bg-gradient-to-r from-emerald-400 via-amber-400 to-red-400 bg-clip-text text-transparent">
-                Achieve Everything.
+              <span className="bg-gradient-to-r from-green-400 via-emerald-400 to-teal-400 bg-clip-text text-transparent">
+                Tree of Knowledge
               </span>
             </h1>
 
             {/* Subheadline */}
             <p className="mt-8 text-xl md:text-2xl text-slate-400 leading-relaxed max-w-3xl mx-auto">
               Free, world-class education for the Oromo community.
-              <span className="text-white"> Master your language, culture, and career skills.</span>
+              <span className="text-white"> Plant your roots, grow your mind, reach new heights.</span>
             </p>
 
             {/* CTA Buttons */}
@@ -499,7 +499,7 @@ export default function HomePage() {
                 Why Choose Us
               </Badge>
               <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-                Why Odda Academy Works
+                Why ODDA Academy Works
               </h2>
               <p className="text-xl text-slate-400 max-w-2xl mx-auto">
                 Our platform is designed with proven learning methods and community feedback.

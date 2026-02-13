@@ -55,13 +55,13 @@ export default function LoginPage() {
     <Card className="w-full bg-card/50 backdrop-blur border-border/50">
       <CardHeader className="text-center">
         <Link href="/" className="text-2xl font-bold mb-2 inline-block">
-          <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-            Oromo
+          <span className="bg-gradient-to-r from-green-400 via-emerald-400 to-teal-400 bg-clip-text text-transparent">
+            ODDA
           </span>
         </Link>
         <CardTitle className="text-xl text-foreground">Welcome back</CardTitle>
         <CardDescription>
-          Enter your credentials to access your account
+          Continue your learning journey with ODDA
         </CardDescription>
       </CardHeader>
       <CardContent>

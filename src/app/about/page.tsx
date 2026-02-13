@@ -42,12 +42,35 @@ export default function AboutPage() {
         <section className="py-16 bg-gradient-to-b from-blue-50 to-white">
           <div className="mx-auto max-w-7xl px-4 text-center">
             <h1 className="text-4xl md:text-5xl font-bold text-slate-900">
-              About Odda Academy
+              About ODDA Academy
             </h1>
             <p className="mt-6 text-xl text-slate-600 max-w-3xl mx-auto">
               We&apos;re building the premier digital home for the 40+ million Oromo people worldwide,
               connecting our community through education, careers, and shared knowledge.
             </p>
+          </div>
+        </section>
+
+        {/* About ODDA Name */}
+        <section className="py-16 bg-gradient-to-r from-green-50 to-emerald-50">
+          <div className="mx-auto max-w-7xl px-4">
+            <div className="max-w-3xl mx-auto text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 text-green-700 mb-6">
+                <span className="text-2xl">🌳</span>
+                <span className="font-semibold">The Meaning Behind Our Name</span>
+              </div>
+              <h2 className="text-3xl font-bold text-slate-900 mb-6">What Does ODDA Mean?</h2>
+              <p className="text-lg text-slate-600 mb-4">
+                <strong className="text-green-700">ODDA</strong> means <strong className="text-green-700">"Tree"</strong> in Afaan Oromo.
+                Just as a tree grows from strong roots to reach great heights, ODDA Academy helps learners
+                build a strong foundation in language, culture, and skills to achieve their full potential.
+              </p>
+              <p className="text-lg text-slate-600">
+                The tree is a powerful symbol in Oromo culture — representing growth, community, shelter, and
+                the connection between generations. We chose this name to embody our mission of nurturing
+                knowledge and helping our community flourish.
+              </p>
+            </div>
           </div>
         </section>
 
@@ -58,7 +81,7 @@ export default function AboutPage() {
               <div>
                 <h2 className="text-3xl font-bold text-slate-900 mb-6">Our Mission</h2>
                 <p className="text-lg text-slate-600 mb-4">
-                  Odda Academy was founded with a simple yet powerful mission: to connect,
+                  ODDA Academy was founded with a simple yet powerful mission: to connect,
                   educate, and empower the global Oromo community through technology.
                 </p>
                 <p className="text-lg text-slate-600 mb-4">
@@ -68,8 +91,8 @@ export default function AboutPage() {
                 </p>
                 <p className="text-lg text-slate-600">
                   Whether you&apos;re learning Afaan Oromoo for the first time, seeking career
-                  opportunities, or contributing to our collective knowledge base, the
-                  Odda Academy is your digital home.
+                  opportunities, or contributing to our collective knowledge base,
+                  ODDA Academy is your digital home.
                 </p>
               </div>
               <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-8 text-white">
@@ -130,6 +153,31 @@ export default function AboutPage() {
                   <p className="text-slate-600 text-sm">{member.bio}</p>
                 </div>
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Created By */}
+        <section className="py-16 bg-slate-900 text-white">
+          <div className="mx-auto max-w-7xl px-4">
+            <div className="max-w-3xl mx-auto text-center">
+              <h2 className="text-2xl font-bold mb-4">Created by Arsi Technology LLC</h2>
+              <p className="text-slate-300 mb-6">
+                ODDA Academy is created and maintained by{' '}
+                <a
+                  href="https://arsitechnology.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-400 hover:text-blue-300 font-semibold"
+                >
+                  Arsi Technology LLC
+                </a>
+                , a technology company committed to empowering the Oromo community through
+                innovative educational solutions.
+              </p>
+              <p className="text-slate-400 text-sm">
+                Building technology that makes a difference for our community.
+              </p>
             </div>
           </div>
         </section>

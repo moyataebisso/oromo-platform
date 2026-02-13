@@ -117,7 +117,7 @@ export const Footer = () => {
               <OdaaLogo size="md" showText={true} />
             </Link>
             <p className="mt-4 text-sm text-slate-400 max-w-xs">
-              Odda Academy - Empowering the global Oromo community through education, careers, and cultural preservation.
+              ODDA means "Tree" in Oromo — just as a tree grows from strong roots to reach great heights, we help you build a strong foundation in language, culture, and career skills.
             </p>
             {/* Social Links */}
             <div className="flex gap-3 mt-6">
@@ -198,9 +198,22 @@ export const Footer = () => {
 
         {/* Copyright */}
         <div className="mt-12 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm text-slate-400 flex items-center gap-2">
-            &copy; {currentYear} Odda Academy - Oromo Digital Diaspora Association. Made with <Heart className="w-4 h-4 text-red-500 fill-red-500" /> for the Oromo community.
-          </p>
+          <div className="text-center md:text-left">
+            <p className="text-sm text-slate-400 flex items-center gap-2">
+              &copy; {currentYear} ODDA Academy. All rights reserved.
+            </p>
+            <p className="text-xs text-slate-500 mt-1">
+              Created by{' '}
+              <a
+                href="https://arsitechnology.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-slate-400 hover:text-white transition-colors"
+              >
+                Arsi Technology LLC
+              </a>
+            </p>
+          </div>
           <div className="flex gap-6 text-sm text-slate-400">
             <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
             <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
