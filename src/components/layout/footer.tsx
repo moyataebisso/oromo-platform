@@ -12,9 +12,10 @@ import { FooterBusinessBanner } from '@/components/businesses/footer-business-ba
 const footerLinks = {
   platform: [
     { name: 'Academy', href: '/academy' },
+    { name: 'Community', href: '/community' },
+    { name: 'ODDA Network', href: '/odda' },
     { name: 'Careers', href: '/careers' },
     { name: 'Wiki', href: '/wiki' },
-    { name: 'Community', href: '/community' },
     { name: 'Businesses', href: '/businesses' },
   ],
   ageGroups: [
