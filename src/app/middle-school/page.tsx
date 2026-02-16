@@ -7,9 +7,9 @@ interface FeaturedCourse {
   title: string
   slug: string
   description: string | null
-  course_category: string
-  xp_reward: number
-  estimated_hours: number | null
+  category: string
+  xp_reward: number | null
+  estimated_weeks: number | null
   lesson_count: number
 }
 
@@ -24,10 +24,10 @@ export default async function MiddleSchoolHome() {
       title,
       slug,
       description,
-      course_category,
+      category,
       xp_reward,
-      estimated_hours,
-      middle_school_lessons(count)
+      estimated_weeks,
+      lesson_count
     `)
     .eq('is_published', true)
     .eq('is_featured', true)
@@ -47,10 +47,10 @@ export default async function MiddleSchoolHome() {
         title,
         slug,
         description,
-        course_category,
+        category,
         xp_reward,
-        estimated_hours,
-        middle_school_lessons(count)
+        estimated_weeks,
+        lesson_count
       `)
       .eq('is_published', true)
       .order('order_index')
@@ -66,19 +66,19 @@ export default async function MiddleSchoolHome() {
     title: string
     slug: string
     description: string | null
-    course_category: string
-    xp_reward: number
-    estimated_hours: number | null
-    middle_school_lessons: { count: number }[]
+    category: string
+    xp_reward: number | null
+    estimated_weeks: number | null
+    lesson_count: number | null
   }) => ({
     id: course.id,
     title: course.title,
     slug: course.slug,
     description: course.description,
-    course_category: course.course_category,
+    category: course.category,
     xp_reward: course.xp_reward,
-    estimated_hours: course.estimated_hours,
-    lesson_count: course.middle_school_lessons?.[0]?.count || 0
+    estimated_weeks: course.estimated_weeks,
+    lesson_count: course.lesson_count || 0
   }))
 
   const getCategoryIcon = (category: string) => {
@@ -209,12 +209,12 @@ export default async function MiddleSchoolHome() {
                   href={`/middle-school/courses/${course.slug}`}
                   className="bg-gray-50 dark:bg-gray-700 rounded-xl overflow-hidden hover:ring-2 hover:ring-blue-500 transition-all shadow-sm"
                 >
-                  <div className={`h-32 bg-gradient-to-br ${getCategoryGradient(course.course_category)} flex items-center justify-center`}>
-                    {getCategoryIcon(course.course_category)}
+                  <div className={`h-32 bg-gradient-to-br ${getCategoryGradient(course.category)} flex items-center justify-center`}>
+                    {getCategoryIcon(course.category)}
                   </div>
                   <div className="p-4">
-                    <span className={`text-xs font-medium uppercase ${getCategoryBadgeColor(course.course_category)}`}>
-                      {course.course_category?.replace('_', ' ')}
+                    <span className={`text-xs font-medium uppercase ${getCategoryBadgeColor(course.category)}`}>
+                      {course.category?.replace('_', ' ')}
                     </span>
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mt-1">{course.title}</h3>
                     <p className="text-gray-600 dark:text-gray-400 text-sm mt-1 line-clamp-2">{course.description}</p>
@@ -226,10 +226,10 @@ export default async function MiddleSchoolHome() {
                             {course.lesson_count} lessons
                           </span>
                         )}
-                        {course.estimated_hours && (
+                        {course.estimated_weeks && (
                           <span className="flex items-center gap-1">
                             <Clock className="w-4 h-4" />
-                            {course.estimated_hours}h
+                            {course.estimated_weeks}w
                           </span>
                         )}
                       </div>

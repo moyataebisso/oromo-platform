@@ -25,9 +25,9 @@ interface Partner {
   description: string | null
   logo_url: string | null
   website: string | null
-  is_featured: boolean
-  show_on_homepage: boolean
-  status: string
+  is_featured: boolean | null
+  show_on_homepage: boolean | null
+  status: string | null
 }
 
 export default function EditPartnerPage() {
@@ -75,8 +75,8 @@ export default function EditPartnerPage() {
           slug: partner.slug,
           website: partner.website || '',
           description: partner.description || '',
-          is_featured: partner.is_featured,
-          show_on_homepage: partner.show_on_homepage,
+          is_featured: partner.is_featured ?? true,
+          show_on_homepage: partner.show_on_homepage ?? true,
         })
 
         if (partner.logo_url) {

@@ -38,12 +38,12 @@ interface Article {
   id: string
   title: string
   slug: string
-  category: string
-  author: string
-  published_at: string
-  is_published: boolean
-  is_featured: boolean
-  view_count: number
+  category: string | null
+  author: string | null
+  published_at: string | null
+  is_published: boolean | null
+  is_featured: boolean | null
+  view_count: number | null
   image_url: string | null
 }
 
@@ -129,7 +129,7 @@ export default function AdminNewsPage() {
     fetchStats()
   }, [categoryFilter, statusFilter, searchQuery])
 
-  const togglePublished = async (id: string, currentValue: boolean) => {
+  const togglePublished = async (id: string, currentValue: boolean | null) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (supabase as any)
       .from('news_articles')
@@ -139,7 +139,7 @@ export default function AdminNewsPage() {
     fetchStats()
   }
 
-  const toggleFeatured = async (id: string, currentValue: boolean) => {
+  const toggleFeatured = async (id: string, currentValue: boolean | null) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (supabase as any)
       .from('news_articles')
@@ -291,7 +291,7 @@ export default function AdminNewsPage() {
                     {article.author || '-'}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {new Date(article.published_at).toLocaleDateString()}
+                    {article.published_at ? new Date(article.published_at).toLocaleDateString() : '-'}
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">

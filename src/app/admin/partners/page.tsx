@@ -55,10 +55,10 @@ interface Partner {
   description: string | null
   logo_url: string | null
   website: string | null
-  is_featured: boolean
-  show_on_homepage: boolean
-  status: string
-  created_at: string
+  is_featured: boolean | null
+  show_on_homepage: boolean | null
+  status: string | null
+  created_at: string | null
 }
 
 export default function AdminPartnersPage() {
@@ -102,7 +102,7 @@ export default function AdminPartnersPage() {
   )
 
   // Toggle featured status
-  const handleToggleFeatured = async (id: string, currentValue: boolean) => {
+  const handleToggleFeatured = async (id: string, currentValue: boolean | null) => {
     setIsUpdating(id)
     try {
       const supabase = createClient()
@@ -126,7 +126,7 @@ export default function AdminPartnersPage() {
   }
 
   // Toggle show on homepage status
-  const handleToggleHomepage = async (id: string, currentValue: boolean) => {
+  const handleToggleHomepage = async (id: string, currentValue: boolean | null) => {
     setIsUpdating(id)
     try {
       const supabase = createClient()
@@ -327,14 +327,14 @@ export default function AdminPartnersPage() {
                   </TableCell>
                   <TableCell>
                     <Switch
-                      checked={partner.is_featured}
+                      checked={partner.is_featured ?? false}
                       onCheckedChange={() => handleToggleFeatured(partner.id, partner.is_featured)}
                       disabled={isUpdating === partner.id}
                     />
                   </TableCell>
                   <TableCell>
                     <Switch
-                      checked={partner.show_on_homepage}
+                      checked={partner.show_on_homepage ?? false}
                       onCheckedChange={() => handleToggleHomepage(partner.id, partner.show_on_homepage)}
                       disabled={isUpdating === partner.id}
                     />

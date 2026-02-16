@@ -10,15 +10,15 @@ interface Course {
   id: string
   title: string
   slug: string
-  description: string
-  course_category: string
-  grade_levels: number[]
-  difficulty: string
-  estimated_hours: number
-  xp_reward: number
-  thumbnail_url: string
-  is_featured: boolean
-  is_published: boolean
+  description: string | null
+  category: string
+  grade_levels: number[] | null
+  difficulty: string | null
+  estimated_weeks: number | null
+  xp_reward: number | null
+  thumbnail_url: string | null
+  is_featured: boolean | null
+  is_published: boolean | null
 }
 
 function MiddleSchoolCoursesContent() {
@@ -71,7 +71,7 @@ function MiddleSchoolCoursesContent() {
   }, [supabase])
 
   const filteredCourses = courses.filter(course => {
-    const matchesCategory = selectedCategory === 'all' || course.course_category === selectedCategory
+    const matchesCategory = selectedCategory === 'all' || course.category === selectedCategory
     const matchesSearch = searchQuery === '' ||
       course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       course.description?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -177,8 +177,8 @@ function MiddleSchoolCoursesContent() {
               {/* Content */}
               <div className="p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(course.course_category)}`}>
-                    {course.course_category?.replace('_', ' ')}
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(course.category)}`}>
+                    {course.category?.replace('_', ' ')}
                   </span>
                   <span className="text-xs text-gray-500 dark:text-gray-500 capitalize">{course.difficulty}</span>
                 </div>
@@ -192,7 +192,7 @@ function MiddleSchoolCoursesContent() {
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-500 dark:text-gray-500 flex items-center gap-1">
                     <Clock className="w-4 h-4" />
-                    {course.estimated_hours}h
+                    {course.estimated_weeks ?? 0}w
                   </span>
                   <span className="text-yellow-600 dark:text-yellow-400 flex items-center gap-1">
                     <Star className="w-4 h-4" />

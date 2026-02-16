@@ -34,8 +34,8 @@ interface UserProfile {
 
 interface TeenProfile {
   grade_level: number | null
-  total_points: number
-  streak_days: number
+  total_points: number | null
+  streak_days: number | null
 }
 
 interface UserStats {

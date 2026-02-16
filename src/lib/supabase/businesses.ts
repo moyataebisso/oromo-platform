@@ -124,7 +124,7 @@ export async function getBusinesses(filters: BusinessFilters = {}): Promise<Busi
     return []
   }
 
-  return data as Business[]
+  return data as unknown as Business[]
 }
 
 /**
@@ -148,7 +148,7 @@ export async function getBusinessBySlug(slug: string): Promise<Business | null> 
     return null
   }
 
-  return data as Business
+  return data as unknown as Business
 }
 
 /**
@@ -172,7 +172,7 @@ export async function getBusinessById(id: string): Promise<Business | null> {
     return null
   }
 
-  return data as Business
+  return data as unknown as Business
 }
 
 /**
@@ -223,7 +223,7 @@ export async function getSimilarBusinesses(
     return []
   }
 
-  return data as Business[]
+  return data as unknown as Business[]
 }
 
 /**
@@ -529,7 +529,7 @@ export async function getBusinessReviews(
     return []
   }
 
-  return data as BusinessReview[]
+  return data as unknown as BusinessReview[]
 }
 
 /**

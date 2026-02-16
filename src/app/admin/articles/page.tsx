@@ -105,12 +105,12 @@ export default function AdminArticlesPage() {
     // Fetch articles with relationships
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: articlesData } = await (supabase.from('wiki_articles') as any)
-      .select('*, category:categories(*), author:profiles(display_name, email)')
+      .select('*, category:wiki_categories(*), author:profiles(display_name, email)')
       .order('created_at', { ascending: false })
 
     // Fetch categories
     const { data: categoriesData } = await supabase
-      .from('categories')
+      .from('wiki_categories')
       .select('id, name')
       .order('name')
 

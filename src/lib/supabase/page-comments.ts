@@ -119,7 +119,8 @@ export async function getPageComments(
   const commentIds = comments.map((c) => c.id)
 
   if (commentIds.length > 0) {
-    const { data: replyCounts } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: replyCounts } = await (supabase as any)
       .from('page_comment_replies')
       .select('comment_id')
       .in('comment_id', commentIds)
@@ -145,7 +146,8 @@ export async function getPageComments(
 export async function getCommentReplies(commentId: string): Promise<CommentReply[]> {
   const supabase = await createClient()
 
-  const { data, error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase as any)
     .from('page_comment_replies')
     .select(`
       *,
@@ -392,9 +394,10 @@ export async function createReply(
     status: 'active',
   }
 
-  const { data: reply, error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: reply, error } = await (supabase as any)
     .from('page_comment_replies')
-    .insert(insertData as never)
+    .insert(insertData)
     .select(`
       *,
       user:profiles(id, display_name, avatar_url)
@@ -570,10 +573,11 @@ export async function toggleUpvote(
   }
 
   // Check if already upvoted
-  let query = supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let query = (supabase as any)
     .from('page_comment_upvotes')
     .select('id')
-    .eq('comment_id', commentId) as unknown as ReturnType<typeof supabase.from>
+    .eq('comment_id', commentId)
 
   if (currentUserId) {
     query = query.eq('user_id', currentUserId)
@@ -597,7 +601,8 @@ export async function toggleUpvote(
 
   if (rawExisting) {
     // Remove upvote
-    await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any)
       .from('page_comment_upvotes')
       .delete()
       .eq('id', rawExisting.id)
@@ -616,13 +621,14 @@ export async function toggleUpvote(
     }
   } else {
     // Add upvote
-    const { error } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase as any)
       .from('page_comment_upvotes')
       .insert({
         comment_id: commentId,
         user_id: currentUserId || null,
         guest_id: guestId || null,
-      } as never)
+      })
 
     if (error) {
       console.error('Error adding upvote:', error)
@@ -660,10 +666,11 @@ export async function hasUpvoted(
     return false
   }
 
-  let query = supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let query = (supabase as any)
     .from('page_comment_upvotes')
     .select('id')
-    .eq('comment_id', commentId) as unknown as ReturnType<typeof supabase.from>
+    .eq('comment_id', commentId)
 
   if (currentUserId) {
     query = query.eq('user_id', currentUserId)
@@ -692,10 +699,11 @@ export async function getUpvoteStatuses(
     return {}
   }
 
-  let query = supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let query = (supabase as any)
     .from('page_comment_upvotes')
     .select('comment_id')
-    .in('comment_id', commentIds) as unknown as ReturnType<typeof supabase.from>
+    .in('comment_id', commentIds)
 
   if (currentUserId) {
     query = query.eq('user_id', currentUserId)

@@ -33,8 +33,8 @@ interface KidProfile {
   id: string
   name: string
   avatar_url: string | null
-  age: number
-  screen_time_limit: number
+  age: number | null
+  screen_time_limit: number | null
   last_active_at: string | null
 }
 

@@ -37,20 +37,20 @@ interface NewsSource {
   name: string
   url: string
   rss_url: string | null
-  category: string
-  is_active: boolean
-  auto_publish: boolean
+  category: string | null
+  is_active: boolean | null
+  auto_publish: boolean | null
   last_fetched_at: string | null
 }
 
 interface FetchLog {
   id: string
-  source_id: string
-  articles_fetched: number
-  status: string
+  source_id: string | null
+  articles_fetched: number | null
+  status: string | null
   error_message: string | null
-  created_at: string
-  news_sources?: { name: string }
+  fetched_at: string | null
+  news_sources?: { name: string } | null
 }
 
 const categories = [
@@ -94,7 +94,7 @@ export default function NewsSourcesPage() {
     const { data } = await supabase
       .from('news_fetch_logs')
       .select('*, news_sources(name)')
-      .order('created_at', { ascending: false })
+      .order('fetched_at', { ascending: false })
       .limit(20)
     setLogs(data || [])
   }
@@ -153,7 +153,7 @@ export default function NewsSourcesPage() {
     await fetchSources()
   }
 
-  const toggleActive = async (id: string, currentValue: boolean) => {
+  const toggleActive = async (id: string, currentValue: boolean | null) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (supabase as any)
       .from('news_sources')
@@ -393,7 +393,7 @@ export default function NewsSourcesPage() {
                   <Badge variant="destructive">Error</Badge>
                 )}
                 <span className="text-sm text-muted-foreground">
-                  {new Date(log.created_at).toLocaleString()}
+                  {log.fetched_at ? new Date(log.fetched_at).toLocaleString() : '-'}
                 </span>
               </div>
             ))}

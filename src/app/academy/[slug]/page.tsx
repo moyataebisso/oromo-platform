@@ -63,7 +63,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
   let categoryName: string | null = null
   if (course.category_id) {
     const { data: categoryData } = await supabase
-      .from('categories')
+      .from('course_categories')
       .select('name')
       .eq('id', course.category_id)
       .single()

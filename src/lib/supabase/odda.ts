@@ -82,7 +82,8 @@ export async function incrementProfileViews(profileId: string): Promise<void> {
     .single() as { data: { user_id: string } | null }
 
   if (profile && user && profile.user_id !== user.id) {
-    await supabase.rpc('increment_profile_views', { profile_id: profileId } as never)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any).rpc('increment_profile_views', { profile_id: profileId })
   }
 }
 
@@ -302,7 +303,8 @@ export async function deleteSkill(skillId: string): Promise<void> {
 
 export async function endorseSkill(skillId: string): Promise<void> {
   const supabase = await createClient()
-  await supabase.rpc('endorse_skill', { skill_id: skillId } as never)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (supabase as any).rpc('endorse_skill', { skill_id: skillId })
 }
 
 // ============ CONNECTIONS ============
@@ -455,19 +457,19 @@ export async function getMutualConnections(userId: string): Promise<Professional
   // Get my connections
   const myConnections = await getMyConnections()
   const myConnectionIds = new Set(
-    myConnections.map(c => c.requester_id === user.id ? c.addressee_id : c.requester_id)
+    myConnections.map(c => c.user_id === user.id ? c.connected_user_id : c.user_id)
   )
 
   // Get their connections
-  type ConnectionIds = { requester_id: string; addressee_id: string }
+  type ConnectionIds = { user_id: string | null; connected_user_id: string | null }
   const { data: theirConnections } = await supabase
     .from('connections')
-    .select('requester_id, addressee_id')
+    .select('user_id, connected_user_id')
     .eq('status', 'accepted')
-    .or(`requester_id.eq.${userId},addressee_id.eq.${userId}`) as { data: ConnectionIds[] | null }
+    .or(`user_id.eq.${userId},connected_user_id.eq.${userId}`) as { data: ConnectionIds[] | null }
 
   const theirConnectionIds = new Set(
-    (theirConnections || []).map(c => c.requester_id === userId ? c.addressee_id : c.requester_id)
+    (theirConnections || []).map(c => c.user_id === userId ? c.connected_user_id : c.user_id)
   )
 
   // Find intersection

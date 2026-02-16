@@ -66,12 +66,12 @@ export interface Skill {
 
 export interface Connection {
   id: string
-  requester_id: string
-  addressee_id: string
-  status: 'pending' | 'accepted' | 'rejected'
+  user_id: string | null
+  connected_user_id: string | null
+  status: string | null
   message: string | null
-  created_at: string
-  updated_at: string
+  created_at: string | null
+  updated_at: string | null
   // Joined fields
   requester?: ProfessionalProfile
   addressee?: ProfessionalProfile

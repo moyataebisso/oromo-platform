@@ -117,7 +117,8 @@ export async function getPostById(id: string): Promise<ForumPost | null> {
   if (error || !data) return null
 
   // Increment view count
-  await supabase.rpc('increment_post_views', { post_id: id } as never)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (supabase as any).rpc('increment_post_views', { post_id: id })
 
   // Get user vote if logged in
   let post = data

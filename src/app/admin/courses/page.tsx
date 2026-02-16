@@ -111,13 +111,13 @@ export default function AdminCoursesPage() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: coursesData } = await (supabase
       .from('courses')
-      .select('*, category:categories(*)')
+      .select('*, category:course_categories(*)')
       .order('created_at', { ascending: false }) as any)
 
     // Fetch categories
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: categoriesData } = await (supabase
-      .from('categories')
+      .from('course_categories')
       .select('*')
       .order('name') as any)
 

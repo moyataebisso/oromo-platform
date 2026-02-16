@@ -34,48 +34,26 @@ export default function ConnectionsPage() {
 
       setCurrentUserId(user.id)
 
-      // Load connections
+      // Load connections (accepted)
       const { data: connectionsData } = await supabase
         .from('connections')
-        .select(`
-          *,
-          requester:professional_profiles!connections_requester_id_fkey(
-            user_id, headline,
-            user:profiles!professional_profiles_user_id_fkey(id, display_name, avatar_url)
-          ),
-          addressee:professional_profiles!connections_addressee_id_fkey(
-            user_id, headline,
-            user:profiles!professional_profiles_user_id_fkey(id, display_name, avatar_url)
-          )
-        `)
+        .select('*')
         .eq('status', 'accepted')
-        .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`)
+        .or(`user_id.eq.${user.id},connected_user_id.eq.${user.id}`)
 
       // Load pending requests (received)
       const { data: pendingData } = await supabase
         .from('connections')
-        .select(`
-          *,
-          requester:professional_profiles!connections_requester_id_fkey(
-            user_id, headline,
-            user:profiles!professional_profiles_user_id_fkey(id, display_name, avatar_url)
-          )
-        `)
+        .select('*')
         .eq('status', 'pending')
-        .eq('addressee_id', user.id)
+        .eq('connected_user_id', user.id)
 
       // Load sent requests
       const { data: sentData } = await supabase
         .from('connections')
-        .select(`
-          *,
-          addressee:professional_profiles!connections_addressee_id_fkey(
-            user_id, headline,
-            user:profiles!professional_profiles_user_id_fkey(id, display_name, avatar_url)
-          )
-        `)
+        .select('*')
         .eq('status', 'pending')
-        .eq('requester_id', user.id)
+        .eq('user_id', user.id)
 
       setConnections(connectionsData || [])
       setPendingRequests(pendingData || [])
@@ -169,7 +147,7 @@ export default function ConnectionsPage() {
   }
 
   const getConnectionUser = (connection: Connection) => {
-    if (connection.requester_id === currentUserId) {
+    if (connection.user_id === currentUserId) {
       return connection.addressee
     }
     return connection.requester

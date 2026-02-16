@@ -25,10 +25,10 @@ interface Article {
   title: string
   slug: string
   summary: string | null
-  category: string
+  category: string | null
   source: string | null
   image_url: string | null
-  created_at: string
+  created_at: string | null
 }
 
 export default function ReviewQueuePage() {
@@ -239,7 +239,7 @@ export default function ReviewQueuePage() {
                   </p>
                 )}
                 <p className="text-xs text-muted-foreground mb-4">
-                  Fetched {formatDistanceToNow(new Date(article.created_at), { addSuffix: true })}
+                  Fetched {article.created_at ? formatDistanceToNow(new Date(article.created_at), { addSuffix: true }) : 'unknown'}
                 </p>
 
                 {/* Actions */}

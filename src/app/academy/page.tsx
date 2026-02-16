@@ -23,7 +23,7 @@ export default async function AcademyPage() {
 
   // Fetch categories
   const { data: categoriesData } = await supabase
-    .from('categories')
+    .from('course_categories')
     .select('*')
     .order('name', { ascending: true })
 
