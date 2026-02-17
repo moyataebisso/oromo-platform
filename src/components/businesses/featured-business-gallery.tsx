@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Sparkles, ArrowRight, Building2, Loader2 } from 'lucide-react'
+import { ArrowRight, Building2, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 
@@ -77,9 +77,11 @@ export const FeaturedBusinessGallery = ({
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/25">
-              <Sparkles className="w-6 h-6 text-white" />
-            </div>
+            <img
+              src="https://edjeenuhmorqmjvedpem.supabase.co/storage/v1/object/public/business-logos/oromia-flag.png"
+              alt="Oromo Flag"
+              className="w-12 h-12 object-contain"
+            />
             <div>
               <h2 className="text-2xl font-bold text-white">
                 Featured Partners
