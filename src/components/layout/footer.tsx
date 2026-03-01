@@ -13,10 +13,12 @@ const footerLinks = {
   platform: [
     { name: 'Academy', href: '/academy' },
     { name: 'Community', href: '/community' },
+    { name: 'News', href: '/news' },
     { name: 'ODDA Network', href: '/odda' },
     { name: 'Careers', href: '/careers' },
-    { name: 'Wiki', href: '/wiki' },
     { name: 'Businesses', href: '/businesses' },
+    { name: 'Wiki', href: '/wiki' },
+    { name: 'Events', href: '/events' },
   ],
   ageGroups: [
     { name: 'Kids Zone', href: '/kids' },

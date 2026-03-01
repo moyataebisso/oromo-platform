@@ -39,6 +39,7 @@ const navigationConfig: Record<string, NavItem[]> = {
     { name: 'Home', href: '/teens' },
     { name: 'Academy', href: '/academy' },
     { name: 'Community', href: '/community' },
+    { name: 'News', href: '/news' },
     { name: 'ODDA', href: '/odda' },
     { name: 'Career Prep', href: '/teens/career-prep' },
     { name: 'Careers', href: '/careers' },
@@ -46,6 +47,7 @@ const navigationConfig: Record<string, NavItem[]> = {
   adults: [
     { name: 'Academy', href: '/academy' },
     { name: 'Community', href: '/community' },
+    { name: 'News', href: '/news' },
     { name: 'ODDA', href: '/odda' },
     { name: 'Careers', href: '/careers' },
     { name: 'Businesses', href: '/businesses' },
@@ -55,6 +57,7 @@ const navigationConfig: Record<string, NavItem[]> = {
   guest: [
     { name: 'Academy', href: '/academy' },
     { name: 'Community', href: '/community' },
+    { name: 'News', href: '/news' },
     { name: 'ODDA', href: '/odda' },
     { name: 'Careers', href: '/careers' },
     { name: 'Businesses', href: '/businesses' },
