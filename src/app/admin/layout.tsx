@@ -58,6 +58,7 @@ const sidebarLinks = [
   { name: 'Community', href: '/admin/community', icon: MessageSquare, badge: '45' },
   { name: 'Events', href: '/admin/events', icon: Calendar, badge: '24' },
   { name: 'Resources', href: '/admin/resources', icon: Link2, badge: '86' },
+  { name: 'Change Requests', href: '/admin/change-requests', icon: MessageSquare },
   { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
   { name: 'Settings', href: '/admin/settings', icon: Settings },
 ]
