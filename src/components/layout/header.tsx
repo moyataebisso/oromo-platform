@@ -420,6 +420,15 @@ export const Header = () => {
               )}
             </div>
 
+            {/* Discreet admin access */}
+            <a
+              href="/admin"
+              className="hidden md:inline-flex text-muted-foreground/20 hover:text-muted-foreground/60 transition-colors p-1 rounded"
+              title="Settings"
+            >
+              <Settings size={12} />
+            </a>
+
             {/* Mobile Menu Button */}
             <div className="md:hidden flex items-center gap-2">
               <LanguageToggle />
