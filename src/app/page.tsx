@@ -9,7 +9,6 @@ import {
   Users,
   Globe,
   ArrowRight,
-  Play,
   Star,
   Clock,
   CheckCircle2,
@@ -644,13 +643,6 @@ export default function HomePage() {
                     {/* Thumbnail */}
                     <div className="aspect-video bg-gradient-to-br from-slate-800 to-slate-900 relative overflow-hidden">
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-
-                      {/* Play button overlay */}
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
-                          <Play className="w-6 h-6 text-white fill-white" />
-                        </div>
-                      </div>
 
                       {/* Category badge */}
                       <Badge className={cn("absolute top-3 left-3 bg-gradient-to-r text-white", course.categoryColor)}>
