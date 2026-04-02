@@ -29,6 +29,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 import { FeaturedBusinessGallery } from '@/components/businesses/featured-business-gallery'
+import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 
 // Grade selector data
@@ -71,12 +72,12 @@ const gradeSelectors = [
   },
 ]
 
-// Featured courses data
-const featuredCourses = [
+// Fallback courses shown while loading or if DB is empty
+const fallbackCourses = [
   {
     id: '1',
     title: 'Introduction to Afaan Oromo',
-    thumbnail: '/images/courses/oromo-language.jpg',
+    slug: 'introduction-to-afaan-oromo',
     category: 'Language',
     categoryColor: 'from-blue-500 to-blue-600',
     lessons: 12,
@@ -86,7 +87,7 @@ const featuredCourses = [
   {
     id: '2',
     title: 'Oromo History & Heritage',
-    thumbnail: '/images/courses/oromo-history.jpg',
+    slug: 'oromo-history-heritage',
     category: 'History',
     categoryColor: 'from-amber-500 to-amber-600',
     lessons: 10,
@@ -96,7 +97,7 @@ const featuredCourses = [
   {
     id: '3',
     title: 'The Gadaa System',
-    thumbnail: '/images/courses/gadaa.jpg',
+    slug: 'the-gadaa-system',
     category: 'Culture',
     categoryColor: 'from-purple-500 to-purple-600',
     lessons: 8,
@@ -106,7 +107,7 @@ const featuredCourses = [
   {
     id: '4',
     title: 'Web Development Basics',
-    thumbnail: '/images/courses/web-dev.jpg',
+    slug: 'web-development-basics',
     category: 'Technology',
     categoryColor: 'from-emerald-500 to-emerald-600',
     lessons: 24,
@@ -114,6 +115,16 @@ const featuredCourses = [
     difficulty: 'Beginner',
   },
 ]
+
+// Category color mapping
+const categoryColorMap: Record<string, string> = {
+  blue: 'from-blue-500 to-blue-600',
+  amber: 'from-amber-500 to-amber-600',
+  purple: 'from-purple-500 to-purple-600',
+  green: 'from-emerald-500 to-emerald-600',
+  slate: 'from-slate-500 to-slate-600',
+  rose: 'from-rose-500 to-rose-600',
+}
 
 // Impact stats
 const stats = [
@@ -281,6 +292,50 @@ export default function HomePage() {
   const testimonialsRef = useInView(0.1)
   const parentRef = useInView(0.1)
   const platformRef = useInView(0.1)
+
+  const [featuredCourses, setFeaturedCourses] = useState(fallbackCourses)
+
+  useEffect(() => {
+    const fetchFeaturedCourses = async () => {
+      const supabase = createClient()
+      const { data } = await supabase
+        .from('courses')
+        .select(`
+          id,
+          title,
+          slug,
+          thumbnail_url,
+          difficulty,
+          estimated_hours,
+          category_id,
+          course_categories (name, color)
+        `)
+        .eq('is_published', true)
+        .eq('is_featured', true)
+        .order('created_at')
+        .limit(4)
+
+      if (data && data.length > 0) {
+        const mapped = data.map((course) => {
+          const cat = course.course_categories as unknown as { name: string; color: string } | null
+          return {
+            id: course.id,
+            title: course.title,
+            slug: course.slug,
+            category: cat?.name || 'General',
+            categoryColor: categoryColorMap[cat?.color || 'blue'] || 'from-blue-500 to-blue-600',
+            lessons: 0,
+            hours: course.estimated_hours || 0,
+            difficulty: course.difficulty
+              ? course.difficulty.charAt(0).toUpperCase() + course.difficulty.slice(1)
+              : 'Beginner',
+          }
+        })
+        setFeaturedCourses(mapped)
+      }
+    }
+    fetchFeaturedCourses()
+  }, [])
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -578,7 +633,7 @@ export default function HomePage() {
               {featuredCourses.map((course, index) => (
                 <Link
                   key={course.id}
-                  href="/academy"
+                  href={`/academy/${course.slug}`}
                   className={cn(
                     "group transition-all duration-500",
                     coursesRef.isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
