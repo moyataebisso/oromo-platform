@@ -77,6 +77,7 @@ const fallbackCourses = [
     id: '1',
     title: 'Introduction to Afaan Oromo',
     slug: 'introduction-to-afaan-oromo',
+    thumbnail_url: null as string | null,
     category: 'Language',
     categoryColor: 'from-blue-500 to-blue-600',
     lessons: 12,
@@ -87,6 +88,7 @@ const fallbackCourses = [
     id: '2',
     title: 'Oromo History & Heritage',
     slug: 'oromo-history-heritage',
+    thumbnail_url: null as string | null,
     category: 'History',
     categoryColor: 'from-amber-500 to-amber-600',
     lessons: 10,
@@ -97,6 +99,7 @@ const fallbackCourses = [
     id: '3',
     title: 'The Gadaa System',
     slug: 'the-gadaa-system',
+    thumbnail_url: null as string | null,
     category: 'Culture',
     categoryColor: 'from-purple-500 to-purple-600',
     lessons: 8,
@@ -107,6 +110,7 @@ const fallbackCourses = [
     id: '4',
     title: 'Web Development Basics',
     slug: 'web-development-basics',
+    thumbnail_url: null as string | null,
     category: 'Technology',
     categoryColor: 'from-emerald-500 to-emerald-600',
     lessons: 24,
@@ -307,7 +311,8 @@ export default function HomePage() {
           difficulty,
           estimated_hours,
           category_id,
-          course_categories (name, color)
+          course_categories (name, color),
+          lessons (id)
         `)
         .eq('is_published', true)
         .eq('is_featured', true)
@@ -321,9 +326,10 @@ export default function HomePage() {
             id: course.id,
             title: course.title,
             slug: course.slug,
+            thumbnail_url: course.thumbnail_url || null,
             category: cat?.name || 'General',
             categoryColor: categoryColorMap[cat?.color || 'blue'] || 'from-blue-500 to-blue-600',
-            lessons: 0,
+            lessons: (course as unknown as { lessons?: { id: string }[] }).lessons?.length ?? 0,
             hours: course.estimated_hours || 0,
             difficulty: course.difficulty
               ? course.difficulty.charAt(0).toUpperCase() + course.difficulty.slice(1)
@@ -642,6 +648,13 @@ export default function HomePage() {
                   <Card className="h-full bg-card/50 backdrop-blur border-border/50 overflow-hidden hover:border-primary/50 hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
                     {/* Thumbnail */}
                     <div className="aspect-video bg-gradient-to-br from-slate-800 to-slate-900 relative overflow-hidden">
+                      {course.thumbnail_url && (
+                        <img
+                          src={course.thumbnail_url}
+                          alt={course.title}
+                          className="absolute inset-0 w-full h-full object-cover"
+                        />
+                      )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
 
                       {/* Category badge */}
