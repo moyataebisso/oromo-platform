@@ -38,7 +38,7 @@ export const FeaturedBusinessGallery = ({
           .order('name')
 
         if (error) {
-          console.error('Error fetching partners:', error)
+          console.warn('No partners found:', error)
           setBusinesses([])
         } else {
           setBusinesses(data || [])

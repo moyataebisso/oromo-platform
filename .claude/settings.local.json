@@ -35,7 +35,14 @@
       "Bash(ls:*)",
       "Bash(npx next build)",
       "WebSearch",
-      "Bash(./node_modules/.bin/next build:*)"
+      "Bash(./node_modules/.bin/next build:*)",
+      "Bash(grep -E \"\\\\.\\(ts|tsx|js\\)$\")",
+      "Bash(xargs grep:*)",
+      "Bash(node -e \":*)",
+      "Bash(npx tsx:*)",
+      "Bash(npx:*)",
+      "Bash(node:*)",
+      "Bash(git push:*)"
     ]
   }
 }
