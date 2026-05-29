@@ -64,12 +64,17 @@ export default function SignupPage() {
       const calculatedAge = calculateAge(data.birthday)
       const calculatedAgeGroup = getAgeGroup(calculatedAge)
 
+      const siteUrl =
+        process.env.NEXT_PUBLIC_SITE_URL || 'https://oromo-platform.vercel.app'
+
       const { error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
         options: {
+          emailRedirectTo: `${siteUrl}/auth/callback`,
           data: {
             display_name: data.displayName,
+            full_name: data.displayName,
             birthday: data.birthday.toISOString(),
             age_group: calculatedAgeGroup,
             grade_level: data.gradeLevel || null,
