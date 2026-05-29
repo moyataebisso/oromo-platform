@@ -74,8 +74,7 @@ export default function SignupPage() {
           emailRedirectTo: `${siteUrl}/auth/callback`,
           data: {
             display_name: data.displayName,
-            full_name: data.displayName,
-            birthday: data.birthday.toISOString(),
+            date_of_birth: format(data.birthday, 'yyyy-MM-dd'),
             age_group: calculatedAgeGroup,
             grade_level: data.gradeLevel || null,
             parent_email: data.parentEmail || null,
